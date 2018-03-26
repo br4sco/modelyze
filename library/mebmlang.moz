@@ -145,13 +145,13 @@ def evalpres(E: Set(Equations), vm: VMap) -> Set(Equations) = {
   listToSet (map work (Set.toList E))
 }
 
-def gatherIEulerDefEquations(E: Set(Equations), ll: VMap) -> Set(Equations) = {
+def gatherIEulerDefEquations(E: Set(Equations), vm: VMap) -> Set(Equations) = {
   def llog = logger "gatherIEulerDefEquations";
 
   def work(acc: Set(Equations), e: Equations) -> Set(Equations) = {
     match e with
     | e_1 = e_2 ->
-      if (isIEDerDefined ll e_1) && (isIEDerDefined ll e_2) then (Set.add e acc)
+      if (isIEDerDefined vm e_1) && (isIEDerDefined vm e_2) then (Set.add e acc)
       else acc
     | _ -> unmatched llog e
   };
@@ -159,13 +159,13 @@ def gatherIEulerDefEquations(E: Set(Equations), ll: VMap) -> Set(Equations) = {
   foldLeft work (Set.empty) (Set.toList E)
 }
 
-def mapToImplEuler(E: Set(Equations), ll: VMap, h: Real) -> Set(Equations) = {
+def mapToImplEuler(E: Set(Equations), h: Real) -> Set(Equations) = {
   def llog = logger "mapToBEuler";
 
   def work(e: Equations) -> Equations = {
     def workharder(ee: <?>) -> <?> = {
       match ee with
-      | der x -> (x - (evalReal x ll)) / h
+      | der x -> (x - (pre x)) / h
       | f ee_1 -> (workharder f) (workharder ee_1)
       | _ -> ee
     };
@@ -189,10 +189,10 @@ def addIEDerApprox(vm0: VMap, vm1: VMap, h: Real) -> VMap = {
   foldLeft f vm1 (Map.toList vm1)
 }
 
-def impulseApprox(E: Set(Equations), ll: VMap, rl: VMap, h: Real) -> VMap = {
-  def IEDE = gatherIEulerDefEquations E ll;
-  def EIE = mapToImplEuler IEDE ll h;
-  def nrl = solveNLEQ EIE rl 0.;
+def impulseApprox(E: Set(Equations), vm: VMap, h: Real) -> VMap = {
+  def IEDE = gatherIEulerDefEquations E vm;
+  def EIE = mapToImplEuler IEDE h;
+  def nrl = solveNLEQ EIE vm 0.;
   nrl
 }
 

@@ -48,7 +48,9 @@ def checkStateVar(x: <Real>) -> () = {
   def llog = logger "checkStateVar" INFO;
   match x with
   | sym: Real -> ()
-  | der xx -> checkStateVar xx
+  | der x -> checkStateVar x
+  | integ x -> checkStateVar x
+  | pre x -> checkStateVar x
   | _ -> {
       def _ = llog "state var:" x;
       error "Not a state variable"
@@ -60,8 +62,8 @@ def find(x: <Real>, vmap: VMap) -> Real = {
   def _ = checkStateVar x;
   if (Map.mem x vmap) then (Map.find x vmap)
   else {
-      def _ = llog "state var:" x;
-      error "State variable undefined"
+      def _ = llog "var:" x;
+      error "Undefined!"
     }
 }
 
@@ -70,24 +72,31 @@ def add(x: <Real>, v: Real, vmap: VMap) -> VMap = {
   Map.add x v vmap
 }
 
-def eval(expr:<?>, vm: VMap) -> ? = {
-    match expr with
-    | integ x ->
-        (match x with
-         | sym: Real -> find x vm
-         | der xx -> find xx vm
-         | lift xx: Real -> 0.
-         | _ -> error "Unsupported model construct")
-    | der x ->
-        (match x with
-         | sym: Real -> find x vm
-         | integ xx -> find xx vm
-         | lift xx: Real -> 0.
-         | _ -> error "Unsupported model construct")
-    | sym: Real -> find expr vm
-    | f e -> (eval f vm) (eval e vm)
-    | lift v: ? -> v
-    | _ ->  error "Unsupported model construct"
+def eval(e: <?>, vm: VMap) -> ? = {
+
+  def ei(x: <Real>, v: Real) -> Real = {
+    def dm = find (integ x) vm;
+    if dm == 0. then v
+    else { if dm > 0. then INFINITE else NEG_INFINITE }
+  };
+
+  match e with
+  | integ x ->
+      (match x with
+       | sym: Real -> find x vm
+       | der x -> eval x vm
+       | lift r: Real -> 0.
+       | _ -> error "Unsupported model construct")
+  | der x ->
+      (match x with
+       | sym: Real -> ei x (find x vm)
+       | integ x -> eval x vm
+       | lift r: Real -> 0.
+       | _ -> error "Unsupported model construct")
+  | sym: Real -> ei e (find e vm)
+  | f e -> (eval f vm) (eval e vm)
+  | lift v: ? -> v
+  | _ ->  error "Unsupported model construct"
 }
 
 def evalRealFromVMap(a: <?>, vm: VMap) -> Real = {
@@ -114,12 +123,13 @@ def isDefinedUkMap(map: UkMap, e: <?>) -> Bool = {
   | _ -> unmatched llog e
 }
 
-
-def isIEDerDefined(map: (<Real> => Real), e: <?>) -> Bool = {
+def isIEDerDefined(e: <?>, vm: VMap) -> Bool = {
   def llog = logger "isIEDerDefined";
   match e with
-  | der x -> isDefined map x
-  | e_1 e_2 -> (isIEDerDefined map e_1) && (isIEDerDefined map e_2)
+  | integ x -> false
+  | e_1 e_2 -> (isIEDerDefined e_1 vm) && (isIEDerDefined e_2 vm)
+  | der x -> isDefined (pre x) vm
+  | pre x -> true
   | sym: Real -> true
   | lift v: ? -> true
   | _ -> unmatched llog e
@@ -215,12 +225,27 @@ def eVMapToUkMapYy(E: Set(Equations), vm: VMap, udfv: Real) ->
 def ukMapYyYpToVMap(ukm: UkMap, yy: {Real}, yp: {Real}) -> VMap = {
   def f(acc: VMap,  e: (<Real>, (Int, Bool))) -> VMap = {
     def (x, (i, _)) = e;
-    Map.add x (Array.get yy i) (Map.add (der x) (Array.get yp i) acc)
+    Map.add x (Array.get yy i)
+      (Map.add (der x) (Array.get yp i)
+        (Map.add (integ x) 0. acc))
   };
 
   foldLeft f (Map.empty) (Map.toList ukm)
 }
 
+def mkVMap(ukm: UkMap, yy0: {Real}, yp0: {Real}, yy1: {Real}, yp1: {Real}) -> VMap = {
+  def f(acc: VMap,  e: (<Real>, (Int, Bool))) -> VMap = {
+    def (x, (i, _)) = e;
+    (Map.add x (Array.get yy1 i)
+    (Map.add (der x) (Array.get yp1 i)
+    (Map.add (pre x) (Array.get yy0 i)
+    (Map.add (pre (der x)) (Array.get yp0 i)
+    (Map.add (integ x) 0.
+    acc)))))
+  };
+
+  foldLeft f (Map.empty) (Map.toList ukm)
+}
 
 def ukMapYyToVMap(ukm: UkMap, yy: {Real}) -> VMap = {
   def f(acc: VMap,  e: (<Real>, (Int, Bool))) -> VMap = {
@@ -326,4 +351,18 @@ def solveNLEQ(E: Set(Equations), vm: VMap, udfv: Real) -> VMap = {
   def s = (NLEQSolver.init sysfun yy);
   def _ = (NLEQSolver.solve s yy);
   ukMapYyToVMap ukm yy
+}
+
+def solveNLEQ2(E: Set(Equations), vm: VMap, udfv: Real) -> VMap = {
+  def (ukm, n) = realUnknowns (setToCont E);
+  def yy = (Array.make n udfv);
+  def _ = map
+    (fun e: (<Real>, (Int, Bool)) ->
+      def (x, (i, _)) = e;
+      if isDefined x vm then Array.set yy i (find x vm) else Array.set yy i udfv
+    )
+
+  def sysf(yy: {Real}) -> [Real] = {
+
+  };
 }
