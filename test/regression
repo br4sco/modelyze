@@ -1,24 +1,37 @@
 #!/bin/bash
 
+MOZ=$(realpath ../bin/moz)
+LIB=$(realpath ../library)
+DEMO=$(realpath ../demo)
+
+test_file()
+{
+  $MOZ --libpaths=$LIB $1 > test.out
+  diff test.out $2 
+}
+
 test_demo_file()
 {
   echo "Test" $1".moz"
-  ../bin/moz --libpaths=../library/ ../demo/$1".moz" > test.out
-  diff test.out "expected-output-"$1".txt"
+  test_file $DEMO/$1".moz" "expected-output-"$1".txt"
 }
 
 test_local_file()
 {
   echo "Test" $1".moz"
-  ../bin/moz --libpaths=../library/ $1".moz" > test.out
-  diff test.out "expected-output-"$1".txt"
+  test_file $1".moz" "expected-output-"$1".txt"
 }
 
 test_dill_file()
 {
   echo "Test" $1".moz"
-  ../bin/moz --libpaths=../library/ ../demo/dill/$1".moz" > test.out
-  diff test.out "expected-output-"$1".txt"
+  test_file $DEMO/dill/$1".moz" "expected-output-dill-"$1".txt"
+}
+
+test_2dmech_file()
+{
+  echo "Test" $1".moz"
+  test_file $DEMO/2DMech/$1".moz" "expected-output-2DMech-"$1".txt"
 }
 
 test_demo_file "modelica-mechsys" 
@@ -44,5 +57,7 @@ test_dill_file "svr"
 test_dill_file "lrd"
 test_dill_file "lrd2"
 test_dill_file "clutch"
+
+test_2dmech_file "pendulum"
 
 rm -f test.out

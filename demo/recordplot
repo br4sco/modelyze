@@ -1,5 +1,10 @@
 #!/bin/bash
 
 f=$(basename $1 .moz)
-./moz $1 > "expected-output-"$f".txt"
+d=$(dirname $1)
 
+if [ "$d" = "." ]; then
+  ./moz $1 > "expected-output-"$f".txt"
+else 
+  ./moz $1 > "expected-output-"$d"-"$f".txt"
+fi
