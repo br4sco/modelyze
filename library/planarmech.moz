@@ -28,5 +28,6 @@ type TranslationalDisplacement = <Real>
 
 type Frame = Node
 
-def PointMass(inertial: Frame, bodyfixed: Frame) {
+def PointMass(inertial: Frame, bodyfixed: Frame) = {
+  1
 }

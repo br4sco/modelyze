@@ -18,4 +18,4 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include 2DMech
+include PlanarMech 
