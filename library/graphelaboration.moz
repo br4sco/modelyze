@@ -19,7 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include Equation
-def Branch : Real -> Real -> Dyn -> Dyn -> Equations
+def Branch : Dyn -> Dyn -> Dyn -> Dyn -> Equations
 
 def contToSet(cont: ?) -> Set(?) = {
   def work(cont: ?, acc: Set(?)) -> Set(?) = {
@@ -171,10 +171,10 @@ def listToIMatrix(l: [[Int]]) -> IMatrix = {
 }
 
 def enumerateEdges(Tl: [Equations])
-  -> [(Node, Node, <Real>, <Real>)] = {
+  -> [(Node, Node, Dyn, Dyn)] = {
 
-  def f(em: [(Node, Node, <Real>, <Real>)], e: Equations)
-    -> [(Node, Node, <Real>, <Real>)] = {
+  def f(em: [(Node, Node, Dyn, Dyn)], e: Equations)
+    -> [(Node, Node, Dyn, Dyn)] = {
 
     match e with
     | Branch t a p n -> (p, n, t, a)::em
@@ -184,10 +184,10 @@ def enumerateEdges(Tl: [Equations])
   foldLeft f [] Tl
 }
 
-def enumerateNodes(el: [(Node, Node, <Real>, <Real>)])
+def enumerateNodes(el: [(Node, Node, Dyn, Dyn)])
   -> (Node => Int) = {
 
-  def f(mi: ((Node => Int), Int), e: (Node, Node, <Real>, <Real>))
+  def f(mi: ((Node => Int), Int), e: (Node, Node, Dyn, Dyn))
     -> ((Node => Int), Int) = {
 
     def (m, i) = mi;
@@ -204,14 +204,14 @@ def enumerateNodes(el: [(Node, Node, <Real>, <Real>)])
   m
 }
 
-def buildIndcidenceMatrix(el: [(Node, Node, <Real>, <Real>)], nm: (Node => Int))
-  -> (IMatrix, (Int => (<Real>, <Real>))) = {
+def buildIndcidenceMatrix(el: [(Node, Node, Dyn, Dyn)], nm: (Node => Int))
+  -> (IMatrix, (Int => (Dyn, Dyn))) = {
 
   def n = (Map.size nm);
   def m = length el;
-  def f(IMj: (IMatrix, (Int => (<Real>, <Real>)), Int),
-        ee: (Node, Node, <Real>, <Real>))
-     -> (IMatrix, (Int => (<Real>, <Real>)), Int) = {
+  def f(IMj: (IMatrix, (Int => (Dyn, Dyn)), Int),
+        ee: (Node, Node, Dyn, Dyn))
+     -> (IMatrix, (Int => (Dyn, Dyn)), Int) = {
 
      def (IM, vm, j) = IMj;
      def (n_in, n_out, t, a) = ee;
@@ -284,8 +284,8 @@ def swrows(IM: IMatrix, i1: Int, i2: Int) -> IMatrix = {
   }
 }
 
-def swcols(IM: IMatrix, vm: (Int => (<Real>, <Real>)), j1: Int, j2: Int)
-  -> (IMatrix, (Int => (<Real>, <Real>))) = {
+def swcols(IM: IMatrix, vm: (Int => (Dyn, Dyn)), j1: Int, j2: Int)
+  -> (IMatrix, (Int => (Dyn, Dyn))) = {
 
   def nvm = (Map.add j1 (Map.find j2 vm) (Map.add j2 (Map.find j1 vm) vm));
   (transpose (swrows (transpose IM) j1 j2), nvm)
@@ -367,12 +367,12 @@ def trim(IM: IMatrix, si: Int, ei: Int, sj: Int, ej: Int) -> IMatrix = {
   work (emptyIMatrix (ei - si + 1) (ej - sj + 1)) si sj
 }
 
-def getThroughMatrix(IM: IMatrix, vm: (Int => (<Real>, <Real>)))
-  -> (IMatrix, (Int => (<Real>, <Real>))) = {
+def getThroughMatrix(IM: IMatrix, vm: (Int => (Dyn, Dyn)))
+  -> (IMatrix, (Int => (Dyn, Dyn))) = {
 
   def (_, n, m) = IM;
-  def aligncols(IMvm: (IMatrix, (Int => (<Real>, <Real>))), nn: Int, i: Int)
-    -> (IMatrix, (Int => (<Real>, <Real>)), Int) = {
+  def aligncols(IMvm: (IMatrix, (Int => (Dyn, Dyn))), nn: Int, i: Int)
+    -> (IMatrix, (Int => (Dyn, Dyn)), Int) = {
       def (IM, vm) = IMvm;
       if i >= n then (IM, vm, nn)
       else {
@@ -392,16 +392,16 @@ def getAcrossMatrix(TM: IMatrix) -> IMatrix = {
   concat lhs (identityIMatrix (m - n))
 }
 
-def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Real>))
+def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>))
   -> Set(Equations) = {
   def (M, n, m) = IM;
 
-  def vmapElmToSReal(e: (Int, Int)) -> <Real> = {
+  def vmapElmToSReal(e: (Int, Int)) -> <Dyn> = {
     def (i, c) = e;
     (int2real c)*(Map.find i vm)
   };
 
-  def f(exp: <Real>, e: (Int, Int)) -> <Real> = { exp + (vmapElmToSReal e) };
+  def f(exp: <Dyn>, e: (Int, Int)) -> <Dyn> = { exp + (vmapElmToSReal e) };
 
   def work(i: Int, acc: Set(Equations)) -> Set(Equations) = {
     if i >= n then acc
@@ -429,12 +429,12 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
   def llog = logger "elaboratetopology" DEBUG;
   if (Set.size T) == 0 then mnil ()
   else {
-    def ff(ee: (Int, (<Real>, <Real>))) -> (Int, <Real>) = {
+    def ff(ee: (Int, (<Dyn>, <Dyn>))) -> (Int, <Dyn>) = {
       def (i, (t, _)) = ee;
       (i, t)
     };
 
-    def fe(ee: (Int, (<Real>, <Real>))) -> (Int, <Real>) = {
+    def fe(ee: (Int, (<Dyn>, <Dyn>))) -> (Int, <Dyn>) = {
       def (i, (_, a)) = ee;
       (i, a)
     };
