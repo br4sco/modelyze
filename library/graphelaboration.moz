@@ -391,7 +391,7 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   if (n != m) then
     def lhs = chsign (transpose (trim TM 0 (n - 1) n (m - 1)));
     concat lhs (identityIMatrix (m - n))
-  else emptyIMatrix 0 0 
+  else emptyIMatrix 0 0
 }
 
 def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>))
@@ -467,19 +467,19 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
 
     def (A, B, vm) = getCircAndCutMatrices(T);
 
-    def fvec = listToMap (map ff (Map.toList vm));
-    def _ = llog "we have flow vec:" fvec;
+    def tvec = listToMap (map ff (Map.toList vm));
+    def _ = llog "we have flow vec:" tvec;
 
-    def floweqs = matrixVMapToEquations A fvec;
+    def floweqs = matrixVMapToEquations A tvec;
     def _ = llog "flow eqs:" floweqs;
 
     def (_, n, _) = B;
     if (n != 0) then {
 
-      def evec = listToMap (map fe (Map.toList vm));
-      def _ = llog "and effort vec:" evec;
+      def avec = listToMap (map fe (Map.toList vm));
+      def _ = llog "and effort vec:" avec;
 
-      def circeqs = matrixVMapToEquations B evec;
+      def circeqs = matrixVMapToEquations B avec;
       def _ = llog "circ eqs:" circeqs;
 
       def E = union floweqs circeqs;
