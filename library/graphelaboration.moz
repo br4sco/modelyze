@@ -204,7 +204,7 @@ def enumerateNodes(el: [(Node, Node, Dyn, Dyn)])
   m
 }
 
-def buildIndcidenceMatrix(el: [(Node, Node, Dyn, Dyn)], nm: (Node => Int))
+def buildIncidenceMatrix(el: [(Node, Node, Dyn, Dyn)], nm: (Node => Int))
   -> (IMatrix, (Int => (Dyn, Dyn))) = {
 
   def n = (Map.size nm);
@@ -367,7 +367,7 @@ def trim(IM: IMatrix, si: Int, ei: Int, sj: Int, ej: Int) -> IMatrix = {
   work (emptyIMatrix (ei - si + 1) (ej - sj + 1)) si sj
 }
 
-def getThroughMatrix(IM: IMatrix, vm: (Int => (Dyn, Dyn)))
+def getFCutsetMatrix(IM: IMatrix, vm: (Int => (Dyn, Dyn)))
   -> (IMatrix, (Int => (Dyn, Dyn))) = {
 
   def (_, n, m) = IM;
@@ -386,10 +386,12 @@ def getThroughMatrix(IM: IMatrix, vm: (Int => (Dyn, Dyn)))
   (trim nIM 0 (nn - 1) 0 (m - 1), nvm)
 }
 
-def getAcrossMatrix(TM: IMatrix) -> IMatrix = {
+def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   def (_, n, m) = TM;
-  def lhs = chsign (transpose (trim TM 0 (n - 1) n (m - 1)));
-  concat lhs (identityIMatrix (m - n))
+  if (n != m) then
+    def lhs = chsign (transpose (trim TM 0 (n - 1) n (m - 1)));
+    concat lhs (identityIMatrix (m - n))
+  else emptyIMatrix 0 0 
 }
 
 def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>))
@@ -425,6 +427,30 @@ def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>))
   else work 0 (Set.empty)
 }
 
+def getCircAndCutMatrices(T: Set(Equations)) -> (IMatrix, IMatrix, (Int => (Dyn, Dyn))) = {
+  def llog = logger "getCircAndCutMatrices" DEBUG;
+  def el = enumerateEdges (Set.toList T);
+  def _ = llog "edge list" el;
+
+  def nm = enumerateNodes el;
+  def _ = llog "node list" nm;
+
+  // TODO: handle self loops
+  def (IM, vm) = buildIncidenceMatrix el nm;
+  def _ = llog "Incidence Matrix" (pp IM);
+  def _ = llog "Variable Map" vm;
+
+  def IMr = rowreduce IM;
+  def (A, nvm) = getFCutsetMatrix IMr vm;
+  def _ = llog "Cutset Matrix (A)" (pp A);
+  def _ = llog "modified Variable Map" nvm;
+
+  def B = getFCircuitMatrix A;
+  def _ = llog "Circuit Matrix (B)" (pp B);
+
+  (A, B, nvm)
+}
+
 def elaboratetopology(T: Set(Equations)) -> Equations = {
   def llog = logger "elaboratetopology" DEBUG;
   if (Set.size T) == 0 then mnil ()
@@ -439,34 +465,18 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
       (i, a)
     };
 
-    def el = enumerateEdges (Set.toList T);
-    def _ = llog "edge list" el;
+    def (A, B, vm) = getCircAndCutMatrices(T);
 
-    def nm = enumerateNodes el;
-    def _ = llog "node list" nm;
-
-    // TODO: handle self loops
-    def (IM, vm) = buildIndcidenceMatrix el nm;
-    def _ = llog "Incidence Matrix" (pp IM);
-    def _ = llog "Variable Map" vm;
-
-    def IMr = rowreduce IM;
-    def (A, nvm) = getThroughMatrix IMr vm;
-    def _ = llog "Cutset Matrix (A)" (pp A);
-    def _ = llog "modified Variable Map" nvm;
-
-    def fvec = listToMap (map ff (Map.toList nvm));
+    def fvec = listToMap (map ff (Map.toList vm));
     def _ = llog "we have flow vec:" fvec;
 
     def floweqs = matrixVMapToEquations A fvec;
     def _ = llog "flow eqs:" floweqs;
 
-    def (_, n, m) = A;
-    if (m != n) then {
-      def B = getAcrossMatrix A;
-      def _ = llog "Circuit Matrix (B)" (pp B);
+    def (_, n, _) = B;
+    if (n != 0) then {
 
-      def evec = listToMap (map fe (Map.toList nvm));
+      def evec = listToMap (map fe (Map.toList vm));
       def _ = llog "and effort vec:" evec;
 
       def circeqs = matrixVMapToEquations B evec;
