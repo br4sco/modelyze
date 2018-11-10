@@ -268,6 +268,11 @@ def union(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   foldLeft f lhs (Set.toList rhs)
 }
 
+def setminus(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
+  def f(res: Set(?), e: ?) -> Set(?) = { Set.remove e res };
+  foldLeft f lhs (Set.toList rhs)
+}
+
 def concat(lhs: [Dyn], rhs: [Dyn]) -> [Dyn] = {
   def rlhs = reverse lhs;
   def f(l: [Dyn], e: Dyn) -> [Dyn] = { e::l };

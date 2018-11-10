@@ -274,27 +274,6 @@ def stable(d: Ieqs, z: State) -> Bool = {
 
 // Test
 // def x, y: <Real>
-// def z = listToMap [(x, 2.), (y, 3.)]
-// def _ = dprint(stable (x <= y;1. <= y) z) // true
-// def _ = dprint(stable (x <= y;4. <= y) z) // false
-// def _ = dprint(stable (x <= y;1. = y) z) // expected a Ieqs in stable
-
-def consistent_w_eqs(d: Eqs, z: State) -> Bool = {
-  def epsilon = 1e-7;
-  match d with
-  | d_1; d_2 -> (consistent_w_eqs d_1 z) && (consistent_w_eqs d_2 z)
-  | lhs = rhs -> {
-      def v = abs((eval_expr lhs z) - (eval_expr rhs z));
-      // def _ = dprint(d);
-      // def _ = dprint(v);
-      v < epsilon
-    }
-  | mnil () -> true
-  | _ -> { def _ = dprint(d); error "expected Eqs in consistent_w_eqs" }
-}
-
-// Test
-// def x, y: <Real>
 // def z = listToMap [(x, 2.), (y, 1.)]
 // def _ = dprint(consistent_w_eqs (x = 2. * y;1. = y) z) // true
 // def _ = dprint(consistent_w_eqs (x = 2. * y;4. = y) z) // false

@@ -470,8 +470,8 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
     def tvec = listToMap (map ff (Map.toList vm));
     def _ = llog "we have flow vec:" tvec;
 
-    def floweqs = matrixVMapToEquations A tvec;
-    def _ = llog "flow eqs:" floweqs;
+    def cutseteqs = matrixVMapToEquations A tvec;
+    def _ = llog "flow eqs:" cutseteqs;
 
     def (_, n, _) = B;
     if (n != 0) then {
@@ -482,14 +482,14 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
       def circeqs = matrixVMapToEquations B avec;
       def _ = llog "circ eqs:" circeqs;
 
-      def E = union floweqs circeqs;
+      def E = union cutseteqs circeqs;
       def _ = llog "topological equations" (setToCont E);
 
       setToCont E
     } else {
       def _ =
-        llog "We only have one edge, topological equations" (setToCont floweqs);
-      setToCont floweqs
+        llog "We only have one edge, topological equations" (setToCont cutseteqs);
+      setToCont cutseteqs
     }
   }
 }

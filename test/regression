@@ -3,6 +3,7 @@
 MOZ=$(realpath ../bin/moz)
 LIB=$(realpath ../library)
 DEMO=$(realpath ../demo)
+TEST=$(realpath .)
 
 test_file()
 {
@@ -19,7 +20,7 @@ test_demo_file()
 test_local_file()
 {
   echo "Test" $1".moz"
-  test_file $1".moz" "expected-output-"$1".txt"
+  test_file $TEST/$1".moz" "expected-output-"$1".txt"
 }
 
 test_dill_file()
@@ -58,6 +59,6 @@ test_dill_file "lrd"
 test_dill_file "lrd2"
 test_dill_file "clutch"
 
-test_2dmech_file "pendulum"
+# test_2dmech_file "pendulum"
 
 rm -f test.out

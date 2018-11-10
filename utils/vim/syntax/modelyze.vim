@@ -21,6 +21,8 @@ syn match   modelyzeNumber     "\<\d\+\.\d*\(e[+-]\=\d\+\)\=" display
 syn match modelyzeBlockComment '\/\*\_.*\*\/'
 syn match modelyzeLineComment '\/\/.*'
 
+syn region modelyzeDescBlock start="{" end="}" fold transparent
+
 let b:current_syntax = "modelyze"
 hi def link modelyzeBlockComment    Comment
 hi def link modelyzeLineComment     Comment

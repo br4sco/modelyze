@@ -20,14 +20,49 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Graphelaboration
 
-type Torque = <Real>
-type AngularDisplacement = <Real>
-
-type Force = <Real>
-type TranslationalDisplacement = <Real>
-
 type Frame = Node
 
-def PointMass(inertial: Frame, bodyfixed: Frame) = {
-  1
+type Torque = <Real>
+type AngularDispl = <Real>
+def RotBranch: Torque -> AngularDispl -> Frame -> Frame -> Equations
+
+type Force = (<Real>, <Real>)
+type TransDispl = (<Real>, <Real>)
+def TransBranch: Force -> TransDispl -> Frame -> Frame -> Equations
+
+def g = 9.81
+
+def get_trans_graph(m: Equations) -> Set(Equations) = {
+  def work (m: Equations, acc: Set(Equations)) -> Set(Equations) = {
+    match m with
+      | m_1; m_2 -> work m_2 (work m_1 acc)
+      | TransBranch _ _ _ _ -> Set.add m acc
+      | _ -> acc
+  };
+  work m (Set.empty)
 }
+
+def get_rot_graph(m: Equations) -> Set(Equations) = {
+  def work (m: Equations, acc: Set(Equations)) -> Set(Equations) = {
+    match m with
+      | m_1; m_2 -> work m_2 (work m_1 acc)
+      | RotBranch _ _ _ _ -> Set.add m acc
+      | _ -> acc
+  };
+  work m (Set.empty)
+}
+
+def get_terminals(m: Equations) -> Set(Equations) = {
+  def work (m: Equations, acc: Set(Equations)) -> Set(Equations) = {
+    match m with
+      | m_1; m_2 -> work m_2 (work m_1 acc)
+      | TransBranch _ _ _ _ -> acc
+      | RotBranch _ _ _ _ -> acc
+      | _ -> Set.add m acc
+  };
+  work m (Set.empty)
+}
+
+def x, y, Fx, Fy, theta, tau: <Real>
+def inertial, bodyfixed: Frame
+// def _ = dprint(elaboratetopology (get_trans_graph (RigidBody 1. 1. (x, y) (Fx, Fy) theta tau (0., 0.) 0. inertial bodyfixed)))
