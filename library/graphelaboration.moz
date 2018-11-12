@@ -83,6 +83,19 @@ def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>)) -> Set(Equations) = {
   else work 0 (Set.empty)
 }
 
+def buildEquations(tm: TransMap) -> Set(Equations) = {
+  def f(e: (Int, Dyn)) -> Real = {
+    if (fst e) < 0 then snd e
+    else -(snd e)
+  };
+
+  def work(a: Set(Equations), e: (Dyn, [(Int, Dyn)])) -> Set(Equations) = {
+    Set.add ((fst e) = (sum (map f (snd e)))) a
+  };
+
+  foldLeft work (Set.empty) (Map.toList tm)
+}
+
 def elaboratetopology(T: Set(Equations)) -> Equations = {
   def llog = logger "elaboratetopology" DEBUG;
 
@@ -99,7 +112,7 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
   };
 
   def getCircAndCutMatrices(T: Set(Equations)) ->
-    (IMatrix, IMatrix, EdgeVarMap) = {
+    (IMatrix, IMatrix, EdgeVarsMap) = {
 
     def el = getEdges (Set.toList T);
     def _ = llog "edge list" el;

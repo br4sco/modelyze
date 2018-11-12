@@ -30,4 +30,17 @@ def (*) : Vector -> Real -> Vector
 
 type AcrossVariable = Vector
 type ThroughVariable = Vector
-type Trans = (Vector => Vector)
+type VectorTransMap = (Vector => Vector)
+
+def buildVectorTransMap(tm: TransMap) -> VectorTransMap = {
+  def f(e: (Int, Dyn)) -> Vector = {
+    if (fst e) < 0 then snd e
+    else -(snd e)
+  };
+
+  def work(a: VectorTransMap, e: (Dyn, [(Int, Dyn)])) -> VectorTransMap = {
+    Map.add (fst e) (sum (map f (snd e))) a
+  };
+
+  foldLeft work (Map.empty) (Map.toList tm)
+}

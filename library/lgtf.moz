@@ -24,8 +24,10 @@ type Node = ?
 type Edge = (Node, Node, Dyn, Dyn)
 type MatrixRow = (Int => Int)
 type IMatrix = ((Int => MatrixRow), Int, Int)
-type EdgeVarMap = (Int => (Dyn, Dyn))
+type EdgeVarMap = (Int => Dyn)
+type EdgeVarsMap = (Int => (Dyn, Dyn))
 type NodeEnumMap = (Node => Int)
+type TransMap = (Dyn => [(Int, Dyn)])
 
 def IN_EDGE = -1
 def OUT_EDGE = 1
@@ -148,7 +150,7 @@ def listToIMatrix(l: [[Int]]) -> IMatrix = {
   IM
 }
 
-def buildIncidenceMatrix(el: [Edge]) -> (IMatrix, EdgeVarMap) = {
+def buildIncidenceMatrix(el: [Edge]) -> (IMatrix, EdgeVarsMap) = {
   def enumerateNodes(el: [Edge]) -> NodeEnumMap = {
     def f(mi: (NodeEnumMap, Int), e: Edge) -> (NodeEnumMap, Int) = {
       def (m, i) = mi;
@@ -168,9 +170,9 @@ def buildIncidenceMatrix(el: [Edge]) -> (IMatrix, EdgeVarMap) = {
   def nm = enumerateNodes el;
   def n = (Map.size nm);
   def m = length el;
-  def f(IMj: (IMatrix, EdgeVarMap, Int),
+  def f(IMj: (IMatrix, EdgeVarsMap, Int),
         ee: Edge)
-     -> (IMatrix, EdgeVarMap, Int) = {
+     -> (IMatrix, EdgeVarsMap, Int) = {
 
      def (IM, vm, j) = IMj;
      def (n_in, n_out, t, a) = ee;
@@ -243,8 +245,8 @@ def swrows(IM: IMatrix, i1: Int, i2: Int) -> IMatrix = {
   }
 }
 
-def swcols(IM: IMatrix, vm: EdgeVarMap, j1: Int, j2: Int)
-  -> (IMatrix, EdgeVarMap) = {
+def swcols(IM: IMatrix, vm: EdgeVarsMap, j1: Int, j2: Int)
+  -> (IMatrix, EdgeVarsMap) = {
 
   def nvm = (Map.add j1 (Map.find j2 vm) (Map.add j2 (Map.find j1 vm) vm));
   (transpose (swrows (transpose IM) j1 j2), nvm)
@@ -326,12 +328,12 @@ def trim(IM: IMatrix, si: Int, ei: Int, sj: Int, ej: Int) -> IMatrix = {
   work (emptyIMatrix (ei - si + 1) (ej - sj + 1)) si sj
 }
 
-def getFCutsetMatrix(IM: IMatrix, vm: EdgeVarMap)
-  -> (IMatrix, EdgeVarMap) = {
+def getFCutsetMatrix(IM: IMatrix, vm: EdgeVarsMap)
+  -> (IMatrix, EdgeVarsMap) = {
 
   def (_, n, m) = IM;
-  def aligncols(IMvm: (IMatrix, EdgeVarMap), nn: Int, i: Int)
-    -> (IMatrix, EdgeVarMap, Int) = {
+  def aligncols(IMvm: (IMatrix, EdgeVarsMap), nn: Int, i: Int)
+    -> (IMatrix, EdgeVarsMap, Int) = {
       def (IM, vm) = IMvm;
       if i >= n then (IM, vm, nn)
       else {
@@ -353,13 +355,13 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   else emptyIMatrix 0 0
 }
 
-def getTrans(TM: IMatrix, vm: (Int => Dyn)) -> (Dyn => [(Int, Dyn)]) = {
+def getTrans(TM: IMatrix, vm: EdgeVarMap) -> (TransMap) = {
   def (M, n, m) = TM;
   def f(e: (Int, Int)) -> (Int, Dyn) = {
     (snd e, Map.find (fst e) vm)
   };
 
-  def work(i: Int, acc: (Dyn => Dyn)) -> (Dyn => [(Int, Dyn)]) = {
+  def work(i: Int, acc: (TransMap)) -> (TransMap) = {
     if (i < n) then {
       def r = (Map.find i M);
       if (Map.mem i r) then {
@@ -375,3 +377,20 @@ def getTrans(TM: IMatrix, vm: (Int => Dyn)) -> (Dyn => [(Int, Dyn)]) = {
     work 0 (Map.empty)
   }
 }
+
+def getTroughVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
+  def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
+    Map.add (fst e) (fst (snd e)) acc
+  };
+
+  foldLeft work (Map.empty) (Map.toList evm)
+}
+
+def getAcrossVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
+  def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
+    Map.add (fst e) (snd (snd e)) acc
+  };
+
+  foldLeft work (Map.empty) (Map.toList evm)
+}
+
