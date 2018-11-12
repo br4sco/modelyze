@@ -18,10 +18,9 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include graphelaboration
+include LGTF
 
 type Vector
-
 def (--) : Vector -> Vector
 def (+) : Vector -> Vector -> Vector
 def (*) : Vector -> Vector -> Vector
@@ -31,3 +30,4 @@ def (*) : Vector -> Real -> Vector
 
 type AcrossVariable = Vector
 type ThroughVariable = Vector
+
