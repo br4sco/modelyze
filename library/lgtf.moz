@@ -169,7 +169,7 @@ def buildIncidenceMatrix(el: [Edge]) -> (IMatrix, EdgeVarMap) = {
      def (n_in, n_out, t, a) = ee;
      def i_in = (Map.find n_in nm);
      def i_out = (Map.find n_out nm);
-     (set (set IM i_in j IN_EDGE) i_out j OUT_EDGE, Map.add j (t, a) vm, j + 1)
+     (set (set IM i_in j OUT_EDGE) i_out j IN_EDGE, Map.add j (t, a) vm, j + 1)
    };
 
   def (IM, vm, _) = foldLeft f (emptyIMatrix n m, Map.empty, 0) el;
@@ -344,36 +344,4 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
     def lhs = chsign (transpose (trim TM 0 (n - 1) n (m - 1)));
     concat lhs (identityIMatrix (m - n))
   else emptyIMatrix 0 0
-}
-
-def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>)) -> Set(Equations) = {
-  def (M, n, m) = IM;
-
-  def vmapElmToSReal(e: (Int, Int)) -> <Dyn> = {
-    def (i, c) = e;
-    (int2real c)*(Map.find i vm)
-  };
-
-  def f(exp: <Dyn>, e: (Int, Int)) -> <Dyn> = { exp + (vmapElmToSReal e) };
-
-  def work(i: Int, acc: Set(Equations)) -> Set(Equations) = {
-    if i >= n then acc
-    else {
-      def r = (Map.find i M);
-      if (Map.size r) < 1 then
-        error "Did not expect a zero row here"
-      else
-        def rl = (Map.toList r);
-        def h = vmapElmToSReal (hd rl);
-        if (Map.size r) < 2 then work (i + 1) (Set.add (h = 0.) acc)
-        else {
-          def eq = (foldLeft f h (tl rl)) = 0.;
-          work (i + 1) (Set.add eq acc)
-        }
-    }
-  };
-
-  if m != (Map.size vm) then
-    error "The number of columns and variables doesn't match"
-  else work 0 (Set.empty)
 }

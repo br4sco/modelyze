@@ -18,10 +18,15 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-// include EquationsFormulation
-include Graphelaboration
-// def A_1, A_2, A_3, T_1, T_2, T_3: Vector
+include EquationsFormulation
 
-def x, y: Dyn
-def _ = x * y + 1.
+def r_1, r_2, r_3, F_1, F_2, F_3: Vector
+def n1, n2, n3: Node
 
+def G = [
+          (n1, n2, r_1, F_1),
+          (n2, n3, r_2, F_2),
+          (n3, n1, r_3, F_3)
+        ]
+
+def _ = dprint(pp (fst (buildIncidenceMatrix G)))

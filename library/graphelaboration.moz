@@ -51,8 +51,36 @@ def setToCont(set: Set(?)) -> ? = {
   setToContImpl set
 }
 
-def setToCont(set: Set(Equations)) -> Equations = {
-  if (Set.size set) == 0 then NoEqn else setToContImpl set
+def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>)) -> Set(Equations) = {
+  def (M, n, m) = IM;
+
+  def vmapElmToSReal(e: (Int, Int)) -> <Dyn> = {
+    def (i, c) = e;
+    (int2real c)*(Map.find i vm)
+  };
+
+  def f(exp: <Dyn>, e: (Int, Int)) -> <Dyn> = { exp + (vmapElmToSReal e) };
+
+  def work(i: Int, acc: Set(Equations)) -> Set(Equations) = {
+    if i >= n then acc
+    else {
+      def r = (Map.find i M);
+      if (Map.size r) < 1 then
+        error "Did not expect a zero row here"
+      else
+        def rl = (Map.toList r);
+        def h = vmapElmToSReal (hd rl);
+        if (Map.size r) < 2 then work (i + 1) (Set.add (h = 0.) acc)
+        else {
+          def eq = (foldLeft f h (tl rl)) = 0.;
+          work (i + 1) (Set.add eq acc)
+        }
+    }
+  };
+
+  if m != (Map.size vm) then
+    error "The number of columns and variables doesn't match"
+  else work 0 (Set.empty)
 }
 
 def elaboratetopology(T: Set(Equations)) -> Equations = {
@@ -63,7 +91,7 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
     def f(em: [Edge], e: Equations) -> [Edge] = {
 
       match e with
-      | Branch t a p n -> (p, n, t, a)::em
+      | Branch t a p n -> (n, p, t, a)::em
       | _ -> error "Unrecognized element type in topological description"
     };
 
