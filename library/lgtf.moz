@@ -22,7 +22,8 @@ include Base
 
 type Node = ?
 type Edge = (Node, Node, Dyn, Dyn)
-type IMatrix = ((Int => (Int => Int)), Int, Int)
+type MatrixRow = (Int => Int)
+type IMatrix = ((Int => MatrixRow), Int, Int)
 type EdgeVarMap = (Int => (Dyn, Dyn))
 type NodeEnumMap = (Node => Int)
 
@@ -48,6 +49,12 @@ def get(IM: IMatrix, i: Int, j: Int) -> Int = {
     if (Map.mem j (Map.find i M)) then (Map.find j (Map.find i M))
     else NO_EDGE
   else NO_EDGE
+}
+
+def getRow(IM: IMatrix, i: Int) -> MatrixRow = {
+  def (M, n, m) = IM;
+  def _ = checkDim IM i 1;
+  Map.find i M
 }
 
 def set(IM: IMatrix, i: Int, j: Int, v: Int) -> IMatrix = {
@@ -344,4 +351,27 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
     def lhs = chsign (transpose (trim TM 0 (n - 1) n (m - 1)));
     concat lhs (identityIMatrix (m - n))
   else emptyIMatrix 0 0
+}
+
+def getTrans(TM: IMatrix, vm: (Int => Dyn)) -> (Dyn => [(Int, Dyn)]) = {
+  def (M, n, m) = TM;
+  def f(e: (Int, Int)) -> (Int, Dyn) = {
+    (snd e, Map.find (fst e) vm)
+  };
+
+  def work(i: Int, acc: (Dyn => Dyn)) -> (Dyn => [(Int, Dyn)]) = {
+    if (i < n) then {
+      def r = (Map.find i M);
+      if (Map.mem i r) then {
+        def v = (Map.find i vm);
+	def l = map f (Map.toList (Map.remove i r));
+        work (i + 1) (Map.add v l acc)
+      } else error "Bad matrix"
+    } else acc
+  };
+
+  if (n < 1 || m < 1) then (Map.empty)
+  else {
+    work 0 (Map.empty)
+  }
 }

@@ -30,3 +30,4 @@ def (*) : Vector -> Real -> Vector
 
 type AcrossVariable = Vector
 type ThroughVariable = Vector
+type Trans = (Vector => Vector)
