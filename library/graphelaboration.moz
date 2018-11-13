@@ -52,17 +52,21 @@ def setToCont(set: Set(?)) -> ? = {
 }
 
 def buildEquations(tm: TransMap) -> Set(Equations) = {
+  def zero: <Real> = 0.;
   def f(e: (Int, <Dyn>)) -> <Real> = {
     if (fst e) < 0 then (snd e)
     else -(snd e)
   };
 
   def sum(l: [<Real>]) -> <Real> = {
-    def work(s: <Real>, t: <Real>) -> <Real> = {
-      s + t
-    };
-    def zero: <Real> = 0.;
-    foldLeft work zero l
+    // def work(s: <Real>, t: <Real>) -> <Real> = {
+    //   s + t
+    // };
+    // foldLeft work zero l
+    match l with
+    | [] -> zero
+    | t::[] -> t
+    | t::ts -> t + (sum ts)
   };
 
   def work(a: Set(Equations), e: (Dyn, [(Int, Dyn)])) -> Set(Equations) = {
