@@ -355,42 +355,71 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   else emptyIMatrix 0 0
 }
 
-def getTrans(TM: IMatrix, vm: EdgeVarMap) -> (TransMap) = {
-  def (M, n, m) = TM;
-  def f(e: (Int, Int)) -> (Int, Dyn) = {
-    (snd e, Map.find (fst e) vm)
+def getCircAndCutMatrices(E: [Edge]) -> (IMatrix, IMatrix, EdgeVarMap, EdgeVarMap) = {
+
+  def getTroughVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
+    def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
+      Map.add (fst e) (fst (snd e)) acc
+    };
+
+    foldLeft work (Map.empty) (Map.toList evm)
   };
 
-  def work(i: Int, acc: (TransMap)) -> (TransMap) = {
-    if (i < n) then {
-      def r = (Map.find i M);
-      if (Map.mem i r) then {
-        def v = (Map.find i vm);
-	def l = map f (Map.toList (Map.remove i r));
-        work (i + 1) (Map.add v l acc)
-      } else error "Bad matrix"
-    } else acc
+  def getAcrossVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
+    def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
+      Map.add (fst e) (snd (snd e)) acc
+    };
+
+    foldLeft work (Map.empty) (Map.toList evm)
   };
 
-  if (n < 1 || m < 1) then (Map.empty)
-  else {
-    work 0 (Map.empty)
-  }
+  // TODO: handle self loops
+  def (IM, vm) = buildIncidenceMatrix E;
+  def IMr = rowreduce IM;
+  def (A, nvm) = getFCutsetMatrix IMr vm;
+  def B = getFCircuitMatrix A;
+  def tv = getTroughVarMap nvm;
+  def av = getAcrossVarMap nvm;
+
+  (A, B, tv, av)
 }
 
-def getTroughVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
-  def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
-    Map.add (fst e) (fst (snd e)) acc
+def getChordBranchTransMaps(A: IMatrix, B: IMatrix, tv: EdgeVarMap, av: EdgeVarMap) -> (TransMap, TransMap) = {
+
+  def getTransMap(TM: IMatrix, vm: EdgeVarMap, offset: Int) -> TransMap = {
+    def (M, n, m) = TM;
+    def f(e: (Int, Int)) -> (Int, Dyn) = {
+      (snd e, Map.find (fst e) vm)
+    };
+
+    def work(i: Int, acc: (TransMap)) -> (TransMap) = {
+      if (i < n) then {
+        def j = i + offset;
+        def r = (Map.find i M);
+        if (Map.mem j r) then {
+          def v = (Map.find j vm);
+  	def l = map f (Map.toList (Map.remove j r));
+          work (i + 1) (Map.add v l acc)
+        } else error "Bad matrix"
+      } else acc
+    };
+
+    if (n < 1 || m < 1) then (Map.empty)
+    else {
+      work 0 (Map.empty)
+    }
   };
 
-  foldLeft work (Map.empty) (Map.toList evm)
-}
-
-def getAcrossVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
-  def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
-    Map.add (fst e) (snd (snd e)) acc
+  def getChordTransMap(A: IMatrix, vm: EdgeVarMap) -> TransMap = {
+    getTransMap A vm 0
   };
 
-  foldLeft work (Map.empty) (Map.toList evm)
-}
+  def getBranchTransMap(B: IMatrix, vm: EdgeVarMap) -> TransMap = {
+    def (_, n, m) = B;
+    getTransMap B vm (m - n)
+  };
 
+  def ct = getChordTransMap A tv;
+  def bt = getBranchTransMap B av;
+  (ct, bt)
+}

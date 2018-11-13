@@ -51,53 +51,30 @@ def setToCont(set: Set(?)) -> ? = {
   setToContImpl set
 }
 
-def matrixVMapToEquations(IM: IMatrix, vm: (Int => <Dyn>)) -> Set(Equations) = {
-  def (M, n, m) = IM;
-
-  def vmapElmToSReal(e: (Int, Int)) -> <Dyn> = {
-    def (i, c) = e;
-    (int2real c)*(Map.find i vm)
-  };
-
-  def f(exp: <Dyn>, e: (Int, Int)) -> <Dyn> = { exp + (vmapElmToSReal e) };
-
-  def work(i: Int, acc: Set(Equations)) -> Set(Equations) = {
-    if i >= n then acc
-    else {
-      def r = (Map.find i M);
-      if (Map.size r) < 1 then
-        error "Did not expect a zero row here"
-      else
-        def rl = (Map.toList r);
-        def h = vmapElmToSReal (hd rl);
-        if (Map.size r) < 2 then work (i + 1) (Set.add (h = 0.) acc)
-        else {
-          def eq = (foldLeft f h (tl rl)) = 0.;
-          work (i + 1) (Set.add eq acc)
-        }
-    }
-  };
-
-  if m != (Map.size vm) then
-    error "The number of columns and variables doesn't match"
-  else work 0 (Set.empty)
-}
-
 def buildEquations(tm: TransMap) -> Set(Equations) = {
-  def f(e: (Int, Dyn)) -> Real = {
-    if (fst e) < 0 then snd e
+  def f(e: (Int, <Dyn>)) -> <Real> = {
+    if (fst e) < 0 then (snd e)
     else -(snd e)
   };
 
+  def sum(l: [<Real>]) -> <Real> = {
+    def work(s: <Real>, t: <Real>) -> <Real> = {
+      s + t
+    };
+    def zero: <Real> = 0.;
+    foldLeft work zero l
+  };
+
   def work(a: Set(Equations), e: (Dyn, [(Int, Dyn)])) -> Set(Equations) = {
-    Set.add ((fst e) = (sum (map f (snd e)))) a
+    def v = fst e;
+    def l = (map f (snd e));
+    Set.add ((fst e) = (sum l)) a
   };
 
   foldLeft work (Set.empty) (Map.toList tm)
 }
 
 def elaboratetopology(T: Set(Equations)) -> Equations = {
-  def llog = logger "elaboratetopology" DEBUG;
 
   def getEdges(Tl: [Equations]) -> [Edge] = {
 
@@ -111,65 +88,14 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
     foldLeft f [] Tl
   };
 
-  def getCircAndCutMatrices(T: Set(Equations)) ->
-    (IMatrix, IMatrix, EdgeVarsMap) = {
-
-    def el = getEdges (Set.toList T);
-    def _ = llog "edge list" el;
-
-    // TODO: handle self loops
-    def (IM, vm) = buildIncidenceMatrix el;
-    def _ = llog "Incidence Matrix" (pp IM);
-    def _ = llog "Variable Map" vm;
-
-    def IMr = rowreduce IM;
-    def (A, nvm) = getFCutsetMatrix IMr vm;
-    def _ = llog "Cutset Matrix (A)" (pp A);
-    def _ = llog "modified Variable Map" nvm;
-
-    def B = getFCircuitMatrix A;
-    def _ = llog "Circuit Matrix (B)" (pp B);
-
-    (A, B, nvm)
-  };
-
   if (Set.size T) == 0 then mnil ()
   else {
-    def ff(ee: (Int, (<Dyn>, <Dyn>))) -> (Int, <Dyn>) = {
-      def (i, (t, _)) = ee;
-      (i, t)
-    };
-
-    def fe(ee: (Int, (<Dyn>, <Dyn>))) -> (Int, <Dyn>) = {
-      def (i, (_, a)) = ee;
-      (i, a)
-    };
-
-    def (A, B, vm) = getCircAndCutMatrices(T);
-
-    def tvec = listToMap (map ff (Map.toList vm));
-    def _ = llog "we have flow vec:" tvec;
-
-    def cutseteqs = matrixVMapToEquations A tvec;
-    def _ = llog "flow eqs:" cutseteqs;
-
-    def (_, n, _) = B;
-    if (n != 0) then {
-
-      def avec = listToMap (map fe (Map.toList vm));
-      def _ = llog "and effort vec:" avec;
-
-      def circeqs = matrixVMapToEquations B avec;
-      def _ = llog "circ eqs:" circeqs;
-
-      def E = union cutseteqs circeqs;
-      def _ = llog "topological equations" (setToCont E);
-
-      setToCont E
-    } else {
-      def _ =
-        llog "We only have one edge, topological equations" (setToCont cutseteqs);
-      setToCont cutseteqs
-    }
+    def E = getEdges (Set.toList T);
+    def (A, B, tv, av) = getCircAndCutMatrices(E);
+    def (ct, bt) = getChordBranchTransMaps A B tv av;
+    def cutseteqs = buildEquations ct;
+    def circeqs = buildEquations bt;
+    def E = union cutseteqs circeqs;
+    setToCont E
   }
 }
