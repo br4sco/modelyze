@@ -91,8 +91,9 @@ def elaboratetopology(T: Set(Equations)) -> Equations = {
   if (Set.size T) == 0 then mnil ()
   else {
     def E = getEdges (Set.toList T);
-    def (A, B, tv, av) = getCircAndCutMatrices(E);
-    def (ct, bt) = getChordBranchTransMaps A B tv av;
+    def (A, B, tv, av) = buildMatrices(E);
+    def ct = buildChordTransMap A tv;
+    def bt = buildBranchTransMap B av;
     def cutseteqs = buildEquations ct;
     def circeqs = buildEquations bt;
     def E = union cutseteqs circeqs;

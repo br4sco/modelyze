@@ -355,7 +355,31 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   else emptyIMatrix 0 0
 }
 
-def getCircAndCutMatrices(E: [Edge]) -> (IMatrix, IMatrix, EdgeVarMap, EdgeVarMap) = {
+def buildTransMap(TM: IMatrix, vm: EdgeVarMap, offset: Int) -> TransMap = {
+  def (M, n, m) = TM;
+  def f(e: (Int, Int)) -> (Int, Dyn) = {
+    (snd e, Map.find (fst e) vm)
+  };
+
+  def work(i: Int, acc: (TransMap)) -> (TransMap) = {
+    if (i < n) then {
+      def j = i + offset;
+      def r = (Map.find i M);
+      if (Map.mem j r) then {
+        def v = (Map.find j vm);
+	def l = map f (Map.toList (Map.remove j r));
+        work (i + 1) (Map.add v l acc)
+      } else error "Bad matrix"
+    } else acc
+  };
+
+  if (n < 1 || m < 1) then (Map.empty)
+  else {
+    work 0 (Map.empty)
+  }
+}
+
+def buildMatrices(E: [Edge]) -> (IMatrix, IMatrix, EdgeVarMap, EdgeVarMap) = {
 
   def getTroughVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
     def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
@@ -384,42 +408,11 @@ def getCircAndCutMatrices(E: [Edge]) -> (IMatrix, IMatrix, EdgeVarMap, EdgeVarMa
   (A, B, tv, av)
 }
 
-def getChordBranchTransMaps(A: IMatrix, B: IMatrix, tv: EdgeVarMap, av: EdgeVarMap) -> (TransMap, TransMap) = {
+def buildChordTransMap(A: IMatrix, vm: EdgeVarMap) -> TransMap = {
+  buildTransMap A vm 0
+}
 
-  def getTransMap(TM: IMatrix, vm: EdgeVarMap, offset: Int) -> TransMap = {
-    def (M, n, m) = TM;
-    def f(e: (Int, Int)) -> (Int, Dyn) = {
-      (snd e, Map.find (fst e) vm)
-    };
-
-    def work(i: Int, acc: (TransMap)) -> (TransMap) = {
-      if (i < n) then {
-        def j = i + offset;
-        def r = (Map.find i M);
-        if (Map.mem j r) then {
-          def v = (Map.find j vm);
-  	def l = map f (Map.toList (Map.remove j r));
-          work (i + 1) (Map.add v l acc)
-        } else error "Bad matrix"
-      } else acc
-    };
-
-    if (n < 1 || m < 1) then (Map.empty)
-    else {
-      work 0 (Map.empty)
-    }
-  };
-
-  def getChordTransMap(A: IMatrix, vm: EdgeVarMap) -> TransMap = {
-    getTransMap A vm 0
-  };
-
-  def getBranchTransMap(B: IMatrix, vm: EdgeVarMap) -> TransMap = {
-    def (_, n, m) = B;
-    getTransMap B vm (m - n)
-  };
-
-  def ct = getChordTransMap A tv;
-  def bt = getBranchTransMap B av;
-  (ct, bt)
+def buildBranchTransMap(B: IMatrix, vm: EdgeVarMap) -> TransMap = {
+  def (_, n, m) = B;
+  buildTransMap B vm (m - n)
 }
