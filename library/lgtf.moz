@@ -33,6 +33,16 @@ def IN_EDGE = -1
 def OUT_EDGE = 1
 def NO_EDGE = 0
 
+def evm2l(vm: EdgeVarMap) -> [Dyn] = {
+  def f(i: Int, e: Dyn) -> Int = { i };
+  map (fun i: Int -> Map.find i vm) (mapi f (Map.toList vm))
+}
+
+def l2evm(l: [Dyn]) -> EdgeVarMap = {
+  def f(i: Int, e: Dyn) -> (Int, Dyn) = { (i, e) };
+  listToMap (mapi f l)
+}
+
 def emptyIMatrix(n: Int, m: Int) -> IMatrix = {
   if n < 0 || m < 0 then error "n and m needs to be positive integers"
   else (Map.empty, n, m)
@@ -355,8 +365,9 @@ def getFCircuitMatrix(TM: IMatrix) -> IMatrix = {
   else emptyIMatrix 0 0
 }
 
-def buildTransMap(TM: IMatrix, vm: EdgeVarMap, offset: Int) -> TransMap = {
+def buildTransMap(TM: IMatrix, v: [Dyn], offset: Int) -> TransMap = {
   def (M, n, m) = TM;
+  def vm = l2evm v;
   def f(e: (Int, Int)) -> (Int, Dyn) = {
     (snd e, Map.find (fst e) vm)
   };
@@ -379,40 +390,22 @@ def buildTransMap(TM: IMatrix, vm: EdgeVarMap, offset: Int) -> TransMap = {
   }
 }
 
-def buildMatrices(E: [Edge]) -> (IMatrix, IMatrix, EdgeVarMap, EdgeVarMap) = {
-
-  def getTroughVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
-    def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
-      Map.add (fst e) (fst (snd e)) acc
-    };
-
-    foldLeft work (Map.empty) (Map.toList evm)
-  };
-
-  def getAcrossVarMap(evm: EdgeVarsMap) -> EdgeVarMap = {
-    def work(acc: EdgeVarMap, e: (Int, (Dyn, Dyn))) -> EdgeVarMap = {
-      Map.add (fst e) (snd (snd e)) acc
-    };
-
-    foldLeft work (Map.empty) (Map.toList evm)
-  };
+def buildMatrices(E: [Edge]) -> (IMatrix, IMatrix, [Dyn], [Dyn]) = {
 
   // TODO: handle self loops
   def (IM, vm) = buildIncidenceMatrix E;
   def IMr = rowreduce IM;
   def (A, nvm) = getFCutsetMatrix IMr vm;
   def B = getFCircuitMatrix A;
-  def tv = getTroughVarMap nvm;
-  def av = getAcrossVarMap nvm;
-
+  def (tv, av) = unzip (evm2l nvm);
   (A, B, tv, av)
 }
 
-def buildChordTransMap(A: IMatrix, vm: EdgeVarMap) -> TransMap = {
-  buildTransMap A vm 0
+def buildChordTransMap(A: IMatrix, tv: [Dyn]) -> TransMap = {
+  buildTransMap A tv 0
 }
 
-def buildBranchTransMap(B: IMatrix, vm: EdgeVarMap) -> TransMap = {
+def buildBranchTransMap(B: IMatrix, av: [Dyn]) -> TransMap = {
   def (_, n, m) = B;
-  buildTransMap B vm (m - n)
+  buildTransMap B av (m - n)
 }

@@ -59,10 +59,6 @@ def buildEquations(tm: TransMap) -> Set(Equations) = {
   };
 
   def sum(l: [<Real>]) -> <Real> = {
-    // def work(s: <Real>, t: <Real>) -> <Real> = {
-    //   s + t
-    // };
-    // foldLeft work zero l
     match l with
     | [] -> zero
     | t::[] -> t

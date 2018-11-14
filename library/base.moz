@@ -268,6 +268,14 @@ def union(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   foldLeft f lhs (Set.toList rhs)
 }
 
+def union(lhs: (Dyn => Dyn), rhs: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  def f(a: (Dyn => Dyn), e: (Dyn, Dyn)) -> (Dyn => Dyn) = {
+    if (Map.mem (fst e) rhs) then error "Maps are not disjoint"
+    else Map.add (fst e) (snd e) a
+  };
+  foldLeft f rhs (Map.toList lhs)
+}
+
 def setminus(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   def f(res: Set(?), e: ?) -> Set(?) = { Set.remove e res };
   foldLeft f lhs (Set.toList rhs)
@@ -305,6 +313,25 @@ def iteri(f: (Int -> Dyn -> ()), a: {Dyn}) -> () = {
   work 0
 }
 
+def zip(lhs: [Dyn], rhs: [Dyn]) -> [(Dyn, Dyn)] = {
+  def work(lhs: [Dyn], rhs: [Dyn], a: [(Dyn, Dyn)]) -> [(Dyn, Dyn)] = {
+    match lhs with
+    | [] -> a
+    | l::ls -> {
+             match rhs with
+             | [] -> a
+             | r::rs -> work ls rs ((l,r)::a)
+           }
+  };
+  reverse (work lhs rhs [])
+}
+
+def unzip(l: [(Dyn, Dyn)]) -> ([Dyn], [Dyn]) = {
+  def ll = map (fun e: Dyn -> fst e) l;
+  def r = map (fun e: Dyn -> snd e) l;
+  (ll,r)
+}
+
 def min(a: {Dyn}) -> Dyn = {
   def f(min: Dyn, e: Dyn) -> Dyn = {
     if e < min then e else min
@@ -321,4 +348,18 @@ def sum(l: [Dyn]) -> Dyn = {
   match l with
   | e::[] -> e
   | _ -> foldLeft f (hd l) (tl l)
+}
+
+def subs(e: <Dyn>, m: (<Dyn> => <Dyn>)) -> <Dyn> = {
+  match e with
+  | e_1 e_2 -> if (Map.mem e m) then (Map.find e m)
+               else (subs e_1 m) (subs e_2 m)
+  | _ -> if (Map.mem e m) then (Map.find e m) else e
+}
+
+def canSubs(e: <Dyn>, m: (<Dyn> => <Dyn>)) -> Bool = {
+  match e with
+  | e_1 e_2 -> if (Map.mem e m) then true
+               else (canSubs e_1 m) || (canSubs e_2 m)
+  | _ -> if (Map.mem e m) then true else false
 }
