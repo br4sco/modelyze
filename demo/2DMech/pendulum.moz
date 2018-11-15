@@ -19,14 +19,159 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include EquationsFormulation
+include Equation
 
-def r_1, r_2, r_3, F_1, F_2, F_3: Vector
+def r_m1, v_m1, dv_m1, F_m1, t_m1, o_m1, do_m1, T_m1: Vector
+def r_r1, v_r1, dv_r1, F_r1, t_r1, o_r1, do_r1, T_r1: Vector
+def r_r2, v_r2, dv_r2, F_r2, t_r2, o_r2, do_r2, T_r2: Vector
+def r_h1, v_h1, dv_h1, F_h1, t_h1, o_h1, do_h1, T_h1: Vector
+def r_F1, v_F1, dv_F1, F_F1, t_F1, o_F1, do_F1, T_F1: Vector
+
+def rx_m1, ry_m1, vx_m1, vy_m1, dvx_m1, dvy_m1, Fx_m1, Fy_m1, tz_m1, oz_m1, doz_m1, Tz_m1: Real
+def rx_r1, ry_r1, vx_r1, vy_r1, dvx_r1, dvy_r1, Fx_r1, Fy_r1, tz_r1, oz_r1, doz_r1, Tz_r1: Real
+def rx_r2, ry_r2, vx_r2, vy_r2, dvx_r2, dvy_r2, Fx_r2, Fy_r2, tz_r2, oz_r2, doz_r2, Tz_r2: Real
+def rx_h1, ry_h1, vx_h1, vy_h1, dvx_h1, dvy_h1, Fx_h1, Fy_h1, tz_h1, oz_h1, doz_h1, Tz_h1: Real
+def rx_F1, ry_F1, vx_F1, vy_F1, dvx_F1, dvy_F1, Fx_F1, Fy_F1, tz_F1, oz_F1, doz_F1, Tz_F1: Real
+
+
+def g: Vector
+def m, I: Real
+
 def n1, n2, n3: Node
+def i_1, j_1, k_1: Vector
+def i_2, j_2, k_2: Vector
+def i_3, j_3, k_3: Vector
 
-def G = [
-          (n1, n2, r_1, F_1),
-          (n2, n3, r_2, F_2),
-          (n3, n1, r_3, F_3)
+def T = [
+          (n1, n2, F_h1, (r_h1, (r_h1', r_h1''))),
+          (n3, n2, F_r1, (r_r1, (r_r1', r_r1''))),
+          (n1, n3, F_r2, (r_r2, (r_r2', r_r2''))),
+          (n1, n3, F_m1, (r_m1, (r_m1', r_m1''))),
+          (n1, n3, F_F1, (r_F1, (r_F1', r_F1'')))
         ]
 
-def _ = dprint(pp (fst (buildIncidenceMatrix G)))
+def R = [
+          (n1, n2, T_h1, (t_h1, (t_h1', t_h1''))),
+          (n3, n2, T_r1, (t_r1, (t_r1', t_r1''))),
+          (n1, n3, T_r2, (t_r2, (t_r2', t_r2''))),
+          (n1, n3, T_m1, (t_m1, (t_m1', t_m1''))),
+          (n1, n3, T_F1, (t_F1, (t_F1', t_F1'')))
+        ]
+
+def ter = listToMap [
+                      (r_m1, rx_m1 * i_1 + ry_m1 * j_1),
+                      (r_m1', rx_m1' * i_1 + ry_m1' * j_1),
+                      (r_m1'', rx_m1'' * i_1 + ry_m1'' * j_1),
+                      (F_m1, -m * r_m1''),
+
+                      (t_m1, tz_m1 * k_1),
+                      (t_m1', tz_m1' * k_1),
+                      (t_m1'', tz_m1'' * k_1),
+                      (T_m1, -I * o_m1''),
+
+                      (r_r1, rx_r1 * i_3 + ry_r1 * j_3),
+                      (r_r1', t_r2' * r_r1),
+                      (r_r1'', rx_r1'' * i_3 + ry_r1'' * j_3),
+                      (F_r1, Fx_r1 * i_3 + Fy_r1 * j_3),
+
+                      (t_r1, tz_r1 * k_3),
+                      (t_r1', zero),
+                      (t_r1'', tz_r1'' * k_3),
+                      (T_r1, Tz_r1 * k_3),
+
+                      (r_r2, rx_r2 * i_1 + ry_r2 * j_1),
+                      (r_r2', rx_r2' * i_1 + ry_r2' * j_1),
+                      (r_r2'', rx_r2'' * i_1 + ry_r2'' * j_1),
+                      (F_r2, zero),
+
+                      (t_r2, tz_r2 * k_1),
+                      (t_r2', tz_r2' * k_1),
+                      (t_r2'', tz_r2'' * k_1),
+                      (T_r2, -r_r1 * F_r1),
+
+                      (r_h1, zero),
+                      (r_h1', rx_h1' * i_2 + ry_h1' * j_2),
+                      (r_h1'', rx_h1'' * i_2 + ry_h1'' * j_2),
+                      (F_h1, Fx_h1 * i_2 + Fy_h1 * j_2),
+
+                      (t_h1, tz_h1 * k_2),
+                      (t_h1', tz_h1' * k_2),
+                      (t_h1'', tz_h1'' * k_2),
+                      (T_h1, zero),
+
+                      (r_F1, rx_F1 * i_1 + ry_F1 * j_1),
+                      (r_F1', rx_F1' * i_1 + ry_F1' * j_1),
+                      (r_F1'', rx_F1'' * i_1 + ry_F1'' * j_1),
+                      (F_F1, -m * g),
+
+                      (t_F1, tz_F1 * k_1),
+                      (t_F1', tz_F1' * k_1),
+                      (t_F1'', tz_F1'' * k_1),
+                      (T_F1, zero)
+                    ]
+
+def main = {
+  def (At, Bt, yt, xt) = buildMatrices T;
+  def (xt, xtp) = unzip xt;
+  def (xtp, xtpp) = unzip xtp;
+  def Xt = [xt, xtp, xtpp];
+  def (Ar, Br, yr, xr) = buildMatrices R;
+  def (xr, xrp) = unzip xr;
+  def (xrp, xrpp) = unzip xrp;
+  def Xr = [xr, xrp, xrpp];
+
+  def _ = dprint("=== Tra ===");
+  def _ = dprint(pp At);
+  def _ = dprint(yt);
+  def _ = dprint(Xt);
+
+  def _ = dprint("=== Rot ===");
+  def _ = dprint(pp Ar);
+  def _ = dprint(yr);
+  def _ = dprint(Xr);
+
+  def ctt = vectorize (buildChordTransMap At yt);
+  def ctr = vectorize (buildChordTransMap Ar yr);
+
+  def BTt = map (fun x: [Vector] -> vectorize (buildBranchTransMap Bt x)) Xt;
+  def BTr = map (fun x: [Vector] -> vectorize (buildBranchTransMap Br x)) Xr;
+
+  def _ = dprint("=== Tra ===");
+  def _ = dprint(ctt);
+  def _ = dprint(BTt);
+  def _ = dprint("=== Rot ===");
+  def _ = dprint(ctr);
+  def _ = dprint(BTr);
+
+  def priXt = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTt) Xt;
+  def priXr = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTr) Xr;
+  def priyt = primaryVars ctt yt;
+  def priyr = primaryVars ctr yr;
+
+  def _ = dprint("=== Tra ===");
+  def _ = dprint(priXt);
+  def _ = dprint(priyt);
+  def _ = dprint("=== Rot ===");
+  def _ = dprint(priXr);
+  def _ = dprint(priyt);
+
+  def pritert = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXt) priyt))) ter;
+  def priterr = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXr) priyr))) ter;
+
+  def _ = dprint("=== Tra ===");
+  def _ = dprint(pritert);
+  def _ = dprint("=== Rot ===");
+  def _ = dprint(priterr);
+
+  def f(a: (Vector => Vector), e: (Vector => Vector)) -> (Vector => Vector) = { union a e };
+  def tm = foldLeft f (union ctt ctr) (append BTt BTr);
+  def ter = union pritert priterr;
+  
+  def _ = dprint("=== TM ===");
+  def _ = dprint(tm);
+  def _ = dprint("=== TER ===");
+  def _ = dprint(ter);
+
+  def (yt, xt) = equationGeneration yt xt ter tm;
+  ()
+}

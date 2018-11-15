@@ -281,15 +281,25 @@ def setminus(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   foldLeft f lhs (Set.toList rhs)
 }
 
-def concat(lhs: [Dyn], rhs: [Dyn]) -> [Dyn] = {
-  def rlhs = reverse lhs;
-  def f(l: [Dyn], e: Dyn) -> [Dyn] = { e::l };
-  foldLeft f rhs rlhs
-}
-
 def filter(p: (Dyn -> Bool), l: [Dyn]) -> [Dyn] = {
   def f(acc: [Dyn], e: Dyn) -> [Dyn] = { if p e then e::acc else acc };
   foldLeft f [] l
+}
+
+def filter(p: (Dyn -> Bool), m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  listToMap (filter (fun e: (Dyn, Dyn) -> p (fst e)) (Map.toList m))
+}
+
+
+def concat(ls: [[Dyn]]) -> [Dyn] = {
+  // def f(a: [Dyn], e: [Dyn]) -> [Dyn] = { append a e };
+  // foldLeft f [] ls
+  def work(ls: [[Dyn]], a: [Dyn]) -> [Dyn] = {
+    match ls with
+    | l::ls -> work ls (append a l)
+    | [] -> a
+  };
+  work ls []
 }
 
 def foldLeft(f: (Dyn -> Dyn -> Dyn), acc: Dyn, a: {Dyn}) -> Dyn = {
@@ -357,9 +367,17 @@ def subs(e: <Dyn>, m: (<Dyn> => <Dyn>)) -> <Dyn> = {
   | _ -> if (Map.mem e m) then (Map.find e m) else e
 }
 
-def canSubs(e: <Dyn>, m: (<Dyn> => <Dyn>)) -> Bool = {
+def canSub(e: <Dyn>, m: (<Dyn> => <Dyn>)) -> Bool = {
   match e with
   | e_1 e_2 -> if (Map.mem e m) then true
-               else (canSubs e_1 m) || (canSubs e_2 m)
+               else (canSub e_1 m) || (canSub e_2 m)
   | _ -> if (Map.mem e m) then true else false
 }
+
+def map(f: (Dyn -> Dyn), m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  def ff(a: (Dyn => Dyn), e: (Dyn, Dyn)) -> (Dyn => Dyn) = {
+    Map.add (fst e) (f (snd e)) a
+  };
+  foldLeft ff (Map.empty) (Map.toList m)
+}
+

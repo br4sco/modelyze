@@ -27,20 +27,85 @@ def (*) : Vector -> Vector -> Vector
 def (-) : Vector -> Vector -> Vector
 def (*) : Real -> Vector -> Vector
 def (*) : Vector -> Real -> Vector
+def der : Vector -> Vector
+def (') = der
 
 type AcrossVariable = Vector
 type ThroughVariable = Vector
 type VectorTransMap = (Vector => Vector)
+def zero: Vector
 
-def buildVectorTransMap(tm: TransMap) -> VectorTransMap = {
-  def f(e: (Int, Dyn)) -> Vector = {
-    if (fst e) < 0 then snd e
+// def nder(n: Int, v: Vector) -> Vector = {
+//   if (n < 1) then v
+//   else der (nder (n - 1) v)
+// }
+
+def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
+  def work(fs: [Dyn -> Dyn], l: [Dyn], a: [Dyn]) -> [Dyn] = {
+    match fs with
+    | f::fs -> {
+        match l with
+        | e::es -> work fs es ((f e)::a)
+        | [] -> error "Uneven list lengths"
+      }
+    | [] -> {
+        match l with
+        | [] -> a
+        | _ -> error "Uneven list lengths"
+      }
+  };
+  reverse (work fs l [])
+}
+
+def vectorize(tm: TransMap) -> VectorTransMap = {
+  def f(e: (Int, <Dyn>)) -> <Vector> = {
+    if (fst e) < 0 then (snd e)
     else -(snd e)
   };
 
+  def sum(l: [<Vector>]) -> <Vector> = {
+    match l with
+    | [] -> zero
+    | t::[] -> t
+    | t::ts -> t + (sum ts)
+  };
+
   def work(a: VectorTransMap, e: (Dyn, [(Int, Dyn)])) -> VectorTransMap = {
-    Map.add (fst e) (sum (map f (snd e))) a
+    def v = fst e;
+    def l = (map f (snd e));
+    Map.add (fst e) (sum l) a
   };
 
   foldLeft work (Map.empty) (Map.toList tm)
+}
+
+def primaryVars(vtm: VectorTransMap, vs: [Vector]) -> [Vector] = {
+  filter (fun v: Vector -> !(Map.mem v vtm)) vs
+}
+
+def equationGeneration(tv: [Vector], av: [Vector], ter: VectorTransMap, tran: VectorTransMap) -> ([Vector], [Vector]) = {
+
+  def tv = map (fun t: Vector -> subs t ter) tv;
+  def av = map (fun a: Vector -> subs a ter) av;
+
+  def _ = dprint("=== SUBS TER  ===");
+  def _ = dprint(tv);
+  def _ = dprint(av);
+
+
+  def tv = map (fun t: Vector -> subs t tran) tv;
+  def av = map (fun a: Vector -> subs a tran) av;
+
+  def _ = dprint("=== SUBS TM  ===");
+  def _ = dprint(tv);
+  def _ = dprint(av);
+
+
+  if(
+      (exists (fun t: Vector -> canSub t ter) tv) ||
+      (exists (fun a: Vector -> canSub a ter) av) ||
+      (exists (fun t: Vector -> canSub t tran) tv) ||
+      (exists (fun a: Vector -> canSub a tran) av)
+    ) then equationGeneration tv av ter tran
+  else (tv, av)
 }
