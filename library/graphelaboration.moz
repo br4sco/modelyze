@@ -53,7 +53,7 @@ def setToCont(set: Set(?)) -> ? = {
 
 def buildEquations(tm: TransMap) -> Set(Equations) = {
   def zero: <Real> = 0.;
-  def f(e: (Int, <Dyn>)) -> <Real> = {
+  def f(e: (Int, <Real>)) -> <Real> = {
     if (fst e) < 0 then (snd e)
     else -(snd e)
   };

@@ -1,0 +1,107 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Base
+
+type MatrixRow = (Int => Dyn, Int, Dyn, Dyn -> Bool)
+type Pos = (Int, Int)
+type Matrix = ((Int => MatrixRow), Pos, Dyn, Dyn -> Bool)
+
+def DIMENSION_MISSMATCH = "Dimension missmatch"
+
+def posEq(lhs: Pos, rhs: Pos) -> Bool = {
+  ((fst lhs) == (fst rhs)) && ((snd lhs) == (snd rhs))
+}
+def (==): Pos -> Pos -> Bool = posEq
+
+def posLT(lhs: Pos, rhs: Pos) -> Bool = {
+  (((fst lhs) < (fst rhs)) && ((snd lhs) <= (snd rhs))) ||
+  (((fst lhs) <= (fst rhs)) && ((snd lhs) < (snd rhs)))
+}
+def (<): Pos -> Pos -> Bool = posLT
+
+def posLTorEq(lhs: Pos, rhs: Pos) -> Bool = {
+  (lhs == rhs) || (lhs < rhs)
+}
+def (<=): Pos -> Pos -> Bool = posLTorEq
+
+def posGT(lhs: Pos, rhs: Pos) -> Bool = { rhs < lhs }
+def (>): Pos -> Pos -> Bool = posGT
+
+def posGTorEq(lhs: Pos, rhs: Pos) -> Bool = { rhs <= lhs }
+def (>=): Pos -> Pos -> Bool = posGTorEq
+
+def MatrixZero(z: Dyn, isz: (Dyn -> Bool), d: Pos) -> Matrix = {
+  if (0, 0) >= d then error "Dimensions need to be greater than zero"
+  else (Map.empty, d, z, isz)
+}
+
+def MatrixRowSet(r: MatrixRow, j: Int, v: Dyn) -> MatrixRow = {
+  def (rm, m, z, isz) = r;
+  if (j <= 0) || (j > m) then error DIMENSION_MISSMATCH
+  else {
+  if isz v then {
+      if (Map.mem j rm) then (Map.remove j rm, m, z, isz)
+      else r
+    } else (Map.add j v rm, m, z, isz)
+  }
+}
+
+def MatrixSet(M: Matrix, ij: Pos, v: Dyn) -> Matrix = {
+  def (Mm, d, z, isz) = M;
+  def (i, j) = ij;
+  if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
+  else {
+    if Map.mem i Mm then {
+      (Map.add i (MatrixRowSet (Map.find i Mm) j v) Mm, d, z, isz)
+    } else {
+      if isz v then M
+      else {
+        (Map.add i (MatrixRowSet (Map.empty, snd d, z, isz) j v) Mm, d, z, isz)
+      }
+    }
+  }
+}
+def (+) : Matrix -> Pos -> (Dyn -> Matrix) = MatrixSet
+def set: Matrix -> Pos -> Dyn -> Matrix = MatrixSet
+
+def MatrixRowGet(r: MatrixRow, j: Int) -> Dyn = {
+  def (rm, m, z) = r;
+  if (j <= 0) || (j > m) then error DIMENSION_MISSMATCH
+  else {
+    if Map.mem j rm then Map.find j rm else z
+  }
+}
+
+def MatrixGet(M: Matrix, ij: Pos) -> Dyn = {
+  def (Mm, d, z) = M;
+  def (i, j) = ij;
+  if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
+  else {
+    if (Map.mem i Mm) then MatrixRowGet (Map.find i Mm) j
+    else z
+  }
+}
+def (-) : Matrix -> Pos -> Dyn = MatrixGet
+
+// def forEach(f: (Dyn -> Dyn), r: MatrixRow) -> () = {
+//   def (rmap, n, z) = r;
+//   def work(n: Int)
+// }

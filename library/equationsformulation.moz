@@ -30,15 +30,9 @@ def (*) : Vector -> Real -> Vector
 def der : Vector -> Vector
 def (') = der
 
-type AcrossVariable = Vector
-type ThroughVariable = Vector
 type VectorTransMap = (Vector => Vector)
+type Topology = (IMatrix, IMatrix, [Vector], [Vector])
 def zero: Vector
-
-// def nder(n: Int, v: Vector) -> Vector = {
-//   if (n < 1) then v
-//   else der (nder (n - 1) v)
-// }
 
 def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
   def work(fs: [Dyn -> Dyn], l: [Dyn], a: [Dyn]) -> [Dyn] = {
@@ -91,7 +85,6 @@ def equationGeneration(tv: [Vector], av: [Vector], ter: VectorTransMap, tran: Ve
   def _ = dprint("=== SUBS TER  ===");
   def _ = dprint(tv);
   def _ = dprint(av);
-
 
   def tv = map (fun t: Vector -> subs t tran) tv;
   def av = map (fun a: Vector -> subs a tran) av;

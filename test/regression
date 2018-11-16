@@ -35,6 +35,23 @@ test_2dmech_file()
   test_file $DEMO/2DMech/$1".moz" "expected-output-2DMech-"$1".txt"
 }
 
+test_file2()
+{
+  echo "Test $(basename $1)"
+  TEST_PATH="$(realpath $1)"
+  OUTPUT_PATH="${TEST_PATH%%.moz}.txt"
+  test_file $TEST_PATH $OUTPUT_PATH
+}
+
+test_files()
+{
+  echo "Running tests in $1"
+  for f in $1/*.moz;
+  do
+    test_file2 $f
+  done
+}
+
 # test_demo_file "modelica-mechsys"
 # test_demo_file "breaking-controlsys"
 # test_demo_file "capacitor-switch"
@@ -59,7 +76,10 @@ test_2dmech_file()
 # test_dill_file "lrd2"
 # test_dill_file "clutch"
 
-test_2dmech_file "pendulum"
+# test_2dmech_file "pendulum"
 # test_2dmech_file "circuit"
+
+test_files "matrix"
+
 
 rm -f test.out

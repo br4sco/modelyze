@@ -62,7 +62,7 @@ def ter = listToMap [
                       (r_m1, rx_m1 * i_1 + ry_m1 * j_1),
                       (r_m1', rx_m1' * i_1 + ry_m1' * j_1),
                       (r_m1'', rx_m1'' * i_1 + ry_m1'' * j_1),
-                      (F_m1, -m * r_m1''),
+                      (F_m1, m * r_m1''),
 
                       (t_m1, tz_m1 * k_1),
                       (t_m1', tz_m1' * k_1),
@@ -102,7 +102,7 @@ def ter = listToMap [
                       (r_F1, rx_F1 * i_1 + ry_F1 * j_1),
                       (r_F1', rx_F1' * i_1 + ry_F1' * j_1),
                       (r_F1'', rx_F1'' * i_1 + ry_F1'' * j_1),
-                      (F_F1, -m * g),
+                      (F_F1, m * g),
 
                       (t_F1, tz_F1 * k_1),
                       (t_F1', tz_F1' * k_1),
@@ -115,16 +115,16 @@ def main = {
   def (xt, xtp) = unzip xt;
   def (xtp, xtpp) = unzip xtp;
   def Xt = [xt, xtp, xtpp];
+  def Yt = [yt];
   def (Ar, Br, yr, xr) = buildMatrices R;
   def (xr, xrp) = unzip xr;
   def (xrp, xrpp) = unzip xrp;
   def Xr = [xr, xrp, xrpp];
-
+  def Yr = [yr];
   def _ = dprint("=== Tra ===");
   def _ = dprint(pp At);
   def _ = dprint(yt);
   def _ = dprint(Xt);
-
   def _ = dprint("=== Rot ===");
   def _ = dprint(pp Ar);
   def _ = dprint(yr);
@@ -135,16 +135,21 @@ def main = {
 
   def BTt = map (fun x: [Vector] -> vectorize (buildBranchTransMap Bt x)) Xt;
   def BTr = map (fun x: [Vector] -> vectorize (buildBranchTransMap Br x)) Xr;
+  def CTt = map (fun x: [Vector] -> vectorize (buildChordTransMap At x)) Yt;
+  def CTr = map (fun x: [Vector] -> vectorize (buildChordTransMap Ar x)) Yr;
 
   def _ = dprint("=== Tra ===");
-  def _ = dprint(ctt);
+  def _ = dprint(hd CTt);
   def _ = dprint(BTt);
   def _ = dprint("=== Rot ===");
-  def _ = dprint(ctr);
+  def _ = dprint(hd CTr);
   def _ = dprint(BTr);
 
   def priXt = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTt) Xt;
   def priXr = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTr) Xr;
+  def priYt = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) CTt) Yt;
+  def priYr = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) CTr) Yr;
+
   def priyt = primaryVars ctt yt;
   def priyr = primaryVars ctr yr;
 
@@ -155,8 +160,8 @@ def main = {
   def _ = dprint(priXr);
   def _ = dprint(priyt);
 
-  def pritert = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXt) priyt))) ter;
-  def priterr = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXr) priyr))) ter;
+  def pritert = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXt) (concat priYt)))) ter;
+  def priterr = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXr) (concat priYr)))) ter;
 
   def _ = dprint("=== Tra ===");
   def _ = dprint(pritert);
@@ -164,14 +169,12 @@ def main = {
   def _ = dprint(priterr);
 
   def f(a: (Vector => Vector), e: (Vector => Vector)) -> (Vector => Vector) = { union a e };
-  def tm = foldLeft f (union ctt ctr) (append BTt BTr);
-  def ter = union pritert priterr;
-  
+  def tm = foldLeft f (Map.empty) (append (append BTt BTr) (append CTt CTr));
+
   def _ = dprint("=== TM ===");
   def _ = dprint(tm);
   def _ = dprint("=== TER ===");
   def _ = dprint(ter);
-
-  def (yt, xt) = equationGeneration yt xt ter tm;
+  def (yt, xt) = equationGeneration (hd Yt) (hd Xt) tm ter;
   ()
 }
