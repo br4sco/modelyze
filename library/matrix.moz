@@ -20,11 +20,31 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Base
 
-type MatrixRow = (Int => Dyn, Int, Dyn, Dyn -> Bool)
 type Pos = (Int, Int)
-type Matrix = ((Int => MatrixRow), Pos, Dyn, Dyn -> Bool)
+type MatrixMap = (Int => (Int => Dyn))
+type Matrix = (MatrixMap, Pos, Dyn, Dyn -> Bool)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
+
+def _mem(ij: Pos, Mm: MatrixMap) -> Bool = {
+  def (i, j) = ij;
+  if Map.mem i Mm then Map.mem j (Map.find i Mm) else false
+}
+
+def _find(ij: Pos, Mm: MatrixMap) -> Dyn = {
+  def (i, j) = ij;
+  Map.find j (Map.find i Mm)
+}
+
+def _add(ij: Pos, v: Dyn, Mm: MatrixMap) -> MatrixMap = {
+  def (i, j) = ij;
+  Map.add i (Map.add j v (Map.find i Mm)) Mm
+}
+
+def _remove(ij: Pos, Mm: MatrixMap) -> MatrixMap = {
+  def (i, j) = ij;
+  Map.add i (Map.remove j (Map.find i Mm)) Mm
+}
 
 def posEq(lhs: Pos, rhs: Pos) -> Bool = {
   ((fst lhs) == (fst rhs)) && ((snd lhs) == (snd rhs))
@@ -49,57 +69,78 @@ def posGTorEq(lhs: Pos, rhs: Pos) -> Bool = { rhs <= lhs }
 def (>=): Pos -> Pos -> Bool = posGTorEq
 
 def MatrixZero(z: Dyn, isz: (Dyn -> Bool), d: Pos) -> Matrix = {
+  def (n, _) = d;
+  def work(i: Int, a: MatrixMap) -> MatrixMap = {
+    if i > 0 then work (i - 1) (Map.add i (Map.empty) a) else a
+  };
+
   if (0, 0) >= d then error "Dimensions need to be greater than zero"
-  else (Map.empty, d, z, isz)
+  else (work n (Map.empty), d, z, isz)
 }
+def IntMatrixZero(d: Pos) = { MatrixZero 0 (fun v: Int -> v == 0) d}
 
-def MatrixRowSet(r: MatrixRow, j: Int, v: Dyn) -> MatrixRow = {
-  def (rm, m, z, isz) = r;
-  if (j <= 0) || (j > m) then error DIMENSION_MISSMATCH
-  else {
-  if isz v then {
-      if (Map.mem j rm) then (Map.remove j rm, m, z, isz)
-      else r
-    } else (Map.add j v rm, m, z, isz)
-  }
-}
-
-def MatrixSet(M: Matrix, ij: Pos, v: Dyn) -> Matrix = {
+def MatrixSet(ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
   def (Mm, d, z, isz) = M;
   def (i, j) = ij;
   if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
   else {
-    if Map.mem i Mm then {
-      (Map.add i (MatrixRowSet (Map.find i Mm) j v) Mm, d, z, isz)
-    } else {
-      if isz v then M
-      else {
-        (Map.add i (MatrixRowSet (Map.empty, snd d, z, isz) j v) Mm, d, z, isz)
-      }
-    }
+    if isz v then {
+      if _mem d Mm then (_remove ij Mm, d, z, isz) else M
+    } else (_add ij v Mm, d, z, isz)
   }
 }
-def (+) : Matrix -> Pos -> (Dyn -> Matrix) = MatrixSet
-def set: Matrix -> Pos -> Dyn -> Matrix = MatrixSet
+def MatrixSetInl(M: Matrix, ij: Pos, v: Dyn) -> Matrix = (MatrixSet ij v M)
+def (+) : Matrix -> Pos -> Dyn = MatrixSetInl
 
-def MatrixRowGet(r: MatrixRow, j: Int) -> Dyn = {
-  def (rm, m, z) = r;
-  if (j <= 0) || (j > m) then error DIMENSION_MISSMATCH
-  else {
-    if Map.mem j rm then Map.find j rm else z
-  }
-}
-
-def MatrixGet(M: Matrix, ij: Pos) -> Dyn = {
+def MatrixGet(ij: Pos, M: Matrix) -> Dyn = {
   def (Mm, d, z) = M;
   def (i, j) = ij;
   if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
   else {
-    if (Map.mem i Mm) then MatrixRowGet (Map.find i Mm) j
+    if (_mem ij Mm) then (_find ij Mm)
     else z
   }
 }
-def (-) : Matrix -> Pos -> Dyn = MatrixGet
+def MatrixGetInl(M: Matrix, ij: Pos) -> Matrix = (MatrixGet ij M)
+def (-) : Matrix -> Pos -> Dyn = MatrixGetInl
+
+def MatrixToList(M: Matrix) -> [[Dyn]] = {
+  def (_, (n, m)) = M;
+  def workRow(i: Int, j: Int, a: [Dyn]) -> [Dyn] = {
+    if j > 0 then workRow i (j - 1) ((MatrixGet (i, j) M)::a) else a
+  };
+
+  def work(i: Int, a: [[Dyn]]) -> [[Dyn]] = {
+    if i > 0 then work (i - 1) ((workRow i m [])::a) else a
+  };
+
+  work n []
+}
+
+def listToMatrix(l: [[Dyn]], M: Matrix) -> Matrix = {
+  def workRow(l: [Dyn], i: Int, j: Int, a: Matrix) -> Matrix = {
+    match l with
+    | x::xs -> workRow xs i (j + 1) (MatrixSet (i, j) x a)
+    | [] -> a
+  };
+
+  def work(l: [[Dyn]], i: Int, a: Matrix) -> Matrix = {
+    match l with
+    | xs::xss -> work xss (i + 1) (workRow xs i 1 a)
+    | [] -> a
+  };
+
+  work l 1 M
+}
+
+def dp(M: Matrix) -> Matrix = {
+  def _ = println("[");
+  def _ = iter (fun r: [Dyn] -> {
+      def _ = print("  "); def _ = dprint(r); ()
+    }) (MatrixToList M);
+  def _ = println("]");
+  M
+}
 
 // def forEach(f: (Dyn -> Dyn), r: MatrixRow) -> () = {
 //   def (rmap, n, z) = r;

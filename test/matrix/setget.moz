@@ -20,15 +20,17 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = MatrixZero 0 (fun v: Int -> v == 0) (3, 3)
+def M = IntMatrixZero (3, 3)
 
 def _ = dprint((M - (1, 1)) == 0)
 def _ = dprint((M - (2, 1)) == 0)
 def _ = dprint((M - (3, 3)) == 0)
 
 def I = (((((M + (1, 1)) 1) + (2, 2)) 1) + (3, 3)) 1
-def I = set (set (set M (1, 1) 1) (2, 2) 1) (3, 3) 1
 
 def _ = dprint((I - (1, 1)) == 1)
 def _ = dprint((I - (2, 2)) == 1)
 def _ = dprint((I - (3, 3)) == 1)
+
+def _ = dprint((((I + (1, 1)) 0) - (1, 1)) == 0)
+def _ = dprint((((I + (1, 0)) 0) - (1, 0)) == 0)
