@@ -80,6 +80,9 @@ type IntSignal = <Int>
 type BoolSignal = <Bool>
 type Dyn = ?
 
+type Option
+def some: Dyn -> Option
+def none: Option
 
 def abs(x:Real) -> Real = if x < 0. then x * -1.0 else x
 def abs(x:Int) -> Int = if x < 0 then x * -1 else x
@@ -268,14 +271,6 @@ def union(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   foldLeft f lhs (Set.toList rhs)
 }
 
-def union(lhs: (Dyn => Dyn), rhs: (Dyn => Dyn)) -> (Dyn => Dyn) = {
-  def f(a: (Dyn => Dyn), e: (Dyn, Dyn)) -> (Dyn => Dyn) = {
-    if (Map.mem (fst e) rhs) then error "Maps are not disjoint"
-    else Map.add (fst e) (snd e) a
-  };
-  foldLeft f rhs (Map.toList lhs)
-}
-
 def setminus(lhs: Set(?), rhs: Set(?)) -> Set(?) = {
   def f(res: Set(?), e: ?) -> Set(?) = { Set.remove e res };
   foldLeft f lhs (Set.toList rhs)
@@ -381,3 +376,44 @@ def map(f: (Dyn -> Dyn), m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
   foldLeft ff (Map.empty) (Map.toList m)
 }
 
+def fold(f: (Dyn -> Dyn -> Dyn -> Dyn), m: (Dyn => Dyn), a: Dyn) -> Dyn = {
+  def ff(a: Dyn, e: (Dyn, Dyn)) -> Dyn = { f (fst e) (snd e) a };
+  foldLeft ff a (Map.toList m)
+}
+
+def add(k: Dyn, v: Option, m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  match v with
+  | some x -> {
+      match x with
+      | lift x: Dyn -> Map.add k x m
+      | _ -> Map.add k x m
+    }
+  | none -> m
+}
+
+def union(f: (Dyn -> Dyn -> Dyn -> Option), lhs: (Dyn => Dyn), rhs: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  def ff(k: Dyn, v: Dyn, a: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+    if Map.mem k a then add k (f k (Map.find k a) v) a else Map.add k v a
+  };
+  fold ff lhs rhs
+}
+
+def union(lhs: (Dyn => Dyn), rhs: (Dyn => Dyn)) -> (Dyn => Dyn) = {
+  // def f(a: (dyn => dyn), e: (dyn, dyn)) -> (dyn => dyn) = {
+  //   if (map.mem (fst e) rhs) then error "maps are not disjoint"
+  //   else map.add (fst e) (snd e) a
+  // };
+  // foldleft f rhs (map.tolist lhs)
+  def f(k: Dyn, v1: Dyn, v2: Dyn) -> Option = { error "Maps are not disjoint" };
+  union f lhs rhs
+}
+
+def Union(f: (Dyn -> Dyn -> Dyn -> Option), l: [(Dyn => Dyn)]) -> (Dyn => Dyn) = {
+  def ff(a: (Dyn => Dyn), e: (Dyn => Dyn)) -> (Dyn => Dyn) = { union f e a };
+  foldLeft ff (Map.empty) l
+}
+
+def Union(l: [(Dyn => Dyn)]) -> (Dyn => Dyn) = {
+  def f(a: (Dyn => Dyn), e: (Dyn => Dyn)) -> (Dyn => Dyn) = { union e a };
+  foldLeft f (Map.empty) l
+}

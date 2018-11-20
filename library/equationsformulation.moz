@@ -20,6 +20,8 @@ written by Oscar Eriksson oerikss@kth.se
 
 include LGTF
 
+def LOG = true
+
 type Vector
 def (--) : Vector -> Vector
 def (+) : Vector -> Vector -> Vector
@@ -30,9 +32,13 @@ def (*) : Vector -> Real -> Vector
 def der : Vector -> Vector
 def (') = der
 
-type VectorTransMap = (Vector => Vector)
-type Topology = (IMatrix, IMatrix, [Vector], [Vector])
+type VectorEdge = (Node, Node, [Vector], [Vector])
+type Topology = (IMatrix, IMatrix, [[Vector]], [[Vector]])
 def zero: Vector
+
+type ComponentModel = ([VectorEdge], (Vector => Vector), (Vector => [Vector]))
+type Component = (String => ComponentModel)
+type Domain = (String, Topology, (Vector => Vector), (Vector => Vector), (Vector => [Vector]))
 
 def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
   def work(fs: [Dyn -> Dyn], l: [Dyn], a: [Dyn]) -> [Dyn] = {
@@ -51,7 +57,21 @@ def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
   reverse (work fs l [])
 }
 
-def vectorize(tm: TransMap) -> VectorTransMap = {
+def transposeLL(ll: [[Dyn]]) -> [[Dyn]] = {
+  def work(ll: [[Dyn]], a: [[Dyn]]) -> [[Dyn]] = {
+    match ll with
+    | [] -> a
+    | l::ls -> {
+        match l with
+        | [] -> reverse a
+        | x::xs -> work (map (fun l: [Dyn] -> tl l) ll)
+            ((map (fun l: [Dyn] -> hd l) ll)::a)
+      }
+  };
+  work ll []
+}
+
+def vectorize(tm: TransMap) -> (Vector => Vector) = {
   def f(e: (Int, <Dyn>)) -> <Vector> = {
     if (fst e) < 0 then (snd e)
     else -(snd e)
@@ -64,7 +84,7 @@ def vectorize(tm: TransMap) -> VectorTransMap = {
     | t::ts -> t + (sum ts)
   };
 
-  def work(a: VectorTransMap, e: (Dyn, [(Int, Dyn)])) -> VectorTransMap = {
+  def work(a: (Vector => Vector), e: (Dyn, [(Int, Dyn)])) -> (Vector => Vector) = {
     def v = fst e;
     def l = (map f (snd e));
     Map.add (fst e) (sum l) a
@@ -73,32 +93,103 @@ def vectorize(tm: TransMap) -> VectorTransMap = {
   foldLeft work (Map.empty) (Map.toList tm)
 }
 
-def primaryVars(vtm: VectorTransMap, vs: [Vector]) -> [Vector] = {
-  filter (fun v: Vector -> !(Map.mem v vtm)) vs
-}
+// def primaryVars(vtm: (Vector => Vector), vs: [Vector]) -> [Vector] = {
+//   filter (fun v: Vector -> !(Map.mem v vtm)) vs
+// }
 
-def equationGeneration(tv: [Vector], av: [Vector], ter: VectorTransMap, tran: VectorTransMap) -> ([Vector], [Vector]) = {
+// def mkTMs(Ts: [[VectorEdge]]) -> [((Vector => Vector), (Vector => Vector))] = {
+//     map (fun e: Topology ->
+//           def (A, B, Y, X) = e;
+//           def _ = dprint("=== MATRIXES  ===");
+//           def _ = dprint("A = ");
+//           def _ = dprint(pp A);
+//           def _ = dprint("B = ");
+//           def _ = dprint(pp B);
+//           def _ = dprint("=== VARS ===");
+//           def _ = dprint("y = ");
+//           def _ = dprint(Y);
+//           def _ = dprint("x = ");
+//           def _ = dprint(X);
+//           (map (fun x: [Vector] -> vectorize (buildBranchTransMap B x)) X,
+//            map (fun x: [Vector] -> vectorize (buildChordTransMap A x)) Y)
+//         )
+//         (map (fun e: Topology ->
+//           def (A, B, Y, X) = e;
+//           (A, B, transposeLL Y, transposeLL X))
+//           (map (fun T: [VectorEdge] -> (buildMatrices dprint(T))) Ts
+//           )
+//         )
+// }
+
+def eqGen(tv: [Vector], av: [Vector], ter: (Vector => Vector), tran: (Vector => Vector)) -> ([Vector], [Vector]) = {
 
   def tv = map (fun t: Vector -> subs t ter) tv;
   def av = map (fun a: Vector -> subs a ter) av;
 
-  def _ = dprint("=== SUBS TER  ===");
+  def _ = dprint("=== SUBS using TERMINALS ===");
+  def _ = dprint("y = ");
   def _ = dprint(tv);
+  def _ = dprint("x = ");
   def _ = dprint(av);
 
   def tv = map (fun t: Vector -> subs t tran) tv;
   def av = map (fun a: Vector -> subs a tran) av;
 
-  def _ = dprint("=== SUBS TM  ===");
+  def _ = dprint("=== SUBS using TRANS MAPS ===");
+  def _ = dprint("y = ");
   def _ = dprint(tv);
+  def _ = dprint("x = ");
   def _ = dprint(av);
-
 
   if(
       (exists (fun t: Vector -> canSub t ter) tv) ||
       (exists (fun a: Vector -> canSub a ter) av) ||
       (exists (fun t: Vector -> canSub t tran) tv) ||
       (exists (fun a: Vector -> canSub a tran) av)
-    ) then equationGeneration tv av ter tran
+    ) then eqGen tv av ter tran
   else (tv, av)
+}
+
+def formulateEqs(model: [Component]) = {
+  def f(k: String, v_1: ComponentModel, v_2: ComponentModel) -> Option = {
+    def (E_1, ter_1, ats_1) = v_1;
+    def (E_2, ter_2, ats_2) = v_2;
+    some (append E_1 E_2, union ter_1 ter_2, union ats_1 ats_2)
+  };
+
+  // def ff(a: ([[Vector]], [[Vector]], (Vector => Vector), (Vector => Vector)), e: ([Vector], [Vector], (Vector => Vector), (Vector => Vector))) -> {
+  
+  // };
+  def domains = (map (fun e: (String, ComponentModel) ->
+      def (d, (T, ter, ats)) = e;
+      def _ = dprint("=== DOMAIN ===");
+      def _ = dprint(d);
+      def (A, B, Y, X) = buildMatrices T;
+      def (Yt, Xt) = (transposeLL Y, transposeLL X);
+      def _ = dprint("=== MATRIXES  ===");
+      def _ = dprint("A = ");
+      def _ = dprint(pp A);
+      def _ = dprint("B = ");
+      def _ = dprint(pp B);
+      def _ = dprint("=== VARS ===");
+      def _ = dprint("y = ");
+      def _ = dprint(Yt);
+      def _ = dprint("x = ");
+      def _ = dprint(Xt);
+      def _ = dprint("=== TERMINALS ===");
+      def _ = dprint(ter);
+      def tms = Union (append
+        (map (fun x: [Vector] -> vectorize (buildBranchTransMap B x)) Xt)
+        (map (fun x: [Vector] -> vectorize (buildChordTransMap A x)) Yt));
+      (
+        d,
+        (A, B, Yt, Xt),
+        tms,
+        ter,
+        ats
+      )
+    ) (Map.toList (Union f model)));
+  def TMs = Union (map (fun e: Domain -> def (_, _, tms, _, _) = e; tms) domains);
+  def TERs = Union (map (fun e: Domain -> def (_, _, _, ter, _) = e; ter) domains);
+  (TMs, TERs)
 }

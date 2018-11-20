@@ -48,6 +48,6 @@ def main = {
   def _ = dprint(ct);
   def _ = dprint(bt);
   def _ = dprint(terminals);
-  def _ = equationGeneration tv av terminals (union ct bt);
+  def _ = eqGen tv av terminals (union ct bt);
   ()
 }

@@ -18,7 +18,7 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include EquationsFormulation
+include PlanarMech
 include Equation
 
 def r_m1, v_m1, dv_m1, F_m1, t_m1, o_m1, do_m1, T_m1: Vector
@@ -43,19 +43,19 @@ def i_2, j_2, k_2: Vector
 def i_3, j_3, k_3: Vector
 
 def T = [
-          (n1, n2, F_h1, (r_h1, (r_h1', r_h1''))),
-          (n3, n2, F_r1, (r_r1, (r_r1', r_r1''))),
-          (n1, n3, F_r2, (r_r2, (r_r2', r_r2''))),
-          (n1, n3, F_m1, (r_m1, (r_m1', r_m1''))),
-          (n1, n3, F_F1, (r_F1, (r_F1', r_F1'')))
+          (n1, n2, [F_h1], [r_h1, r_h1', r_h1'']),
+          (n3, n2, [F_r1], [r_r1, r_r1', r_r1'']),
+          (n1, n3, [F_r2], [r_r2, r_r2', r_r2'']),
+          (n1, n3, [F_m1], [r_m1, r_m1', r_m1'']),
+          (n1, n3, [F_F1], [r_F1, r_F1', r_F1''])
         ]
 
 def R = [
-          (n1, n2, T_h1, (t_h1, (t_h1', t_h1''))),
-          (n3, n2, T_r1, (t_r1, (t_r1', t_r1''))),
-          (n1, n3, T_r2, (t_r2, (t_r2', t_r2''))),
-          (n1, n3, T_m1, (t_m1, (t_m1', t_m1''))),
-          (n1, n3, T_F1, (t_F1, (t_F1', t_F1'')))
+          (n1, n2, [T_h1], [t_h1, t_h1', t_h1'']),
+          (n3, n2, [T_r1], [t_r1, t_r1', t_r1'']),
+          (n1, n3, [T_r2], [t_r2, t_r2', t_r2'']),
+          (n1, n3, [T_m1], [t_m1, t_m1', t_m1'']),
+          (n1, n3, [T_F1], [t_F1, t_F1', t_F1''])
         ]
 
 def ter = listToMap [
@@ -111,24 +111,31 @@ def ter = listToMap [
                     ]
 
 def main = {
-  def (At, Bt, yt, xt) = buildMatrices T;
-  def (xt, xtp) = unzip xt;
-  def (xtp, xtpp) = unzip xtp;
-  def Xt = [xt, xtp, xtpp];
-  def Yt = [yt];
-  def (Ar, Br, yr, xr) = buildMatrices R;
-  def (xr, xrp) = unzip xr;
-  def (xrp, xrpp) = unzip xrp;
-  def Xr = [xr, xrp, xrpp];
-  def Yr = [yr];
-  def _ = dprint("=== Tra ===");
-  def _ = dprint(pp At);
-  def _ = dprint(yt);
-  def _ = dprint(Xt);
-  def _ = dprint("=== Rot ===");
-  def _ = dprint(pp Ar);
-  def _ = dprint(yr);
-  def _ = dprint(Xr);
+  def  TMs = mkTMs [T, R];
+  def (At, Bt, Yt, Xt) = buildMatrices T;
+  // def (xt, xtp) = unzip xt;
+  // def (xtp, xtpp) = unzip xtp;
+  // def Xt = [xt, xtp, xtpp];
+  // def Yt = [yt];
+  def Xt = transposeLL Xt;
+  def Yt = transposeLL Yt;
+  def yt = hd Yt;
+  def (Ar, Br, Yr, Xr) = buildMatrices R;
+  // def (xr, xrp) = unzip xr;
+  // def (xrp, xrpp) = unzip xrp;
+  // def Xr = [xr, xrp, xrpp];
+  // def Yr = [yr];
+  def Xr = transposeLL Xr;
+  def Yr = transposeLL Yr;
+  def yr = hd Yr;
+  // def _ = dprint("=== Tra ===");
+  // def _ = dprint(pp At);
+  // def _ = dprint(yt);
+  // def _ = dprint(Xt);
+  // def _ = dprint("=== Rot ===");
+  // def _ = dprint(pp Ar);
+  // def _ = dprint(yr);
+  // def _ = dprint(Xr);
 
   def ctt = vectorize (buildChordTransMap At yt);
   def ctr = vectorize (buildChordTransMap Ar yr);
@@ -138,43 +145,43 @@ def main = {
   def CTt = map (fun x: [Vector] -> vectorize (buildChordTransMap At x)) Yt;
   def CTr = map (fun x: [Vector] -> vectorize (buildChordTransMap Ar x)) Yr;
 
-  def _ = dprint("=== Tra ===");
-  def _ = dprint(hd CTt);
-  def _ = dprint(BTt);
-  def _ = dprint("=== Rot ===");
-  def _ = dprint(hd CTr);
-  def _ = dprint(BTr);
+  // def _ = dprint("=== Tra ===");
+  // def _ = dprint(hd CTt);
+  // def _ = dprint(BTt);
+  // def _ = dprint("=== Rot ===");
+  // def _ = dprint(hd CTr);
+  // def _ = dprint(BTr);
 
-  def priXt = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTt) Xt;
-  def priXr = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) BTr) Xr;
-  def priYt = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) CTt) Yt;
-  def priYr = apply (map (fun vtm: VectorTransMap -> primaryVars vtm) CTr) Yr;
+  def priXt = apply (map (fun vtm: (Vector => Vector) -> primaryVars vtm) BTt) Xt;
+  def priXr = apply (map (fun vtm: (Vector => Vector) -> primaryVars vtm) BTr) Xr;
+  def priYt = apply (map (fun vtm: (Vector => Vector) -> primaryVars vtm) CTt) Yt;
+  def priYr = apply (map (fun vtm: (Vector => Vector) -> primaryVars vtm) CTr) Yr;
 
   def priyt = primaryVars ctt yt;
   def priyr = primaryVars ctr yr;
 
-  def _ = dprint("=== Tra ===");
-  def _ = dprint(priXt);
-  def _ = dprint(priyt);
-  def _ = dprint("=== Rot ===");
-  def _ = dprint(priXr);
-  def _ = dprint(priyt);
+  // def _ = dprint("=== Tra ===");
+  // def _ = dprint(priXt);
+  // def _ = dprint(priyt);
+  // def _ = dprint("=== Rot ===");
+  // def _ = dprint(priXr);
+  // def _ = dprint(priyt);
 
   def pritert = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXt) (concat priYt)))) ter;
   def priterr = filter (fun v: Vector -> Set.mem v (listToSet (append (concat priXr) (concat priYr)))) ter;
 
-  def _ = dprint("=== Tra ===");
-  def _ = dprint(pritert);
-  def _ = dprint("=== Rot ===");
-  def _ = dprint(priterr);
+  // def _ = dprint("=== Tra ===");
+  // def _ = dprint(pritert);
+  // def _ = dprint("=== Rot ===");
+  // def _ = dprint(priterr);
 
   def f(a: (Vector => Vector), e: (Vector => Vector)) -> (Vector => Vector) = { union a e };
   def tm = foldLeft f (Map.empty) (append (append BTt BTr) (append CTt CTr));
 
-  def _ = dprint("=== TM ===");
-  def _ = dprint(tm);
-  def _ = dprint("=== TER ===");
-  def _ = dprint(ter);
-  def (yt, xt) = equationGeneration (hd Yt) (hd Xt) tm ter;
+  // def _ = dprint("=== TM ===");
+  // def _ = dprint(tm);
+  // def _ = dprint("=== TER ===");
+  // def _ = dprint(ter);
+  def (yt, xt) = eqGen (hd Yt) (hd Xt) tm ter;
   ()
 }
