@@ -20,17 +20,13 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = MatrixZero 0 (3, 3)
+def M = IntMatrixZero (3, 3)
+def I = listToMatrix [[1, 0, 0], [0, 1, 0], [0, 0, 1]] M
+def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
+def B = listToMatrix [[0, 1, 2], [3, 4, 5], [6, 7, 8]] M
+def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M
 
-def _ = dprint((MatrixGet (1, 1) M) == 0)
-def _ = dprint((MatrixGet (2, 1) M) == 0)
-def _ = dprint((MatrixGet (3, 3) M) == 0)
-
-def I = (MatrixSet (3, 3) 1 (MatrixSet (2, 2) 1 (MatrixSet (1, 1) 1 M)))
-
-def _ = dprint((MatrixGet (1, 1) I) == 1)
-def _ = dprint((MatrixGet (2, 2) I) == 1)
-def _ = dprint((MatrixGet (3, 3) I) == 1)
-
-def _ = dprint((MatrixGet (1, 2) I) == 0)
-def _ = dprint((MatrixGet (3, 2) I) == 0)
+def _ = dprint((MatrixEq (MatrixAdd I M)) I)
+def _ = dprint((MatrixEq (MatrixAdd B C)) A)
+def _ = dprint((I + M) == I)
+def _ = dprint((C + B) == A)

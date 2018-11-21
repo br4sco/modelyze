@@ -76,10 +76,10 @@ test_files()
 # test_dill_file "lrd2"
 # test_dill_file "clutch"
 
-test_2dmech_file "pendulum"
+# test_2dmech_file "pendulum"
 # test_2dmech_file "circuit"
 
-# test_files "matrix"
+test_files "matrix"
 
 
 rm -f test.out

@@ -22,9 +22,14 @@ include Base
 
 type Pos = (Int, Int)
 type MatrixMap = (Int => (Int => Dyn))
-type Matrix = (MatrixMap, Pos, Dyn, Dyn -> Bool)
+type Matrix = (MatrixMap, Pos, Dyn)
+type IntMatrix = (Int => (Int => Int), Pos, Int)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
+def iszInt = (fun v: Int -> v == 0)
+def eqInt(l: Int, r: Int) -> Bool = { l == r }
+def addInt(l: Int, r: Int) -> Int = { l + r }
+def prodInt(l: Int, r: Int) -> Int = { l * r }
 
 def _mem(ij: Pos, Mm: MatrixMap) -> Bool = {
   def (i, j) = ij;
@@ -46,10 +51,15 @@ def _remove(ij: Pos, Mm: MatrixMap) -> MatrixMap = {
   Map.add i (Map.remove j (Map.find i Mm)) Mm
 }
 
+def _z(M: Matrix) = { def (_, _, z) = M; z }
+
 def posEq(lhs: Pos, rhs: Pos) -> Bool = {
   ((fst lhs) == (fst rhs)) && ((snd lhs) == (snd rhs))
 }
 def (==): Pos -> Pos -> Bool = posEq
+
+def posEq(lhs: Pos, rhs: Pos) -> Bool = { !(lhs == rhs) }
+def (!=): Pos -> Pos -> Bool = posEq
 
 def posLT(lhs: Pos, rhs: Pos) -> Bool = {
   (((fst lhs) < (fst rhs)) && ((snd lhs) <= (snd rhs))) ||
@@ -68,29 +78,32 @@ def (>): Pos -> Pos -> Bool = posGT
 def posGTorEq(lhs: Pos, rhs: Pos) -> Bool = { rhs <= lhs }
 def (>=): Pos -> Pos -> Bool = posGTorEq
 
-def MatrixZero(z: Dyn, isz: (Dyn -> Bool), d: Pos) -> Matrix = {
+def MatrixZero(z: Dyn, d: (Int, Int)) -> Matrix = {
   def (n, _) = d;
   def work(i: Int, a: MatrixMap) -> MatrixMap = {
     if i > 0 then work (i - 1) (Map.add i (Map.empty) a) else a
   };
 
   if (0, 0) >= d then error "Dimensions need to be greater than zero"
-  else (work n (Map.empty), d, z, isz)
+  else (work n (Map.empty), d, z)
 }
-def IntMatrixZero(d: Pos) = { MatrixZero 0 (fun v: Int -> v == 0) d}
+def IntMatrixZero(d: (Int, Int)) -> IntMatrix = { MatrixZero 0 d }
 
-def MatrixSet(ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
-  def (Mm, d, z, isz) = M;
+def dim(M: Matrix) -> (Int, Int) = { snd M }
+def rdim(M: Matrix) -> Int = { fst (dim M) }
+def cdim(M: Matrix) -> Int = { snd (dim M) }
+
+def MatrixSet(isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
+  def (Mm, d, z) = M;
   def (i, j) = ij;
   if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
   else {
     if isz v then {
-      if _mem d Mm then (_remove ij Mm, d, z, isz) else M
-    } else (_add ij v Mm, d, z, isz)
+      if _mem d Mm then (_remove ij Mm, d, z) else M
+    } else (_add ij v Mm, d, z)
   }
 }
-def MatrixSetInl(M: Matrix, ij: Pos, v: Dyn) -> Matrix = (MatrixSet ij v M)
-def (+) : Matrix -> Pos -> Dyn = MatrixSetInl
+def MatrixSet(ij: Pos, v: Int, M: IntMatrix) -> IntMatrix = { MatrixSet iszInt ij v M }
 
 def MatrixGet(ij: Pos, M: Matrix) -> Dyn = {
   def (Mm, d, z) = M;
@@ -101,20 +114,17 @@ def MatrixGet(ij: Pos, M: Matrix) -> Dyn = {
     else z
   }
 }
-def MatrixGetInl(M: Matrix, ij: Pos) -> Matrix = (MatrixGet ij M)
-def (-) : Matrix -> Pos -> Dyn = MatrixGetInl
 
 def MatrixToList(M: Matrix) -> [[Dyn]] = {
-  def (_, (n, m)) = M;
   def workRow(i: Int, j: Int, a: [Dyn]) -> [Dyn] = {
     if j > 0 then workRow i (j - 1) ((MatrixGet (i, j) M)::a) else a
   };
 
   def work(i: Int, a: [[Dyn]]) -> [[Dyn]] = {
-    if i > 0 then work (i - 1) ((workRow i m [])::a) else a
+    if i > 0 then work (i - 1) ((workRow i (cdim M) [])::a) else a
   };
 
-  work n []
+  work (rdim M) []
 }
 
 def listToMatrix(l: [[Dyn]], M: Matrix) -> Matrix = {
@@ -142,7 +152,47 @@ def dp(M: Matrix) -> Matrix = {
   M
 }
 
-// def forEach(f: (Dyn -> Dyn), r: MatrixRow) -> () = {
-//   def (rmap, n, z) = r;
-//   def work(n: Int)
-// }
+def forij(f: (Pos -> Dyn -> Bool), M: Matrix) -> Bool = {
+  def work(c: Int) -> Bool = {
+    def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
+    if (c + 1 > ((rdim M) * (cdim M))) then true
+    else { if !(f p (MatrixGet p M)) then false else work (c + 1) }
+  };
+  work 0
+}
+
+def MatrixEq(eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = {
+  def f(p: Pos, v: Dyn) -> Bool = { eq (MatrixGet p lM) (MatrixGet p rM) };
+  if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
+  else forij f lM
+}
+def MatrixEq(lM: IntMatrix, rM: IntMatrix) -> Bool = { MatrixEq eqInt lM rM }
+def (==): IntMatrix -> IntMatrix -> Bool = MatrixEq
+
+def mapij(z: Dyn, isz: (Dyn -> Bool), f: (Pos -> Dyn -> Dyn), M: Matrix) -> Matrix = {
+  def work(c: Int, a: Matrix) -> Matrix = {
+    def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
+    if c + 1 > ((rdim M) * (cdim M)) then a
+    else work (c + 1) ( MatrixSet isz p (f p (MatrixGet p M)) a)
+  };
+  work 0 (MatrixZero z (dim M))
+}
+def mapij(f: (Pos -> Dyn -> Int), M: Matrix) -> IntMatrix = { mapij 0 iszInt f M }
+
+def MatrixAdd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { add (MatrixGet ij lM) (MatrixGet ij rM) };
+  if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
+  else mapij (_z lM) isz f rM
+}
+def MatrixAdd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { MatrixAdd iszInt addInt lM rM }
+def (+): IntMatrix -> IntMatrix -> IntMatrix = MatrixAdd
+
+def MatrixScalarProd(isz: (Dyn -> Bool), prod: (Dyn -> Dyn -> Dyn), s: Dyn, M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { prod s (MatrixGet ij M) };
+  mapij (_z M) isz f M
+}
+def MatrixScalarProd(isz: (Dyn -> Bool), prod: (Dyn -> Dyn -> Dyn), M: Matrix, s: Dyn) -> Matrix = { MatrixScalarProd isz prod s M }
+def MatrixScalarProd(s: Int, M: IntMatrix) -> IntMatrix = { MatrixScalarProd iszInt prodInt s M }
+def (*): Int -> IntMatrix -> IntMatrix = MatrixScalarProd
+def MatrixScalarProd(M: IntMatrix, s: Int) -> IntMatrix = { MatrixScalarProd iszInt prodInt s M }
+def (*): IntMatrix -> Int -> IntMatrix = MatrixScalarProd

@@ -150,16 +150,13 @@ def eqGen(tv: [Vector], av: [Vector], ter: (Vector => Vector), tran: (Vector => 
   else (tv, av)
 }
 
-def formulateEqs(model: [Component]) = {
+def formulateEqs(model: [Component]) -> [([Vector], [Vector], [Vector])] = {
   def f(k: String, v_1: ComponentModel, v_2: ComponentModel) -> Option = {
     def (E_1, ter_1, ats_1) = v_1;
     def (E_2, ter_2, ats_2) = v_2;
     some (append E_1 E_2, union ter_1 ter_2, union ats_1 ats_2)
   };
 
-  // def ff(a: ([[Vector]], [[Vector]], (Vector => Vector), (Vector => Vector)), e: ([Vector], [Vector], (Vector => Vector), (Vector => Vector))) -> {
-  
-  // };
   def domains = (map (fun e: (String, ComponentModel) ->
       def (d, (T, ter, ats)) = e;
       def _ = dprint("=== DOMAIN ===");
@@ -189,7 +186,7 @@ def formulateEqs(model: [Component]) = {
         ats
       )
     ) (Map.toList (Union f model)));
-  def TMs = Union (map (fun e: Domain -> def (_, _, tms, _, _) = e; tms) domains);
-  def TERs = Union (map (fun e: Domain -> def (_, _, _, ter, _) = e; ter) domains);
-  (TMs, TERs)
+  def TMs = Union (map (fun d: Domain -> def (_, _, tms, _, _) = d; tms) domains);
+  def TERs = Union (map (fun d: Domain -> def (_, _, _, ter, _) = d; ter) domains);
+  map (fun d: Domain -> def (_, (_, _, Y, X), _, _, ats) = d; def (Ys, Xs) = eqGen (hd Y) (hd X) TERs TMs; (Ys, Xs, ats)) domains
 }
