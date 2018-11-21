@@ -24,9 +24,10 @@ def M = IntMatrixZero (3, 3)
 def I = IntMatrixId 3
 def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
 def B = listToMatrix [[0, 1, 2], [3, 4, 5], [6, 7, 8]] M
-def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M
+def C = listToMatrix [[24, 30, 36], [51, 66, 81], [78, 102, 126]] M
+def v = listToMatrix [[1], [2], [3]] (IntMatrixZero (3, 1))
+def D = listToMatrix [[24, 30, 36], [51, 66, 81], [78, 102, 126]] M
 
-def _ = dprint((MatrixEq (MatrixAdd I M)) I)
-def _ = dprint((MatrixEq (MatrixAdd B C)) A)
-def _ = dprint((I + M) == I)
-def _ = dprint((C + B) == A)
+// def _ = dprint(A * I == A)
+// def _ = dprint(A * B == C)
+def _ = dp(I * v)

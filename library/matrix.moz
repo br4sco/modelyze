@@ -89,6 +89,12 @@ def MatrixZero(z: Dyn, d: (Int, Int)) -> Matrix = {
 }
 def IntMatrixZero(d: (Int, Int)) -> IntMatrix = { MatrixZero 0 d }
 
+def MatrixId(z: Dyn, id: Dyn, n: Int) -> Matrix = {
+  def work(i: Int, a: MatrixMap) -> MatrixMap = { if i > 0 then work (i - 1) (_add (i, i) id a) else a };
+  (work n (fst (MatrixZero z (n, n))), (n, n), z)
+}
+def IntMatrixId(n: Int) -> IntMatrix = { MatrixId 0 1 n }
+
 def dim(M: Matrix) -> (Int, Int) = { snd M }
 def rdim(M: Matrix) -> Int = { fst (dim M) }
 def cdim(M: Matrix) -> Int = { snd (dim M) }
@@ -169,6 +175,10 @@ def MatrixEq(eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = {
 def MatrixEq(lM: IntMatrix, rM: IntMatrix) -> Bool = { MatrixEq eqInt lM rM }
 def (==): IntMatrix -> IntMatrix -> Bool = MatrixEq
 
+def MatrixNEq(eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = { !(MatrixEq eq lM rM) }
+def MatrixNEq(lM: IntMatrix, rM: IntMatrix) -> Bool = { MatrixNEq eqInt lM rM }
+def (!=): IntMatrix -> IntMatrix -> Bool = MatrixNEq
+
 def mapij(z: Dyn, isz: (Dyn -> Bool), f: (Pos -> Dyn -> Dyn), M: Matrix) -> Matrix = {
   def work(c: Int, a: Matrix) -> Matrix = {
     def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
@@ -196,3 +206,26 @@ def MatrixScalarProd(s: Int, M: IntMatrix) -> IntMatrix = { MatrixScalarProd isz
 def (*): Int -> IntMatrix -> IntMatrix = MatrixScalarProd
 def MatrixScalarProd(M: IntMatrix, s: Int) -> IntMatrix = { MatrixScalarProd iszInt prodInt s M }
 def (*): IntMatrix -> Int -> IntMatrix = MatrixScalarProd
+
+def MatrixProd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn), lM : Matrix, rM: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = {
+    def work(i: Int, a: Dyn) -> Dyn = {
+      if i > 0 then {
+        def _ = dprint(ij);
+        def _ = dprint((fst ij, i));
+        def _ = dprint((i, snd ij));
+        def _ = dprint("==");
+        work (i - 1) (add a (prod (MatrixGet (fst ij, i) lM) (MatrixGet (i, snd ij) rM)))
+      } else a
+    };
+    def _ = dprint(ij);
+    def _ = dprint((fst ij, cdim rM));
+    def _ = dprint((rdim lM, snd ij));
+    def _ = dprint("==");
+    work ((rdim lM) - 1) (prod (MatrixGet (fst ij, cdim rM) lM) (MatrixGet (rdim lM, snd ij) rM))
+  };
+  if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
+  else mapij (_z lM) isz f (MatrixZero (_z lM) (rdim lM, cdim rM))
+}
+def MatrixProd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { MatrixProd iszInt addInt prodInt lM rM }
+def (*): IntMatrix -> IntMatrix -> IntMatrix = MatrixProd

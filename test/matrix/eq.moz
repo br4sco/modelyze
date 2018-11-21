@@ -21,10 +21,10 @@ written by Oscar Eriksson oerikss@kth.se
 include Matrix
 
 def M = IntMatrixZero (3, 3)
-def I = listToMatrix [[1, 0, 0], [0, 1, 0], [0, 0, 1]] M
+def I = IntMatrixId 3
 
-def _ = dprint(MatrixEq M M)
-def _ = dprint(MatrixEq I I)
-def _ = dprint(!(MatrixEq M I))
-def _ = dprint(!(MatrixEq I M))
+def _ = dprint(M == M)
+def _ = dprint(I == I)
+def _ = dprint(M != I)
+def _ = dprint(I != M)
 
