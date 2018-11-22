@@ -88,7 +88,7 @@ def (+): Pos -> Pos -> Pos = posAdd
 def posSub(lhs: Pos, rhs: Pos) -> Pos = { (fst lhs - fst rhs, snd lhs - snd rhs) }
 def (-): Pos -> Pos -> Pos = posSub
 
-def matrixMapZero(d: (Int, Int)) -> Matrix = {
+def mmZero(d: (Int, Int)) -> Matrix = {
   def (n, _) = d;
   def work(i: Int, a: MMap) -> MMap = {
     if i > 0 then work (i - 1) (Map.add i (Map.empty) a) else a
@@ -97,11 +97,11 @@ def matrixMapZero(d: (Int, Int)) -> Matrix = {
   if (0, 0) >= d then error "Dimensions need to be greater than zero"
   else (work n (Map.empty), d)
 }
-def matrixMapIntZero(d: (Int, Int)) -> MatrixMapInt = { matrixMapZero d }
+def matrixMapIntZero(d: (Int, Int)) -> MatrixMapInt = { mmZero d }
 
 def matrixMapId(id: Dyn, n: Int) -> Matrix = {
   def work(i: Int, a: MMap) -> MMap = { if i > 0 then work (i - 1) (_add (i, i) id a) else a };
-  (work n (fst (matrixMapZero (n, n))), (n, n))
+  (work n (fst (mmZero (n, n))), (n, n))
 }
 def matrixMapIntId(n: Int) -> MatrixMapInt = { matrixMapId 1 n }
 
