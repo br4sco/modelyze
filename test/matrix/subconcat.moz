@@ -20,19 +20,19 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = IntMatrixZero (3, 3)
-def I_3 = IntMatrixId 3
-def I_2 = IntMatrixId 2
-def I_1 = IntMatrixId 1
+def M = intMatrixZero (3, 3)
+def I_3 = intMatrixId 3
+def I_2 = intMatrixId 2
+def I_1 = intMatrixId 1
 def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
-def As = listToMatrix [[1, 2], [4, 5]] (IntMatrixZero (2, 2))
-def v = listToMatrix [[1], [2], [3]] (IntMatrixZero (3, 1))
-def vs = listToMatrix [[2], [3]] (IntMatrixZero (2, 1))
-def u = listToMatrix [[1, 2, 3]] (IntMatrixZero (1, 3))
-def us = listToMatrix [[2, 3]] (IntMatrixZero (1, 2))
-def B = listToMatrix [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]] (IntMatrixZero (5, 2))
-def Bh = listToMatrix [[1, 2], [3, 4]] (IntMatrixZero (2, 2))
-def Bt = listToMatrix [[5, 6], [7, 8], [9, 10]] (IntMatrixZero (3, 2))
+def As = listToMatrix [[1, 2], [4, 5]] (intMatrixZero (2, 2))
+def v = listToMatrix [[1], [2], [3]] (intMatrixZero (3, 1))
+def vs = listToMatrix [[2], [3]] (intMatrixZero (2, 1))
+def u = listToMatrix [[1, 2, 3]] (intMatrixZero (1, 3))
+def us = listToMatrix [[2, 3]] (intMatrixZero (1, 2))
+def B = listToMatrix [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]] (intMatrixZero (5, 2))
+def Bh = listToMatrix [[1, 2], [3, 4]] (intMatrixZero (2, 2))
+def Bt = listToMatrix [[5, 6], [7, 8], [9, 10]] (intMatrixZero (3, 2))
 
 def _ = dprint(sub (1, 1) (2, 2) I_3 == I_2)
 def _ = dprint(sub (1, 1) (2, 2) A == As)

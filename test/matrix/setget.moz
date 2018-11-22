@@ -20,17 +20,17 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = MatrixZero 0 (3, 3)
+def M = matrixZero 0 (3, 3)
 
-def _ = dprint((MatrixGet (1, 1) M) == 0)
-def _ = dprint((MatrixGet (2, 1) M) == 0)
-def _ = dprint((MatrixGet (3, 3) M) == 0)
+def _ = dprint((get (1, 1) M) == 0)
+def _ = dprint((get (2, 1) M) == 0)
+def _ = dprint((get (3, 3) M) == 0)
 
-def I = (MatrixSet (3, 3) 1 (MatrixSet (2, 2) 1 (MatrixSet (1, 1) 1 M)))
+def I = (set (3, 3) 1 (set (2, 2) 1 (set (1, 1) 1 M)))
 
-def _ = dprint((MatrixGet (1, 1) I) == 1)
-def _ = dprint((MatrixGet (2, 2) I) == 1)
-def _ = dprint((MatrixGet (3, 3) I) == 1)
+def _ = dprint((get (1, 1) I) == 1)
+def _ = dprint((get (2, 2) I) == 1)
+def _ = dprint((get (3, 3) I) == 1)
 
-def _ = dprint((MatrixGet (1, 2) I) == 0)
-def _ = dprint((MatrixGet (3, 2) I) == 0)
+def _ = dprint((get (1, 2) I) == 0)
+def _ = dprint((get (3, 2) I) == 0)
