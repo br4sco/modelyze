@@ -226,3 +226,9 @@ def MatrixProd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -
 }
 def MatrixProd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { MatrixProd iszInt addInt prodInt lM rM }
 def (*): IntMatrix -> IntMatrix -> IntMatrix = MatrixProd
+
+def MatrixTranspose(isz: (Dyn -> Bool), M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { MatrixGet (snd ij, fst ij) M };
+  mapij (_z M) isz f (MatrixZero (_z M) (cdim M, rdim M))
+}
+def tr(M: IntMatrix) -> IntMatrix = { MatrixTranspose iszInt M }
