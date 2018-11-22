@@ -21,9 +21,13 @@ written by Oscar Eriksson oerikss@kth.se
 include Base
 
 type Pos = (Int, Int)
+type Matrix = (Dyn, Pos, Dyn)
 type MatrixMap = (Int => (Int => Dyn))
-type Matrix = (MatrixMap, Pos, Dyn)
-type IntMatrix = (Int => (Int => Int), Pos, Int)
+type MatrixMapInt = (Int => (Int => Int), Pos, Int)
+type MatrixFind = Pos -> Dyn -> Dyn
+type MatrixAdd = Pos -> Dyn -> Dyn -> Matrix
+type MatrixZero = (Int, Int) -> Matrix
+type MatrixId = Int -> Matrix
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
 def iszInt = (fun v: Int -> v == 0)
@@ -85,7 +89,7 @@ def (+): Pos -> Pos -> Pos = posAdd
 def posSub(lhs: Pos, rhs: Pos) -> Pos = { (fst lhs - fst rhs, snd lhs - snd rhs) }
 def (-): Pos -> Pos -> Pos = posSub
 
-def matrixZero(z: Dyn, d: (Int, Int)) -> Matrix = {
+def matrixMapZero(z: Dyn, d: (Int, Int)) -> Matrix = {
   def (n, _) = d;
   def work(i: Int, a: MatrixMap) -> MatrixMap = {
     if i > 0 then work (i - 1) (Map.add i (Map.empty) a) else a
@@ -94,21 +98,20 @@ def matrixZero(z: Dyn, d: (Int, Int)) -> Matrix = {
   if (0, 0) >= d then error "Dimensions need to be greater than zero"
   else (work n (Map.empty), d, z)
 }
-def intMatrixZero(d: (Int, Int)) -> IntMatrix = { matrixZero 0 d }
+def matrixMapIntZero(d: (Int, Int)) -> MatrixMapInt = { matrixMapZero 0 d }
 
-def matrixId(z: Dyn, id: Dyn, n: Int) -> Matrix = {
+def matrixMapId(z: Dyn, id: Dyn, n: Int) -> Matrix = {
   def work(i: Int, a: MatrixMap) -> MatrixMap = { if i > 0 then work (i - 1) (_add (i, i) id a) else a };
-  (work n (fst (matrixZero z (n, n))), (n, n), z)
+  (work n (fst (matrixMapZero z (n, n))), (n, n), z)
 }
-def intMatrixId(n: Int) -> IntMatrix = { matrixId 0 1 n }
+def matrixMapIntId(n: Int) -> MatrixMapInt = { matrixMapId 0 1 n }
 
 def dim(M: Matrix) -> (Int, Int) = { snd M }
 def rdim(M: Matrix) -> Int = { fst (dim M) }
 def cdim(M: Matrix) -> Int = { snd (dim M) }
 
-def matrixAdd(isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
-  def (Mm, d, z) = M;
-  def (i, j) = ij;
+def matrixMapAdd(z: Dyn, isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
+  def (Mm, d) = M;
   if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
   else {
     if isz v then {
@@ -116,10 +119,11 @@ def matrixAdd(isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: Matrix) -> Matrix = {
     } else (_add ij v Mm, d, z)
   }
 }
-def add(ij: Pos, v: Int, M: IntMatrix) -> IntMatrix = { matrixAdd iszInt ij v M }
+def matrixMapIntAdd(ij: Pos, v: Int, M: MatrixMapInt) -> MatrixMapInt = { matrixMapAdd 0 iszInt ij v M }
+def add: Pos -> Int -> MatrixMapInt -> MatrixMapInt = matrixMapIntAdd
 
-def matrixFind(ij: Pos, M: Matrix) -> Dyn = {
-  def (Mm, d, z) = M;
+def matrixMapFind(z: Dyn, ij: Pos, M: Matrix) -> Dyn = {
+  def (Mm, d) = M;
   def (i, j) = ij;
   if (ij <= (0, 0) || ij > d) then error DIMENSION_MISSMATCH
   else {
@@ -127,11 +131,12 @@ def matrixFind(ij: Pos, M: Matrix) -> Dyn = {
     else z
   }
 }
-def find(ij: Pos, M: IntMatrix) -> Int = { matrixFind ij M }
+def matrixMapIntFind(ij: Pos, M: MatrixMapInt) -> Int = { matrixMapFind 0 ij M }
+def find: Pos -> MatrixMapInt -> Int = matrixMapIntFind
 
-def matrixToList(M: Matrix) -> [[Dyn]] = {
+def matrixToList(mfind: MatrixFind, M: Matrix) -> [[Dyn]] = {
   def workRow(i: Int, j: Int, a: [Dyn]) -> [Dyn] = {
-    if j > 0 then workRow i (j - 1) ((matrixFind (i, j) M)::a) else a
+    if j > 0 then workRow i (j - 1) ((mfind (i, j) M)::a) else a
   };
 
   def work(i: Int, a: [[Dyn]]) -> [[Dyn]] = {
@@ -141,10 +146,10 @@ def matrixToList(M: Matrix) -> [[Dyn]] = {
   work (rdim M) []
 }
 
-def listToMatrix(isz: (Dyn -> Bool), l: [[Dyn]], M: Matrix) -> Matrix = {
+def listToMatrix(madd: MatrixAdd, l: [[Dyn]], M: Matrix) -> Matrix = {
   def workRow(l: [Dyn], i: Int, j: Int, a: Matrix) -> Matrix = {
     match l with
-    | x::xs -> workRow xs i (j + 1) (matrixAdd isz (i, j) x a)
+    | x::xs -> workRow xs i (j + 1) (madd (i, j) x a)
     | [] -> a
   };
 
@@ -156,119 +161,119 @@ def listToMatrix(isz: (Dyn -> Bool), l: [[Dyn]], M: Matrix) -> Matrix = {
 
   work l 1 M
 }
-def listToMatrix(l: [[Int]], M: IntMatrix) -> IntMatrix = { listToMatrix iszInt l M }
+def listToMatrix(l: [[Int]], M: MatrixMapInt) -> MatrixMapInt = { listToMatrix matrixMapIntAdd l M }
 
-def dp(M: Matrix) -> Matrix = {
+def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
   def _ = println("[");
   def _ = iter (fun r: [Dyn] -> {
       def _ = print("  "); def _ = dprint(r); ()
-    }) (matrixToList M);
+    }) (matrixToList mfind M);
   def _ = print("] d = ");
   def _ = dprint(dim M);
   M
 }
 
-def forij(f: (Pos -> Dyn -> Bool), M: Matrix) -> Bool = {
+def forij(mfind: MatrixFind, f: (Pos -> Dyn -> Bool), M: Matrix) -> Bool = {
   def work(c: Int) -> Bool = {
     def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
     if (c + 1 > ((rdim M) * (cdim M))) then true
-    else { if !(f p (matrixFind p M)) then false else work (c + 1) }
+    else { if !(f p (mfind p M)) then false else work (c + 1) }
   };
   work 0
 }
 
-def matrixEq(eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = {
-  def f(p: Pos, v: Dyn) -> Bool = { eq (matrixFind p lM) (matrixFind p rM) };
+def matrixEq(mfind: MatrixFind, eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = {
+  def f(p: Pos, v: Dyn) -> Bool = { eq (mfind p lM) (mfind p rM) };
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
-  else forij f lM
+  else forij mfind f lM
 }
-def matrixEq(lM: IntMatrix, rM: IntMatrix) -> Bool = { matrixEq eqInt lM rM }
-def (==): IntMatrix -> IntMatrix -> Bool = matrixEq
+def matrixEq(lM: MatrixMapInt, rM: MatrixMapInt) -> Bool = { matrixEq matrixMapIntFind eqInt lM rM }
+def (==): MatrixMapInt -> MatrixMapInt -> Bool = matrixEq
 
-def matrixNEq(eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = { !(matrixEq eq lM rM) }
-def matrixNEq(lM: IntMatrix, rM: IntMatrix) -> Bool = { matrixNEq eqInt lM rM }
-def (!=): IntMatrix -> IntMatrix -> Bool = matrixNEq
+def matrixNEq(mfind: MatrixFind, eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = { !(matrixEq mfind eq lM rM) }
+def matrixNEq(lM: MatrixMapInt, rM: MatrixMapInt) -> Bool = { matrixNEq matrixMapIntFind eqInt lM rM }
+def (!=): MatrixMapInt -> MatrixMapInt -> Bool = matrixNEq
 
-def mapij(z: Dyn, isz: (Dyn -> Bool), f: (Pos -> Dyn -> Dyn), M: Matrix) -> Matrix = {
+def mapij(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn -> Dyn), M: Matrix) -> Matrix = {
   def work(c: Int, a: Matrix) -> Matrix = {
     def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
     if c + 1 > ((rdim M) * (cdim M)) then a
-    else work (c + 1) ( matrixAdd isz p (f p (matrixFind p M)) a)
+    else work (c + 1) ( madd p (f p (mfind p M)) a)
   };
-  work 0 (matrixZero z (dim M))
+  work 0 (mzero (dim M))
 }
-def mapij(f: (Pos -> Dyn -> Int), M: Matrix) -> IntMatrix = { mapij 0 iszInt f M }
+def mapij(f: (Pos -> Dyn -> Int), M: Matrix) -> MatrixMapInt = { mapij matrixMapIntFind matrixMapIntAdd matrixMapIntZero f M }
 
-def matrixAdd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
-  def f(ij: Pos, v: Dyn) -> Dyn = { add (matrixFind ij lM) (matrixFind ij rM) };
+def matrixMapAddition(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { add (mfind ij lM) (mfind ij rM) };
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
-  else mapij (_z lM) isz f rM
+  else mapij mfind madd mzero f rM
 }
-def matrixAdd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixAdd iszInt addInt lM rM }
-def (+): IntMatrix -> IntMatrix -> IntMatrix = matrixAdd
+def matrixMapAddition(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixMapAddition matrixMapIntFind matrixMapIntAdd matrixMapIntZero addInt lM rM }
+def (+): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixMapAddition
 
-def matrixChsgn(isz: (Dyn -> Bool), cs: (Dyn -> Dyn), M: Matrix) -> Matrix = {
+def matrixChsgn(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, cs: (Dyn -> Dyn), M: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = { cs v };
-  mapij (_z M) isz f M
+  mapij mfind madd mzero f M
 }
-def matrixChsgn(M: IntMatrix) -> IntMatrix = { matrixChsgn iszInt chsgnInt M }
-def (--): IntMatrix -> IntMatrix = matrixChsgn
+def matrixChsgn(M: MatrixMapInt) -> MatrixMapInt = { matrixChsgn matrixMapIntFind matrixMapIntAdd matrixMapIntZero chsgnInt M }
+def (--): MatrixMapInt -> MatrixMapInt = matrixChsgn
 
-def matrixSubst(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
-  matrixAdd isz add lM (matrixChsgn isz cs rM)
+def matrixSubst(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+  matrixMapAddition mfind madd mzero add lM (matrixChsgn mfind madd mzero cs rM)
 }
-def matrixSubst(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixSubst iszInt addInt chsgnInt lM rM }
-def (-): IntMatrix -> IntMatrix -> IntMatrix = matrixSubst
+def matrixSubst(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixSubst matrixMapIntFind matrixMapIntAdd matrixMapIntZero addInt chsgnInt lM rM }
+def (-): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixSubst
 
-def matrixScalarProd(isz: (Dyn -> Bool), prod: (Dyn -> Dyn -> Dyn), s: Dyn, M: Matrix) -> Matrix = {
-  def f(ij: Pos, v: Dyn) -> Dyn = { prod s (matrixFind ij M) };
-  mapij (_z M) isz f M
+def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, prod: (Dyn -> Dyn -> Dyn), s: Dyn, M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { prod s (mfind ij M) };
+  mapij mfind madd mzero f M
 }
-def matrixScalarProd(isz: (Dyn -> Bool), prod: (Dyn -> Dyn -> Dyn), M: Matrix, s: Dyn) -> Matrix = { matrixScalarProd isz prod s M }
-def matrixScalarProd(s: Int, M: IntMatrix) -> IntMatrix = { matrixScalarProd iszInt prodInt s M }
-def (*): Int -> IntMatrix -> IntMatrix = matrixScalarProd
-def matrixScalarProd(M: IntMatrix, s: Int) -> IntMatrix = { matrixScalarProd iszInt prodInt s M }
-def (*): IntMatrix -> Int -> IntMatrix = matrixScalarProd
+def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, prod: (Dyn -> Dyn -> Dyn), M: Matrix, s: Dyn) -> Matrix = { matrixScalarProd mfind madd mzero prod s M }
+def matrixScalarProd(s: Int, M: MatrixMapInt) -> MatrixMapInt = { matrixScalarProd matrixMapIntFind matrixMapIntAdd matrixMapIntZero prodInt s M }
+def (*): Int -> MatrixMapInt -> MatrixMapInt = matrixScalarProd
+def matrixScalarProd(M: MatrixMapInt, s: Int) -> MatrixMapInt = { matrixScalarProd matrixMapIntFind matrixMapIntAdd matrixMapIntZero prodInt s M }
+def (*): MatrixMapInt -> Int -> MatrixMapInt = matrixScalarProd
 
-def matrixProd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn), lM : Matrix, rM: Matrix) -> Matrix = {
+def matrixProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn), lM : Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = {
     def work(i: Int, a: Dyn) -> Dyn = {
       if i > 0 then {
         def lpos = (fst ij, i);
         def rpos = (i, snd ij);
-        work (i - 1) (add a (prod (matrixFind lpos lM) (matrixFind rpos rM)))
+        work (i - 1) (add a (prod (mfind lpos lM) (mfind rpos rM)))
       } else a
     };
 
     def lpos = (fst ij, cdim lM);
     def rpos = (rdim rM, snd ij);
-    work ((cdim lM) - 1) (prod (matrixFind lpos lM) (matrixFind rpos rM))
+    work ((cdim lM) - 1) (prod (mfind lpos lM) (mfind rpos rM))
   };
   if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
-  else mapij (_z lM) isz f (matrixZero (_z lM) (rdim lM, cdim rM))
+  else mapij mfind madd mzero f (matrixMapZero (_z lM) (rdim lM, cdim rM))
 }
-def matrixProd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixProd iszInt addInt prodInt lM rM }
-def (*): IntMatrix -> IntMatrix -> IntMatrix = matrixProd
+def matrixProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixProd matrixMapIntFind matrixMapIntAdd matrixMapIntZero addInt prodInt lM rM }
+def (*): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixProd
 
-def matrixTranspose(isz: (Dyn -> Bool), M: Matrix) -> Matrix = {
-  def f(ij: Pos, v: Dyn) -> Dyn = { matrixFind (snd ij, fst ij) M };
-  mapij (_z M) isz f (matrixZero (_z M) (cdim M, rdim M))
+def matrixTranspose(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { mfind (snd ij, fst ij) M };
+  mapij mfind madd mzero f (matrixMapZero (_z M) (cdim M, rdim M))
 }
-def tr(M: IntMatrix) -> IntMatrix = { matrixTranspose iszInt M }
+def tr(M: MatrixMapInt) -> MatrixMapInt = { matrixTranspose matrixMapIntFind matrixMapIntAdd matrixMapIntZero M }
 
-def matrixSub(isz: (Dyn -> Bool), s: Pos, e: Pos, M: Matrix) -> Matrix = {
-  def f(ij: Pos, v: Dyn) -> Dyn = { matrixFind (ij + s - (1, 1)) M};
+def matrixSub(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, s: Pos, e: Pos, M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { mfind (ij + s - (1, 1)) M};
   if s > e  || s <= (0, 0) || e > (dim M) then error DIMENSION_MISSMATCH
-  else mapij (_z M) isz f (matrixZero (_z M) (e - s + (1, 1)))
+  else mapij mfind madd mzero f (matrixMapZero (_z M) (e - s + (1, 1)))
 }
-def sub(s: Pos, e: Pos, M: IntMatrix) -> IntMatrix = { matrixSub iszInt s e M }
+def sub(s: Pos, e: Pos, M: MatrixMapInt) -> MatrixMapInt = { matrixSub matrixMapIntFind matrixMapIntAdd matrixMapIntZero s e M }
 
-def matrixConcat(isz: (Dyn -> Bool), lM: Matrix, rM: Matrix) -> Matrix = {
+def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, lM: Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = {
-    if ij <= (dim lM) then matrixFind ij lM else matrixFind (fst ij, snd ij - cdim lM) rM
+    if ij <= (dim lM) then mfind ij lM else mfind (fst ij, snd ij - cdim lM) rM
   };
   if (rdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
-  else mapij (_z lM) isz f (matrixZero (_z lM) (rdim lM, (cdim lM) + (cdim rM)))
+  else mapij mfind madd mzero f (matrixMapZero (_z lM) (rdim lM, (cdim lM) + (cdim rM)))
 }
-def vconcat(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixConcat iszInt lM rM }
-def hconcat(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { tr (vconcat (tr lM) (tr rM)) }
+def vconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixConcat matrixMapIntFind matrixMapIntAdd matrixMapIntZero lM rM }
+def hconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { tr (vconcat (tr lM) (tr rM)) }

@@ -20,8 +20,8 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = intMatrixZero (3, 3)
-def I = intMatrixId 3
+def M = matrixMapIntZero (3, 3)
+def I = matrixMapIntId 3
 def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
 def B = listToMatrix [[0, 1, 2], [3, 4, 5], [6, 7, 8]] M
 def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M

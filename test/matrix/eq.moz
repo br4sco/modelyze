@@ -20,8 +20,8 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = intMatrixZero (3, 3)
-def I = intMatrixId 3
+def M = matrixMapIntZero (3, 3)
+def I = matrixMapIntId 3
 
 def _ = dprint(M == M)
 def _ = dprint(I == I)

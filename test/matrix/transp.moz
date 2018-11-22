@@ -20,12 +20,12 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = intMatrixZero (3, 3)
-def I = intMatrixId 3
+def M = matrixMapIntZero (3, 3)
+def I = matrixMapIntId 3
 def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
 def At = listToMatrix [[1, 4, 7], [2, 5, 8], [3, 6, 9]] M
-def v = listToMatrix [[1], [2], [3]] (intMatrixZero (3, 1))
-def vt = listToMatrix [[1, 2, 3]] (intMatrixZero (1, 3))
+def v = listToMatrix [[1], [2], [3]] (matrixMapIntZero (3, 1))
+def vt = listToMatrix [[1, 2, 3]] (matrixMapIntZero (1, 3))
 
 def _ = dprint(tr I == I)
 def _ = dprint(tr A == At)
