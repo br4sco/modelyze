@@ -203,13 +203,13 @@ def mapij(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn 
 }
 def mapij(f: (Pos -> Dyn -> Int), M: Matrix) -> MatrixMapInt = { mapij mmIntFind mmIntAdd mmIntZero f M }
 
-def mmAddition(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+def matrixAdd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = { add (mfind ij lM) (mfind ij rM) };
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
   else mapij mfind madd mzero f rM
 }
-def mmAddition(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { mmAddition mmIntFind mmIntAdd mmIntZero addInt lM rM }
-def (+): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = mmAddition
+def matrixAdd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixAdd mmIntFind mmIntAdd mmIntZero addInt lM rM }
+def (+): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixAdd
 
 def matrixChsgn(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, cs: (Dyn -> Dyn), M: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = { cs v };
@@ -219,7 +219,7 @@ def matrixChsgn(M: MatrixMapInt) -> MatrixMapInt = { matrixChsgn mmIntFind mmInt
 def (--): MatrixMapInt -> MatrixMapInt = matrixChsgn
 
 def matrixSubst(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
-  mmAddition mfind madd mzero add lM (matrixChsgn mfind madd mzero cs rM)
+  matrixAdd mfind madd mzero add lM (matrixChsgn mfind madd mzero cs rM)
 }
 def matrixSubst(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixSubst mmIntFind mmIntAdd mmIntZero addInt chsgnInt lM rM }
 def (-): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixSubst
