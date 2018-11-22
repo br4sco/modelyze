@@ -78,6 +78,12 @@ def (>): Pos -> Pos -> Bool = posGT
 def posGTorEq(lhs: Pos, rhs: Pos) -> Bool = { rhs <= lhs }
 def (>=): Pos -> Pos -> Bool = posGTorEq
 
+def posAdd(lhs: Pos, rhs: Pos) -> Pos = { (fst lhs + fst rhs, snd lhs + snd rhs) }
+def (+): Pos -> Pos -> Pos = posAdd
+
+def posSub(lhs: Pos, rhs: Pos) -> Pos = { (fst lhs - fst rhs, snd lhs - snd rhs) }
+def (-): Pos -> Pos -> Pos = posSub
+
 def MatrixZero(z: Dyn, d: (Int, Int)) -> Matrix = {
   def (n, _) = d;
   def work(i: Int, a: MatrixMap) -> MatrixMap = {
@@ -154,7 +160,8 @@ def dp(M: Matrix) -> Matrix = {
   def _ = iter (fun r: [Dyn] -> {
       def _ = print("  "); def _ = dprint(r); ()
     }) (MatrixToList M);
-  def _ = println("]");
+  def _ = print("] d = ");
+  def _ = dprint(dim M);
   M
 }
 
@@ -232,3 +239,20 @@ def MatrixTranspose(isz: (Dyn -> Bool), M: Matrix) -> Matrix = {
   mapij (_z M) isz f (MatrixZero (_z M) (cdim M, rdim M))
 }
 def tr(M: IntMatrix) -> IntMatrix = { MatrixTranspose iszInt M }
+
+def MatrixSub(isz: (Dyn -> Bool), s: Pos, e: Pos, M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { MatrixGet (ij + s - (1, 1)) M};
+  if s > e  || s <= (0, 0) || e > (dim M) then error DIMENSION_MISSMATCH
+  else mapij (_z M) isz f (MatrixZero (_z M) (e - s + (1, 1)))
+}
+def sub(s: Pos, e: Pos, M: IntMatrix) -> IntMatrix = { MatrixSub iszInt s e M }
+
+def MatrixConcat(isz: (Dyn -> Bool), lM: Matrix, rM: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = {
+    if ij <= (dim lM) then MatrixGet ij lM else MatrixGet (fst ij, snd ij - cdim lM) rM
+  };
+  if (rdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
+  else mapij (_z lM) isz f (MatrixZero (_z lM) (rdim lM, (cdim lM) + (cdim rM)))
+}
+def vconcat(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { MatrixConcat iszInt lM rM }
+def hconcat(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { tr (vconcat (tr lM) (tr rM)) }
