@@ -99,11 +99,11 @@ def mmZero(d: (Int, Int)) -> Matrix = {
 }
 def mmIntZero(d: (Int, Int)) -> MatrixMapInt = { mmZero d }
 
-def matrixMapId(id: Dyn, n: Int) -> Matrix = {
+def mmId(id: Dyn, n: Int) -> Matrix = {
   def work(i: Int, a: MMap) -> MMap = { if i > 0 then work (i - 1) (_add (i, i) id a) else a };
   (work n (fst (mmZero (n, n))), (n, n))
 }
-def matrixMapIntId(n: Int) -> MatrixMapInt = { matrixMapId 1 n }
+def mmIntId(n: Int) -> MatrixMapInt = { mmId 1 n }
 
 def dim(M: Matrix) -> (Int, Int) = { snd M }
 def rdim(M: Matrix) -> Int = { fst (dim M) }
