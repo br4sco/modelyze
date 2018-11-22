@@ -211,18 +211,15 @@ def MatrixProd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -
   def f(ij: Pos, v: Dyn) -> Dyn = {
     def work(i: Int, a: Dyn) -> Dyn = {
       if i > 0 then {
-        def _ = dprint(ij);
-        def _ = dprint((fst ij, i));
-        def _ = dprint((i, snd ij));
-        def _ = dprint("==");
-        work (i - 1) (add a (prod (MatrixGet (fst ij, i) lM) (MatrixGet (i, snd ij) rM)))
+        def lpos = (fst ij, i);
+        def rpos = (i, snd ij);
+        work (i - 1) (add a (prod (MatrixGet lpos lM) (MatrixGet rpos rM)))
       } else a
     };
-    def _ = dprint(ij);
-    def _ = dprint((fst ij, cdim rM));
-    def _ = dprint((rdim lM, snd ij));
-    def _ = dprint("==");
-    work ((rdim lM) - 1) (prod (MatrixGet (fst ij, cdim rM) lM) (MatrixGet (rdim lM, snd ij) rM))
+
+    def lpos = (fst ij, cdim lM);
+    def rpos = (rdim rM, snd ij);
+    work ((cdim lM) - 1) (prod (MatrixGet lpos lM) (MatrixGet rpos rM))
   };
   if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
   else mapij (_z lM) isz f (MatrixZero (_z lM) (rdim lM, cdim rM))
