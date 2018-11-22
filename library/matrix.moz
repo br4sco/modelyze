@@ -30,6 +30,7 @@ def iszInt = (fun v: Int -> v == 0)
 def eqInt(l: Int, r: Int) -> Bool = { l == r }
 def addInt(l: Int, r: Int) -> Int = { l + r }
 def prodInt(l: Int, r: Int) -> Int = { l * r }
+def chsgnInt(v: Int) -> Int = { -v }
 
 def _mem(ij: Pos, Mm: MatrixMap) -> Bool = {
   def (i, j) = ij;
@@ -205,6 +206,19 @@ def matrixAdd(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matr
 }
 def matrixAdd(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixAdd iszInt addInt lM rM }
 def (+): IntMatrix -> IntMatrix -> IntMatrix = matrixAdd
+
+def matrixChsgn(isz: (Dyn -> Bool), cs: (Dyn -> Dyn), M: Matrix) -> Matrix = {
+  def f(ij: Pos, v: Dyn) -> Dyn = { cs v };
+  mapij (_z M) isz f M
+}
+def matrixChsgn(M: IntMatrix) -> IntMatrix = { matrixChsgn iszInt chsgnInt M }
+def (--): IntMatrix -> IntMatrix = matrixChsgn
+
+def matrixSubst(isz: (Dyn -> Bool), add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+  matrixAdd isz add lM (matrixChsgn isz cs rM)
+}
+def matrixSubst(lM: IntMatrix, rM: IntMatrix) -> IntMatrix = { matrixSubst iszInt addInt chsgnInt lM rM }
+def (-): IntMatrix -> IntMatrix -> IntMatrix = matrixSubst
 
 def matrixScalarProd(isz: (Dyn -> Bool), prod: (Dyn -> Dyn -> Dyn), s: Dyn, M: Matrix) -> Matrix = {
   def f(ij: Pos, v: Dyn) -> Dyn = { prod s (matrixGet ij M) };
