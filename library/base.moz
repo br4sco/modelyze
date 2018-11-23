@@ -93,6 +93,9 @@ def sign(x:Int) -> Int = if x < 0 then -1 else 1
 def max(x:Real, y:Real) -> Real = if x >= y then x else y
 def max(x:Int, y:Int) -> Int = if x >= y then x else y
 
+def min(x: Int, y: Int) -> Int = if x < y then x else y
+def min(x: Real, y: Real) -> Real = if x < y then x else y
+
 def print : String -> () = @@print
 def print(i:Int) -> () = print(int2string(i))
 def print(i:Real) -> () = print(real2string(i))

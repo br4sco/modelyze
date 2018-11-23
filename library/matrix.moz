@@ -295,3 +295,15 @@ def swrows(i1: Int, i2: Int, M: MatrixMap) -> MatrixMap = {
     } else error BAD_MATRIX
   }
 }
+
+def rowFindFirst(p: (Dyn -> Bool), i: Int, M: MatrixMap) -> Int = {
+  if i <= 0 || i > rdim M then error DIMENSION_MISSMATCH
+  else {
+    def work(l: [(Int, Dyn)], a: Int) -> Int = {
+      match l with
+      | e::es -> if p (snd e) then work es (min a (fst e)) else work es a
+      | [] -> a
+    };
+    work (Map.toList (Map.find i (fst M))) ((rdim M) + 1)
+  }
+}
