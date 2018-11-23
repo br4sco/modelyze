@@ -32,6 +32,7 @@ type MatrixMap = (MMap, Pos)
 type MatrixMapInt = (Int => (Int => Int), Pos)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
+def BAD_MATRIX = "Bad matrix"
 
 // Operators and functions for Ints (in lack of type polymorphism)
 def iszInt = (fun v: Int -> v == 0)
@@ -275,9 +276,22 @@ def vconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixConcat
 def hconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { tr (vconcat (tr lM) (tr rM)) }
 
 def rowopj(madd: MatrixAdd, f: (Int -> Dyn), i: Int, M: Matrix) -> Matrix = {
-  def work(j: Int, a: Matrix) -> Matrix = {
-    if j > cdim M then a else work (j + 1) (madd (i, j) (f j) a)
-  };
-  work 1 M
+  if i <= 0 || i > rdim M then error DIMENSION_MISSMATCH
+  else {
+    def work(j: Int, a: Matrix) -> Matrix = {
+      if j > cdim M then a else work (j + 1) (madd (i, j) (f j) a)
+    };
+    work 1 M
+  }
 }
 def rowopj(f: (Int -> Int), i: Int, M: MatrixMapInt) -> MatrixMapInt = { rowopj mmIntAdd f i M }
+
+def swrows(i1: Int, i2: Int, M: MatrixMap) -> MatrixMap = {
+  if i1 <= 0 || i2 <= 0 || i1 > rdim M || i2 > rdim M then error DIMENSION_MISSMATCH
+  else {
+    def (Mm, d) = M;
+    if (Map.mem i1 Mm) && (Map.mem i2 Mm) then {
+      (Map.add i1 (Map.find i2 Mm) (Map.add i2 (Map.find i1 Mm) Mm), d)
+    } else error BAD_MATRIX
+  }
+}
