@@ -23,6 +23,4 @@ include Matrix
 def M = mmIntZero (3, 3)
 def A = listToMatrix [[0, 0, 0], [1, 2, 3], [0, 0, 0]] M
 
-def f(j: Int, v: Int) -> Int = { j }
-
-def _ = dprint(rowopj f 2 M == A)
+def _ = dprint(rowopj (fun j: Int -> j) 2 M == A)

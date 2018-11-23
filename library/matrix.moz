@@ -274,10 +274,10 @@ def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, lM: Matr
 def vconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixConcat mmIntFind mmIntAdd mmIntZero lM rM }
 def hconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { tr (vconcat (tr lM) (tr rM)) }
 
-def rowopj(mfind: MatrixFind, madd: MatrixAdd, f: (Int -> Dyn -> Dyn), i: Int, M: Matrix) -> Matrix = {
+def rowopj(madd: MatrixAdd, f: (Int -> Dyn), i: Int, M: Matrix) -> Matrix = {
   def work(j: Int, a: Matrix) -> Matrix = {
-    if j > cdim M then a else work (j + 1) (madd (i, j) (f j (mfind (i, j) M)) a)
+    if j > cdim M then a else work (j + 1) (madd (i, j) (f j) a)
   };
   work 1 M
 }
-def rowopj(f: (Int -> Int -> Int), i: Int, M: MatrixMapInt) -> MatrixMapInt = { rowopj mmIntFind mmIntAdd f i M }
+def rowopj(f: (Int -> Int), i: Int, M: MatrixMapInt) -> MatrixMapInt = { rowopj mmIntAdd f i M }
