@@ -43,5 +43,3 @@ def rrB = (vconcat ( hconcat (mmRealId 5) (mmRealZero (1, 5)))
 
 def _ = dprint(rowreduce A == rrA)
 def _ = dprint(rowreduce B == rrB)
-
-

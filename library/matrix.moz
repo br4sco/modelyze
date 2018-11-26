@@ -380,7 +380,6 @@ def argmax(M: MatrixMapInt) -> Pos = { argmax mmIntFind gtInt M }
 def argmax(M: MatrixMapReal) -> Pos = { argmax mmRealFind gtReal M }
 
 def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
-
   def sub(hk: Pos, i: Int, M: MatrixMapReal) -> MatrixMapReal = {
     def (h, k) = hk;
     def lv = find (i, k) M;
