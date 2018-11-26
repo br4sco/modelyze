@@ -20,6 +20,8 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Base
 
+def EPSILON = 1.e-15
+
 type Pos = (Int, Int)
 type Matrix = (Dyn, Pos)
 type MatrixFind = Pos -> Dyn -> Dyn
@@ -196,6 +198,7 @@ def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
   def _ = dprint(dim M);
   M
 }
+def dp(M: MatrixMapReal) -> MatrixMapReal = { dp mmRealFind M }
 
 def forij(f: (Pos -> Bool), M: Matrix) -> Bool = {
   def work(c: Int) -> Bool = {
@@ -376,14 +379,60 @@ def argmax(mfind: (Pos -> Dyn), gt: (Dyn -> Dyn -> Bool), M: Matrix) -> Pos = {
 def argmax(M: MatrixMapInt) -> Pos = { argmax mmIntFind gtInt M }
 def argmax(M: MatrixMapReal) -> Pos = { argmax mmRealFind gtReal M }
 
-// def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
-//   def work(hk: Pos, a: MatrixMapReal) -> MatrixMapReal = {
-//     def 
-    
-//     if (hk > dim M) then a
-//     else {
-      
-//     }
-//   };
-  
-// }
+def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
+
+  def sub(hk: Pos, i: Int, M: MatrixMapReal) -> MatrixMapReal = {
+    def (h, k) = hk;
+    def lv = find (i, k) M;
+    def work(j: Int, a: MatrixMapReal) -> MatrixMapReal = {
+      if j > cdim M then a
+      else {
+        if j == h then work (j + 1) (add (i, j) 0. a)
+        else work (j + 1) (add (i, j) ((find (i, j) M) - lv * (find (h, j) M)) a)
+      }
+    };
+    work k M
+  };
+
+  def rowops(hk: Pos, M: MatrixMapReal) -> MatrixMapReal = {
+    def (h, k) = hk;
+    def work(i: Int, a: MatrixMapReal) -> MatrixMapReal = {
+      if i > rdim M then a
+      else {
+        if i == h then work (i + 1) a
+        else work (i + 1) (sub hk i a)
+      }
+    };
+    work 1 M
+  };
+
+  def scale(hk: Pos, M: MatrixMapReal) -> MatrixMapReal = {
+    def (h, k) = hk;
+    def pv = find hk M;
+    def work(j: Int, a: MatrixMapReal) -> MatrixMapReal = {
+      if j > cdim M then a
+      else {
+        work (j + 1) (add (h, j) ((find (h, j) a) / pv) a)
+      }
+    };
+    work (k + 1) (add (h, k) 1. M)
+  };
+
+  def find_i_max(hk: Pos, M: MatrixMapReal) -> Int = {
+    def gt(l: Real, r: Real) -> Bool = { abs l > abs r };
+    fst (argmax mmRealFind gt (sub hk (rdim M, snd hk) M)) + fst hk - 1
+  };
+
+  def work(hk: Pos, a: MatrixMapReal) -> MatrixMapReal = {
+    if (hk > dim M) then a
+    else {
+      def (h, k) = hk;
+      def i_max = find_i_max hk a;
+      if abs (find (i_max, k) a) < EPSILON then work (h, k + 1) a
+      else {
+        work (h + 1, k + 1) (rowops hk (scale hk (swrows h i_max a)))
+      }
+    }
+  };
+  work (1, 1) M
+}
