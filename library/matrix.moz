@@ -41,6 +41,7 @@ def eqInt(l: Int, r: Int) -> Bool = { l == r }
 def addInt(l: Int, r: Int) -> Int = { l + r }
 def prodInt(l: Int, r: Int) -> Int = { l * r }
 def chsgnInt(v: Int) -> Int = { -v }
+def gtInt(l: Int, r: Int) -> Bool = { l > r }
 
 // Operators and functions for Reals (in lack of type polymorphism)
 def iszReal = (fun v: Real -> v == 0.)
@@ -48,6 +49,7 @@ def eqReal(l: Real, r: Real) -> Bool = { l == r }
 def addReal(l: Real, r: Real) -> Real = { l + r }
 def prodReal(l: Real, r: Real) -> Real = { l * r }
 def chsgnReal(v: Real) -> Real = { -v }
+def gtReal(l: Real, r: Real) -> Bool = { l > r }
 
 def _mem(ij: Pos, Mm: MMap) -> Bool = {
   def (i, j) = ij;
@@ -230,11 +232,12 @@ def mapij(madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn), M: Matrix) -> Mat
 def mapij(f: (Pos -> Int), M: Matrix) -> MatrixMapInt = { mapij mmIntAdd mmIntZero f M }
 def mapij(f: (Pos -> Real), M: Matrix) -> MatrixMapReal = { mapij mmRealAdd mmRealZero f M }
 
-// def foldij(f: (Dyn -> Pos -> Dyn), a: Dyn, M: Matrix) -> Dyn = {
-//   def work(ij: Pos, a: Dyn) -> Dyn = {
-    
-//   };
-// }
+def foldij(f: (Dyn -> Pos -> Dyn), a: Dyn, M: Matrix) -> Dyn = {
+  def work(ij: Pos, a: Dyn) -> Dyn = {
+    if ij > dim M then a else work (_nextpos ij (dim M)) (f a ij)
+  };
+  work (1, 1) a
+}
 
 def matrixAddition(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
@@ -311,7 +314,7 @@ def sub(s: Pos, e: Pos, M: MatrixMapReal) -> MatrixMapReal = { matrixSub mmRealF
 
 def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, lM: Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos) -> Dyn = {
-    if ij <= (dim lM) then mfind ij lM else mfind (fst ij, snd ij - cdim lM) rM
+    if snd ij <= (cdim lM) then mfind ij lM else mfind (fst ij, snd ij - cdim lM) rM
   };
   if (rdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
   else mapij madd mzero f (mzero (rdim lM, (cdim lM) + (cdim rM)))
@@ -343,14 +346,44 @@ def swrows(i1: Int, i2: Int, M: MatrixMap) -> MatrixMap = {
   }
 }
 
-def rowFindFirst(p: (Dyn -> Bool), i: Int, M: MatrixMap) -> Int = {
-  if i <= 0 || i > rdim M then error DIMENSION_MISSMATCH
+def swcols(j1: Int, j2: Int, M: MatrixMap) -> MatrixMap = {
+  def (Mm, d) = M;
+  def work(i: Int, a: MMap) -> MMap = {
+    if i > rdim M then a
+    else if _mem (i, j1) Mm && _mem (i, j2) Mm then {
+      work (i + 1) (_add (i, j1) (_find (i, j2) Mm) (_add (i, j2) (_find (i, j1) Mm) a))
+    } else if _mem (i, j1) Mm then {
+      work (i + 1) (_remove (i, j1) (_add (i, j2) (_find (i, j1) Mm) a))
+    } else if _mem (i, j2) Mm then {
+      work (i + 1) (_add (i, j1) (_find (i, j2) Mm) (_remove (i, j2) a))
+    } else work (i + 1) a
+  };
+
+  if j1 <= 0 || j2 <= 0 || j1 > cdim M || j2 > cdim M then error DIMENSION_MISSMATCH
+  else (work 1 Mm, snd M)
+}
+
+def argmax(mfind: (Pos -> Dyn), gt: (Dyn -> Dyn -> Bool), M: Matrix) -> Pos = {
+  if dim M < (1, 1) then error DIMENSION_MISSMATCH
   else {
-    def work(l: [(Int, Dyn)], a: Int) -> Int = {
-      match l with
-      | e::es -> if p (snd e) then work es (min a (fst e)) else work es a
-      | [] -> a
+    def f(a: (Pos, Dyn), ij: Pos) -> (Pos, Dyn) = {
+      def v = mfind ij M;
+      if gt v (snd a) then (ij, v) else a
     };
-    work (Map.toList (Map.find i (fst M))) ((rdim M) + 1)
+    fst (foldij f ((1, 1), mfind (1, 1) M) M)
   }
 }
+def argmax(M: MatrixMapInt) -> Pos = { argmax mmIntFind gtInt M }
+def argmax(M: MatrixMapReal) -> Pos = { argmax mmRealFind gtReal M }
+
+// def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
+//   def work(hk: Pos, a: MatrixMapReal) -> MatrixMapReal = {
+//     def 
+    
+//     if (hk > dim M) then a
+//     else {
+      
+//     }
+//   };
+  
+// }

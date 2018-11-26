@@ -589,6 +589,11 @@ def impulse_solving(e: Eqs, z_ll: State, z_g: State, k: Real, h: Real) -> (State
         d(x)
       };
 
+      def sum(l: [Real]) -> Real = {
+        def f(a: Real, e: Real) = { a + e };
+        foldLeft f 0. l
+      };
+
       def avg = k * (sum (map f (Map.toList z_f))) / int2real ((Map.size z_f) + 1);
 
       (d x) > avg
