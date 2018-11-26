@@ -30,6 +30,7 @@ type MatrixZero = (Int, Int) -> Matrix
 type MMap = (Int => (Int => Dyn))
 type MatrixMap = (MMap, Pos)
 type MatrixMapInt = (Int => (Int => Int), Pos)
+type MatrixMapReal = (Int => (Int => Real), Pos)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
 def BAD_MATRIX = "Bad matrix"
@@ -40,6 +41,13 @@ def eqInt(l: Int, r: Int) -> Bool = { l == r }
 def addInt(l: Int, r: Int) -> Int = { l + r }
 def prodInt(l: Int, r: Int) -> Int = { l * r }
 def chsgnInt(v: Int) -> Int = { -v }
+
+// Operators and functions for Reals (in lack of type polymorphism)
+def iszReal = (fun v: Real -> v == 0.)
+def eqReal(l: Real, r: Real) -> Bool = { l == r }
+def addReal(l: Real, r: Real) -> Real = { l + r }
+def prodReal(l: Real, r: Real) -> Real = { l * r }
+def chsgnReal(v: Real) -> Real = { -v }
 
 def _mem(ij: Pos, Mm: MMap) -> Bool = {
   def (i, j) = ij;
@@ -102,12 +110,14 @@ def mmZero(d: (Int, Int)) -> MatrixMap = {
   else (work n (Map.empty), d)
 }
 def mmIntZero(d: (Int, Int)) -> MatrixMapInt = { mmZero d }
+def mmRealZero(d: (Int, Int)) -> MatrixMapReal = { mmZero d }
 
 def mmId(id: Dyn, n: Int) -> MatrixMap = {
   def work(i: Int, a: MMap) -> MMap = { if i > 0 then work (i - 1) (_add (i, i) id a) else a };
   (work n (fst (mmZero (n, n))), (n, n))
 }
 def mmIntId(n: Int) -> MatrixMapInt = { mmId 1 n }
+def mmRealId(n: Int) -> MatrixMapReal = { mmId 1. n }
 
 def dim(M: Matrix) -> (Int, Int) = { snd M }
 def rdim(M: Matrix) -> Int = { fst (dim M) }
@@ -124,6 +134,8 @@ def mmAdd(z: Dyn, isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: MatrixMap) -> MatrixMa
 }
 def mmIntAdd(ij: Pos, v: Int, M: MatrixMapInt) -> MatrixMapInt = { mmAdd 0 iszInt ij v M }
 def add: Pos -> Int -> MatrixMapInt -> MatrixMapInt = mmIntAdd
+def mmRealAdd(ij: Pos, v: Real, M: MatrixMapReal) -> MatrixMapReal = { mmAdd 0. iszReal ij v M }
+def add: Pos -> Real -> MatrixMapReal -> MatrixMapReal = mmRealAdd
 
 def mmFind(z: Dyn, ij: Pos, M: MatrixMap) -> Dyn = {
   def (Mm, d) = M;
@@ -136,6 +148,8 @@ def mmFind(z: Dyn, ij: Pos, M: MatrixMap) -> Dyn = {
 }
 def mmIntFind(ij: Pos, M: MatrixMapInt) -> Int = { mmFind 0 ij M }
 def find: Pos -> MatrixMapInt -> Int = mmIntFind
+def mmRealFind(ij: Pos, M: MatrixMapReal) -> Real = { mmFind 0. ij M }
+def find: Pos -> MatrixMapReal -> Real = mmRealFind
 
 def matrixToList(mfind: MatrixFind, M: Matrix) -> [[Dyn]] = {
   def workRow(i: Int, j: Int, a: [Dyn]) -> [Dyn] = {
@@ -165,6 +179,7 @@ def listToMatrix(madd: MatrixAdd, l: [[Dyn]], M: Matrix) -> Matrix = {
   work l 1 M
 }
 def listToMatrix(l: [[Int]], M: MatrixMapInt) -> MatrixMapInt = { listToMatrix mmIntAdd l M }
+def listToMatrix(l: [[Real]], M: MatrixMapReal) -> MatrixMapReal = { listToMatrix mmRealAdd l M }
 
 def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
   def _ = println("[");
@@ -191,12 +206,17 @@ def matrixEq(mfind: MatrixFind, eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix
 }
 def matrixEq(lM: MatrixMapInt, rM: MatrixMapInt) -> Bool = { matrixEq mmIntFind eqInt lM rM }
 def (==): MatrixMapInt -> MatrixMapInt -> Bool = matrixEq
+def matrixEq(lM: MatrixMapReal, rM: MatrixMapReal) -> Bool = { matrixEq mmRealFind eqReal lM rM }
+def (==): MatrixMapReal -> MatrixMapReal -> Bool = matrixEq
 
 def matrixNEq(mfind: MatrixFind, eq: (Dyn -> Dyn -> Bool), lM: Matrix, rM: Matrix) -> Bool = { !(matrixEq mfind eq lM rM) }
 def matrixNEq(lM: MatrixMapInt, rM: MatrixMapInt) -> Bool = { matrixNEq mmIntFind eqInt lM rM }
 def (!=): MatrixMapInt -> MatrixMapInt -> Bool = matrixNEq
+def matrixNEq(lM: MatrixMapReal, rM: MatrixMapReal) -> Bool = { matrixNEq mmRealFind eqReal lM rM }
+def (!=): MatrixMapReal -> MatrixMapReal -> Bool = matrixNEq
 
 def mapij(madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn), M: Matrix) -> Matrix = {
+
   def work(c: Int, a: Matrix) -> Matrix = {
     def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
     if c + 1 > ((rdim M) * (cdim M)) then a
@@ -205,25 +225,32 @@ def mapij(madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn), M: Matrix) -> Mat
   work 0 (mzero (dim M))
 }
 def mapij(f: (Pos -> Int), M: Matrix) -> MatrixMapInt = { mapij mmIntAdd mmIntZero f M }
+def mapij(f: (Pos -> Real), M: Matrix) -> MatrixMapReal = { mapij mmRealAdd mmRealZero f M }
 
-def matrixAdd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
+def matrixAddition(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
   else mapij madd mzero (fun ij: Pos -> { add (mfind ij lM) (mfind ij rM) }) rM
 }
-def matrixAdd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixAdd mmIntFind mmIntAdd mmIntZero addInt lM rM }
-def (+): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixAdd
+def matrixAddition(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixAddition mmIntFind mmIntAdd mmIntZero addInt lM rM }
+def (+): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixAddition
+def matrixAddition(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = { matrixAddition mmRealFind mmRealAdd mmRealZero addReal lM rM }
+def (+): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = matrixAddition
 
 def matrixChsgn(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, cs: (Dyn -> Dyn), M: Matrix) -> Matrix = {
   mapij madd mzero (fun ij: Pos -> cs (mfind ij M)) M
 }
 def matrixChsgn(M: MatrixMapInt) -> MatrixMapInt = { matrixChsgn mmIntFind mmIntAdd mmIntZero chsgnInt M }
 def (--): MatrixMapInt -> MatrixMapInt = matrixChsgn
+def matrixChsgn(M: MatrixMapReal) -> MatrixMapReal = { matrixChsgn mmRealFind mmRealAdd mmRealZero chsgnReal M }
+def (--): MatrixMapReal -> MatrixMapReal = matrixChsgn
 
 def matrixSubst(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
-  matrixAdd mfind madd mzero add lM (matrixChsgn mfind madd mzero cs rM)
+  matrixAddition mfind madd mzero add lM (matrixChsgn mfind madd mzero cs rM)
 }
 def matrixSubst(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixSubst mmIntFind mmIntAdd mmIntZero addInt chsgnInt lM rM }
 def (-): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixSubst
+def matrixSubst(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = { matrixSubst mmRealFind mmRealAdd mmRealZero addReal chsgnReal lM rM }
+def (-): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = matrixSubst
 
 def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, prod: (Dyn -> Dyn -> Dyn), s: Dyn, M: Matrix) -> Matrix = {
   mapij madd mzero (fun ij: Pos -> { prod s (mfind ij M) }) M
@@ -233,6 +260,10 @@ def matrixScalarProd(s: Int, M: MatrixMapInt) -> MatrixMapInt = { matrixScalarPr
 def (*): Int -> MatrixMapInt -> MatrixMapInt = matrixScalarProd
 def matrixScalarProd(M: MatrixMapInt, s: Int) -> MatrixMapInt = { matrixScalarProd mmIntFind mmIntAdd mmIntZero prodInt s M }
 def (*): MatrixMapInt -> Int -> MatrixMapInt = matrixScalarProd
+def matrixScalarProd(s: Real, M: MatrixMapReal) -> MatrixMapReal = { matrixScalarProd mmRealFind mmRealAdd mmRealZero prodReal s M }
+def (*): Real -> MatrixMapReal -> MatrixMapReal = matrixScalarProd
+def matrixScalarProd(M: MatrixMapReal, s: Real) -> MatrixMapReal = { matrixScalarProd mmRealFind mmRealAdd mmRealZero prodReal s M }
+def (*): MatrixMapReal -> Real -> MatrixMapReal = matrixScalarProd
 
 def matrixProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn), lM : Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos) -> Dyn = {
@@ -253,17 +284,21 @@ def matrixProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn 
 }
 def matrixProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixProd mmIntFind mmIntAdd mmIntZero addInt prodInt lM rM }
 def (*): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixProd
+def matrixProd(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = { matrixProd mmRealFind mmRealAdd mmRealZero addReal prodReal lM rM }
+def (*): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = matrixProd
 
 def matrixTranspose(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, M: Matrix) -> Matrix = {
   mapij madd mzero (fun ij: Pos -> { mfind (snd ij, fst ij) M }) (mzero (cdim M, rdim M))
 }
 def tr(M: MatrixMapInt) -> MatrixMapInt = { matrixTranspose mmIntFind mmIntAdd mmIntZero M }
+def tr(M: MatrixMapReal) -> MatrixMapReal = { matrixTranspose mmRealFind mmRealAdd mmRealZero M }
 
 def matrixSub(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, s: Pos, e: Pos, M: Matrix) -> Matrix = {
   if s > e  || s <= (0, 0) || e > (dim M) then error DIMENSION_MISSMATCH
   else mapij madd mzero (fun ij: Pos -> { mfind (ij + s - (1, 1)) M}) (mzero (e - s + (1, 1)))
 }
 def sub(s: Pos, e: Pos, M: MatrixMapInt) -> MatrixMapInt = { matrixSub mmIntFind mmIntAdd mmIntZero s e M }
+def sub(s: Pos, e: Pos, M: MatrixMapReal) -> MatrixMapReal = { matrixSub mmRealFind mmRealAdd mmRealZero s e M }
 
 def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, lM: Matrix, rM: Matrix) -> Matrix = {
   def f(ij: Pos) -> Dyn = {
@@ -274,6 +309,8 @@ def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, lM: Matr
 }
 def vconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { matrixConcat mmIntFind mmIntAdd mmIntZero lM rM }
 def hconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = { tr (vconcat (tr lM) (tr rM)) }
+def vconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = { matrixConcat mmRealFind mmRealAdd mmRealZero lM rM }
+def hconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = { tr (vconcat (tr lM) (tr rM)) }
 
 def rowopj(madd: MatrixAdd, f: (Int -> Dyn), i: Int, M: Matrix) -> Matrix = {
   if i <= 0 || i > rdim M then error DIMENSION_MISSMATCH
@@ -285,6 +322,7 @@ def rowopj(madd: MatrixAdd, f: (Int -> Dyn), i: Int, M: Matrix) -> Matrix = {
   }
 }
 def rowopj(f: (Int -> Int), i: Int, M: MatrixMapInt) -> MatrixMapInt = { rowopj mmIntAdd f i M }
+def rowopj(f: (Int -> Real), i: Int, M: MatrixMapReal) -> MatrixMapReal = { rowopj mmRealAdd f i M }
 
 def swrows(i1: Int, i2: Int, M: MatrixMap) -> MatrixMap = {
   if i1 <= 0 || i2 <= 0 || i1 > rdim M || i2 > rdim M then error DIMENSION_MISSMATCH

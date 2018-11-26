@@ -20,13 +20,17 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-def M = mmIntZero (3, 3)
-def I = mmIntId 3
-def A = listToMatrix [[1, 2, 3], [4, 5, 6], [7, 8, 9]] M
-def B = listToMatrix [[0, 1, 2], [3, 4, 5], [6, 7, 8]] M
-def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M
+def M = mmRealZero (3, 3)
+def A = listToMatrix [[0., 0., 0.], [0., 2., 3.], [0., 0., 0.]] M
+def B = listToMatrix [[0., 2., 3.], [4., 5., 6.], [7., 8., 9.]] M
+def C = listToMatrix [[0., 0., 6.], [1., 2., 3.], [7., 8., 9.]] M
+def D = listToMatrix [[7., 8., 9.], [4., 0., 6.], [1., 2., 3.]] M
 
-def _ = dprint((matrixEq (matrixAddition I M)) I)
-def _ = dprint((matrixEq (matrixAddition B C)) A)
-def _ = dprint((I + M) == I)
-def _ = dprint((C + B) == A)
+def f(v: Real) -> Bool = { v > 0. }
+
+def _ = dprint(rowFindFirst f 1 M == 4)
+def _ = dprint(rowFindFirst f 2 A == 2)
+def _ = dprint(rowFindFirst f 1 B == 2)
+def _ = dprint(rowFindFirst f 1 C == 3)
+def _ = dprint(rowFindFirst f 2 D == 1)
+
