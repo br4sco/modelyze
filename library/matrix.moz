@@ -78,8 +78,7 @@ def posEq(lhs: Pos, rhs: Pos) -> Bool = { !(lhs == rhs) }
 def (!=): Pos -> Pos -> Bool = posEq
 
 def posLT(lhs: Pos, rhs: Pos) -> Bool = {
-  (((fst lhs) < (fst rhs)) && ((snd lhs) <= (snd rhs))) ||
-  (((fst lhs) <= (fst rhs)) && ((snd lhs) < (snd rhs)))
+  (fst rhs > fst lhs || snd rhs > snd lhs)
 }
 def (<): Pos -> Pos -> Bool = posLT
 
@@ -99,6 +98,11 @@ def (+): Pos -> Pos -> Pos = posAdd
 
 def posSub(lhs: Pos, rhs: Pos) -> Pos = { (fst lhs - fst rhs, snd lhs - snd rhs) }
 def (-): Pos -> Pos -> Pos = posSub
+
+def _nextpos(ij: Pos, mn: Pos) -> Pos = {
+  if ij > mn then error DIMENSION_MISSMATCH
+  else { if snd ij == snd mn then (fst ij + 1, 1) else (fst ij, snd ij + 1) }
+}
 
 def mmZero(d: (Int, Int)) -> MatrixMap = {
   def (n, _) = d;
@@ -217,15 +221,20 @@ def (!=): MatrixMapReal -> MatrixMapReal -> Bool = matrixNEq
 
 def mapij(madd: MatrixAdd, mzero: MatrixZero, f: (Pos -> Dyn), M: Matrix) -> Matrix = {
 
-  def work(c: Int, a: Matrix) -> Matrix = {
-    def p = (c / (cdim M) + 1, c mod (cdim M) + 1);
-    if c + 1 > ((rdim M) * (cdim M)) then a
-    else work (c + 1) ( madd p (f p) a)
+  def work(ij: Pos, a: Matrix) -> Matrix = {
+    if dim M < ij then a
+    else work (_nextpos ij (dim M)) (madd ij (f ij) a)
   };
-  work 0 (mzero (dim M))
+  work (1, 1) (mzero (dim M))
 }
 def mapij(f: (Pos -> Int), M: Matrix) -> MatrixMapInt = { mapij mmIntAdd mmIntZero f M }
 def mapij(f: (Pos -> Real), M: Matrix) -> MatrixMapReal = { mapij mmRealAdd mmRealZero f M }
+
+// def foldij(f: (Dyn -> Pos -> Dyn), a: Dyn, M: Matrix) -> Dyn = {
+//   def work(ij: Pos, a: Dyn) -> Dyn = {
+    
+//   };
+// }
 
 def matrixAddition(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), lM: Matrix, rM: Matrix) -> Matrix = {
   if (dim lM) != (dim rM) then error DIMENSION_MISSMATCH
