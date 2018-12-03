@@ -340,32 +340,32 @@ def matrixScalarProd(M: MatrixMapReal, s: Real) -> MatrixMapReal = {
 }
 def (*): MatrixMapReal -> Real -> MatrixMapReal = matrixScalarProd
 
-def matrixProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
-  add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn), lM : Matrix, rM: Matrix)
-  -> Matrix = {
+def matrixProd(mfindl: MatrixFind, mfindr: MatrixFind, madd: MatrixAdd,
+  mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn),
+  lM : Matrix, rM: Matrix) -> Matrix = {
 
   def f(ij: Pos) -> Dyn = {
     def work(i: Int, a: Dyn) -> Dyn = {
-      if i > 0 then {
+      if i <= cdim lM then {
         def lpos = (fst ij, i);
         def rpos = (i, snd ij);
-        work (i - 1) (add a (prod (mfind lpos lM) (mfind rpos rM)))
+        work (i + 1) (add a (prod (mfindl lpos lM) (mfindr rpos rM)))
       } else a
     };
 
-    def lpos = (fst ij, cdim lM);
-    def rpos = (rdim rM, snd ij);
-    work ((cdim lM) - 1) (prod (mfind lpos lM) (mfind rpos rM))
+    def lpos = (fst ij, 1);
+    def rpos = (1, snd ij);
+    work 2 (prod (mfindl lpos lM) (mfindr rpos rM))
   };
   if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
   else mapij madd mzero f (mzero (rdim lM, cdim rM))
 }
 def matrixProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = {
-  matrixProd mmIntFind mmIntAdd mmIntZero addInt prodInt lM rM
+  matrixProd mmIntFind mmIntFind mmIntAdd mmIntZero addInt prodInt lM rM
 }
 def (*): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixProd
 def matrixProd(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
-  matrixProd mmRealFind mmRealAdd mmRealZero addReal prodReal lM rM
+  matrixProd mmRealFind mmRealFind mmRealAdd mmRealZero addReal prodReal lM rM
 }
 def (*): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = matrixProd
 
