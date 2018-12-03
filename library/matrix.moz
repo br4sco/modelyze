@@ -323,11 +323,6 @@ def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
 
   mapij madd mzero (fun ij: Pos -> { prod s (mfind ij M) }) M
 }
-def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
-  prod: (Dyn -> Dyn -> Dyn), M: Matrix, s: Dyn) -> Matrix = {
-
-  matrixScalarProd mfind madd mzero prod s M
-}
 def matrixScalarProd(s: Int, M: MatrixMapInt) -> MatrixMapInt = {
   matrixScalarProd mmIntFind mmIntAdd mmIntZero prodInt s M
 }
