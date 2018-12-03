@@ -1,0 +1,30 @@
+[
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+] d = (3, 3)
+[
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+  [zeroVector_1, zeroVector_1, zeroVector_1]
+] d = (3, 3)
+[
+  [v_1_1, v_2_1, v_3_1]
+  [v_1_1 + v_2_1, v_2_1 + v_3_1, v_1_1 + v_3_1]
+  [v_1_1, v_2_1, v_3_1]
+] d = (3, 3)
+[
+  [v_1_1, v_2_1, v_3_1]
+  [v_1_1 + v_2_1, v_2_1 + v_3_1, v_1_1 + v_3_1]
+  [v_1_1, v_2_1, v_3_1]
+] d = (3, 3)
+[
+  [v_1_1 - v_3_1]
+  [v_2_1 - v_3_1]
+  [v_1_1 + v_3_1]
+] d = (3, 1)
+[
+  [v_1_1 - v_3_1]
+  [v_2_1 - v_3_1]
+  [v_1_1 + v_3_1]
+] d = (3, 1)

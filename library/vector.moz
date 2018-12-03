@@ -21,6 +21,7 @@ written by Oscar Eriksson oerikss@kth.se
 include Matrix
 
 type Vector
+type MatrixMapVector = (Int => (Int => Vector), Pos)
 def zeroVector: Vector
 
 def vectorSEq(l: Vector, r: Vector) -> Bool = {
@@ -36,8 +37,29 @@ def (') = der
 
 // Operators and functions for Vectors (in lack of type polymorphism)
 def iszVec(v: Vector) -> Bool = { vectorSEq v zeroVector }
-def addVec(l: Vector, r: Vector) -> Vector = { l + r }
-def chsgnVec(v: Vector) -> Vector = { -v }
+def addVec(l: Vector, r: Vector) -> Vector = {
+  if iszVec l && iszVec r then zeroVector
+  else if iszVec l then r
+  else if iszVec r then l
+  else {
+    match r with
+    | - r -> l - r
+    | _ -> l + r
+  }
+}
+
+def prodRealVec(r: Real, v: Vector) -> Vector = {
+  if r == 0. then zeroVector
+  else if r == 1. then v
+  else if r == -1. then - v
+  else r * v
+}
+
+def chsgnVec(v: Vector) -> Vector = {
+  match v with
+  | - v_1 -> v
+  | _ -> - v
+}
 
 def reduce(v: Vector) -> Vector = {
   match v with
@@ -74,4 +96,28 @@ def reduce(v: Vector) -> Vector = {
       }
     }
   | _ -> v
+}
+
+def mmVecZero(d: (Int, Int)) -> MatrixMapVector = { mmZero d }
+
+def mmVecAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
+  mmAdd 0 iszVec ij v M
+}
+def add: Pos -> Vector -> MatrixMapVector -> MatrixMapVector = mmVecAdd
+
+def mmVecFind(ij: Pos, M: MatrixMapVector) -> Vector = { mmFind zeroVector ij M }
+def add: Pos -> MatrixMapVector -> Vector = mmVecFind
+
+def listToMatrix(l: [[Vector]], M: MatrixMapVector) -> MatrixMapVector = {
+  listToMatrix mmVecAdd l M
+}
+def dp(M: MatrixMapVector) -> MatrixMapVector = { dp mmVecFind M }
+
+def matrixProd(lM: MatrixMapReal, rM: MatrixMapVector) -> MatrixMapVector = {
+  matrixProd mmRealFind mmVecFind mmVecAdd mmVecZero addVec prodRealVec lM rM
+}
+def (*): MatrixMapReal -> MatrixMapVector -> MatrixMapVector = matrixProd
+
+def tr(M: MatrixMapVector) -> MatrixMapVector = {
+  matrixTranspose mmVecFind mmVecAdd mmVecZero M
 }
