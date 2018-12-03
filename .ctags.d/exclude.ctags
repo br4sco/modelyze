@@ -1,0 +1,4 @@
+--exclude=_build
+--exclude=src
+--exclude=ext
+--exclude=env
