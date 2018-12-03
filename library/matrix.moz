@@ -38,7 +38,7 @@ def DIMENSION_MISSMATCH = "Dimension missmatch"
 def BAD_MATRIX = "Bad matrix"
 
 // Operators and functions for Ints (in lack of type polymorphism)
-def iszInt = (fun v: Int -> v == 0)
+def iszInt(v: Int) -> Bool = { v == 0 }
 def eqInt(l: Int, r: Int) -> Bool = { l == r }
 def addInt(l: Int, r: Int) -> Int = { l + r }
 def prodInt(l: Int, r: Int) -> Int = { l * r }
@@ -46,7 +46,7 @@ def chsgnInt(v: Int) -> Int = { -v }
 def gtInt(l: Int, r: Int) -> Bool = { l > r }
 
 // Operators and functions for Reals (in lack of type polymorphism)
-def iszReal = (fun v: Real -> v == 0.)
+def iszReal(v: Real) -> Bool = { v == 0. }
 def eqReal(l: Real, r: Real) -> Bool = { l == r }
 def addReal(l: Real, r: Real) -> Real = { l + r }
 def prodReal(l: Real, r: Real) -> Real = { l * r }

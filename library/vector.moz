@@ -1,0 +1,77 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Matrix
+
+type Vector
+def zeroVector: Vector
+
+def vectorSEq(l: Vector, r: Vector) -> Bool = {
+  Set.mem l (Set.add r (Set.empty))
+}
+
+def (--) : Vector -> Vector
+def (-) : Vector -> Vector -> Vector
+def (+) : Vector -> Vector -> Vector
+def (*) : Real -> Vector -> Vector
+def der : Vector -> Vector
+def (') = der
+
+// Operators and functions for Vectors (in lack of type polymorphism)
+def iszVec(v: Vector) -> Bool = { vectorSEq v zeroVector }
+def addVec(l: Vector, r: Vector) -> Vector = { l + r }
+def chsgnVec(v: Vector) -> Vector = { -v }
+
+def reduce(v: Vector) -> Vector = {
+  match v with
+  | - v_1 -> {
+      def rv_1 = reduce v_1;
+      if iszVec rv_1 then rv_1 else - rv_1
+    }
+  | der v_1 -> {
+      def rv_1 = reduce v_1;
+      if iszVec rv_1 then rv_1 else der rv_1
+    }
+  | v_1 + v_2 -> {
+      def rv_1 = reduce v_1;
+      def rv_2 = reduce v_2;
+      if iszVec rv_1 then rv_2 else {
+        if iszVec rv_2 then rv_1 else rv_1 + rv_2
+      }
+    }
+  | v_1 - v_2 -> {
+      def rv_1 = reduce v_1;
+      def rv_2 = reduce (- v_2);
+      if iszVec rv_1 then rv_2 else {
+        if iszVec rv_2 then rv_1 else rv_1 + rv_2
+      }
+    }
+  | (sval r: Real) * v_2 -> {
+      if r == 0. then zeroVector else {
+        if r == 1. then reduce v_2 else {
+          if r == -1. then reduce (- v_2) else {
+            def rv_2 = reduce v_2;
+            if iszVec rv_2 then rv_2 else r * rv_2
+          }
+        }
+      }
+    }
+  | _ -> v
+}

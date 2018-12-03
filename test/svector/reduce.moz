@@ -18,7 +18,13 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include SymbolicVector
+include Vector
 
-def x: Real
-def _ = dprint(x + 2. + (x + 1.))
+def v_1, v_2, v_3: Vector
+
+def _ = dprint(vectorSEq (reduce (zeroVector + v_1)) v_1)
+def _ = dprint(vectorSEq (reduce (0. * v_2)) zeroVector)
+def _ = dprint(vectorSEq (reduce (1. * v_2)) v_2)
+def _ = dprint(vectorSEq (reduce ((-1.) * v_2)) (- v_2))
+def _ = dprint(vectorSEq (reduce ((10.) * zeroVector)) (zeroVector))
+def _ = dprint(vectorSEq (reduce ((10.) * zeroVector + 1. * (v_1 + 0. * v_2 + zeroVector))) (v_1))
