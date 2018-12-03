@@ -18,9 +18,9 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include LGTF
+include Matrix
 
-def LOG = true
+// def LOG = true
 
 type Vector
 def (--) : Vector -> Vector
@@ -32,66 +32,66 @@ def (*) : Vector -> Real -> Vector
 def der : Vector -> Vector
 def (') = der
 
-type VectorEdge = (Node, Node, [Vector], [Vector])
-type Topology = (IMatrix, IMatrix, [[Vector]], [[Vector]])
-def zero: Vector
+// type VectorEdge = (Node, Node, [Vector], [Vector])
+// type Topology = (IMatrix, IMatrix, [[Vector]], [[Vector]])
+// def zero: Vector
 
-type ComponentModel = ([VectorEdge], (Vector => Vector), (Vector => [Vector]))
-type Component = (String => ComponentModel)
-type Domain = (String, Topology, (Vector => Vector), (Vector => Vector), (Vector => [Vector]))
+// type ComponentModel = ([VectorEdge], (Vector => Vector), (Vector => [Vector]))
+// type Component = (String => ComponentModel)
+// type Domain = (String, Topology, (Vector => Vector), (Vector => Vector), (Vector => [Vector]))
 
-def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
-  def work(fs: [Dyn -> Dyn], l: [Dyn], a: [Dyn]) -> [Dyn] = {
-    match fs with
-    | f::fs -> {
-        match l with
-        | e::es -> work fs es ((f e)::a)
-        | [] -> error "Uneven list lengths"
-      }
-    | [] -> {
-        match l with
-        | [] -> a
-        | _ -> error "Uneven list lengths"
-      }
-  };
-  reverse (work fs l [])
-}
+// def apply(fs: [(Dyn -> Dyn)], l: [Dyn]) -> [Dyn] = {
+//   def work(fs: [Dyn -> Dyn], l: [Dyn], a: [Dyn]) -> [Dyn] = {
+//     match fs with
+//     | f::fs -> {
+//         match l with
+//         | e::es -> work fs es ((f e)::a)
+//         | [] -> error "Uneven list lengths"
+//       }
+//     | [] -> {
+//         match l with
+//         | [] -> a
+//         | _ -> error "Uneven list lengths"
+//       }
+//   };
+//   reverse (work fs l [])
+// }
 
-def transposeLL(ll: [[Dyn]]) -> [[Dyn]] = {
-  def work(ll: [[Dyn]], a: [[Dyn]]) -> [[Dyn]] = {
-    match ll with
-    | [] -> a
-    | l::ls -> {
-        match l with
-        | [] -> reverse a
-        | x::xs -> work (map (fun l: [Dyn] -> tl l) ll)
-            ((map (fun l: [Dyn] -> hd l) ll)::a)
-      }
-  };
-  work ll []
-}
+// def transposeLL(ll: [[Dyn]]) -> [[Dyn]] = {
+//   def work(ll: [[Dyn]], a: [[Dyn]]) -> [[Dyn]] = {
+//     match ll with
+//     | [] -> a
+//     | l::ls -> {
+//         match l with
+//         | [] -> reverse a
+//         | x::xs -> work (map (fun l: [Dyn] -> tl l) ll)
+//             ((map (fun l: [Dyn] -> hd l) ll)::a)
+//       }
+//   };
+//   work ll []
+// }
 
-def vectorize(tm: TransMap) -> (Vector => Vector) = {
-  def f(e: (Int, <Dyn>)) -> <Vector> = {
-    if (fst e) < 0 then (snd e)
-    else -(snd e)
-  };
+// def vectorize(tm: TransMap) -> (Vector => Vector) = {
+//   def f(e: (Int, <Dyn>)) -> <Vector> = {
+//     if (fst e) < 0 then (snd e)
+//     else -(snd e)
+//   };
 
-  def sum(l: [<Vector>]) -> <Vector> = {
-    match l with
-    | [] -> zero
-    | t::[] -> t
-    | t::ts -> t + (sum ts)
-  };
+//   def sum(l: [<Vector>]) -> <Vector> = {
+//     match l with
+//     | [] -> zero
+//     | t::[] -> t
+//     | t::ts -> t + (sum ts)
+//   };
 
-  def work(a: (Vector => Vector), e: (Dyn, [(Int, Dyn)])) -> (Vector => Vector) = {
-    def v = fst e;
-    def l = (map f (snd e));
-    Map.add (fst e) (sum l) a
-  };
+//   def work(a: (Vector => Vector), e: (Dyn, [(Int, Dyn)])) -> (Vector => Vector) = {
+//     def v = fst e;
+//     def l = (map f (snd e));
+//     Map.add (fst e) (sum l) a
+//   };
 
-  foldLeft work (Map.empty) (Map.toList tm)
-}
+//   foldLeft work (Map.empty) (Map.toList tm)
+// }
 
 // def primaryVars(vtm: (Vector => Vector), vs: [Vector]) -> [Vector] = {
 //   filter (fun v: Vector -> !(Map.mem v vtm)) vs
@@ -121,72 +121,72 @@ def vectorize(tm: TransMap) -> (Vector => Vector) = {
 //         )
 // }
 
-def eqGen(tv: [Vector], av: [Vector], ter: (Vector => Vector), tran: (Vector => Vector)) -> ([Vector], [Vector]) = {
+// def eqGen(tv: [Vector], av: [Vector], ter: (Vector => Vector), tran: (Vector => Vector)) -> ([Vector], [Vector]) = {
 
-  def tv = map (fun t: Vector -> subs t ter) tv;
-  def av = map (fun a: Vector -> subs a ter) av;
+//   def tv = map (fun t: Vector -> subs t ter) tv;
+//   def av = map (fun a: Vector -> subs a ter) av;
 
-  def _ = dprint("=== SUBS using TERMINALS ===");
-  def _ = dprint("y = ");
-  def _ = dprint(tv);
-  def _ = dprint("x = ");
-  def _ = dprint(av);
+//   def _ = dprint("=== SUBS using TERMINALS ===");
+//   def _ = dprint("y = ");
+//   def _ = dprint(tv);
+//   def _ = dprint("x = ");
+//   def _ = dprint(av);
 
-  def tv = map (fun t: Vector -> subs t tran) tv;
-  def av = map (fun a: Vector -> subs a tran) av;
+//   def tv = map (fun t: Vector -> subs t tran) tv;
+//   def av = map (fun a: Vector -> subs a tran) av;
 
-  def _ = dprint("=== SUBS using TRANS MAPS ===");
-  def _ = dprint("y = ");
-  def _ = dprint(tv);
-  def _ = dprint("x = ");
-  def _ = dprint(av);
+//   def _ = dprint("=== SUBS using TRANS MAPS ===");
+//   def _ = dprint("y = ");
+//   def _ = dprint(tv);
+//   def _ = dprint("x = ");
+//   def _ = dprint(av);
 
-  if(
-      (exists (fun t: Vector -> canSub t ter) tv) ||
-      (exists (fun a: Vector -> canSub a ter) av) ||
-      (exists (fun t: Vector -> canSub t tran) tv) ||
-      (exists (fun a: Vector -> canSub a tran) av)
-    ) then eqGen tv av ter tran
-  else (tv, av)
-}
+//   if(
+//       (exists (fun t: Vector -> canSub t ter) tv) ||
+//       (exists (fun a: Vector -> canSub a ter) av) ||
+//       (exists (fun t: Vector -> canSub t tran) tv) ||
+//       (exists (fun a: Vector -> canSub a tran) av)
+//     ) then eqGen tv av ter tran
+//   else (tv, av)
+// }
 
-def formulateEqs(model: [Component]) -> [([Vector], [Vector], [Vector])] = {
-  def f(k: String, v_1: ComponentModel, v_2: ComponentModel) -> Option = {
-    def (E_1, ter_1, ats_1) = v_1;
-    def (E_2, ter_2, ats_2) = v_2;
-    some (append E_1 E_2, union ter_1 ter_2, union ats_1 ats_2)
-  };
+// def formulateEqs(model: [Component]) -> [([Vector], [Vector], [Vector])] = {
+//   def f(k: String, v_1: ComponentModel, v_2: ComponentModel) -> Option = {
+//     def (E_1, ter_1, ats_1) = v_1;
+//     def (E_2, ter_2, ats_2) = v_2;
+//     some (append E_1 E_2, union ter_1 ter_2, union ats_1 ats_2)
+//   };
 
-  def domains = (map (fun e: (String, ComponentModel) ->
-      def (d, (T, ter, ats)) = e;
-      def _ = dprint("=== DOMAIN ===");
-      def _ = dprint(d);
-      def (A, B, Y, X) = buildMatrices T;
-      def (Yt, Xt) = (transposeLL Y, transposeLL X);
-      def _ = dprint("=== MATRIXES  ===");
-      def _ = dprint("A = ");
-      def _ = dprint(pp A);
-      def _ = dprint("B = ");
-      def _ = dprint(pp B);
-      def _ = dprint("=== VARS ===");
-      def _ = dprint("y = ");
-      def _ = dprint(Yt);
-      def _ = dprint("x = ");
-      def _ = dprint(Xt);
-      def _ = dprint("=== TERMINALS ===");
-      def _ = dprint(ter);
-      def tms = Union (append
-        (map (fun x: [Vector] -> vectorize (buildBranchTransMap B x)) Xt)
-        (map (fun x: [Vector] -> vectorize (buildChordTransMap A x)) Yt));
-      (
-        d,
-        (A, B, Yt, Xt),
-        tms,
-        ter,
-        ats
-      )
-    ) (Map.toList (Union f model)));
-  def TMs = Union (map (fun d: Domain -> def (_, _, tms, _, _) = d; tms) domains);
-  def TERs = Union (map (fun d: Domain -> def (_, _, _, ter, _) = d; ter) domains);
-  map (fun d: Domain -> def (_, (_, _, Y, X), _, _, ats) = d; def (Ys, Xs) = eqGen (hd Y) (hd X) TERs TMs; (Ys, Xs, ats)) domains
-}
+//   def domains = (map (fun e: (String, ComponentModel) ->
+//       def (d, (T, ter, ats)) = e;
+//       def _ = dprint("=== DOMAIN ===");
+//       def _ = dprint(d);
+//       def (A, B, Y, X) = buildMatrices T;
+//       def (Yt, Xt) = (transposeLL Y, transposeLL X);
+//       def _ = dprint("=== MATRIXES  ===");
+//       def _ = dprint("A = ");
+//       def _ = dprint(pp A);
+//       def _ = dprint("B = ");
+//       def _ = dprint(pp B);
+//       def _ = dprint("=== VARS ===");
+//       def _ = dprint("y = ");
+//       def _ = dprint(Yt);
+//       def _ = dprint("x = ");
+//       def _ = dprint(Xt);
+//       def _ = dprint("=== TERMINALS ===");
+//       def _ = dprint(ter);
+//       def tms = Union (append
+//         (map (fun x: [Vector] -> vectorize (buildBranchTransMap B x)) Xt)
+//         (map (fun x: [Vector] -> vectorize (buildChordTransMap A x)) Yt));
+//       (
+//         d,
+//         (A, B, Yt, Xt),
+//         tms,
+//         ter,
+//         ats
+//       )
+//     ) (Map.toList (Union f model)));
+//   def TMs = Union (map (fun d: Domain -> def (_, _, tms, _, _) = d; tms) domains);
+//   def TERs = Union (map (fun d: Domain -> def (_, _, _, ter, _) = d; ter) domains);
+//   map (fun d: Domain -> def (_, (_, _, Y, X), _, _, ats) = d; def (Ys, Xs) = eqGen (hd Y) (hd X) TERs TMs; (Ys, Xs, ats)) domains
+// }
