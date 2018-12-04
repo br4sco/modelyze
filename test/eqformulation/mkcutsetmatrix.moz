@@ -1,0 +1,51 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include EquationsFormulation
+
+def x_1, x_2, x_3: Vector
+def y_1, y_2, y_3: Vector
+def r_1, r_2, r_3: Real
+
+def IM = listToMatrix [
+                        [ 1.,  0., -1.],
+                        [-1.,  1.,  0.],
+                        [ 0., -1.,  1.]
+                      ] (mmRealZero (3, 3))
+
+def Ar = listToMatrix [
+                        [ -1.],
+                        [ -1.]
+                      ] (mmRealZero (2, 1))
+
+def vs = [
+            listToMatrix [[x_1], [x_2], [x_3]] (mmVecZero (3, 1)),
+            listToMatrix [[y_1], [y_2], [y_3]] (mmVecZero (3, 1))
+         ]
+
+def main = {
+  def _ = dp Ar;
+  def _ = iter (fun v: MatrixMapVector -> def _ = dp v; ()) vs;
+
+  def (A, vs) = mkCutsetMatrix IM vs;
+  def _ = dp A;
+  def _ = iter (fun v: MatrixMapVector -> def _ = dp v; ()) vs;
+  ()
+}

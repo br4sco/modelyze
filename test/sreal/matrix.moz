@@ -1,0 +1,53 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Matrix
+
+def r_1, r_2, r_3: Real
+
+def I = mmSRealId 3
+def M = mmSRealZero (3, 3)
+def A = listToMatrix [[r_1, r_2, r_3],
+                      [r_1 + r_2, r_2 + r_3, r_1 + r_3],
+                      [r_1, r_2, r_3]
+                     ] M
+
+// def v = listToMatrix [[r_1, r_2, r_3]] (mmRealZero (1, 3))
+// def B = listToMatrix [[1., 0., -1.],
+//                       [0., 1., -1.],
+//                       [1., 0., 1.]
+//                      ] (mmRealZero (3, 3))
+// def C = listToMatrix [[r_1 - r_3],
+//                       [r_2 - r_3],
+//                       [r_1 + r_3]
+//                      ] (mmRealZero (3, 1))
+
+// def _ = dp M
+// def _ = dp (I * M)
+
+// def ett: Dyn = "ett"
+// def _ = dprint(r_1 + )
+// def _ = dprint(r_1 + "ett")
+
+def _ = dp (A + I)
+def _ = dp (I * A)
+
+// def _ = dp C
+// // def _ = dp (B * (tr v))

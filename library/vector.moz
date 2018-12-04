@@ -101,7 +101,7 @@ def reduce(v: Vector) -> Vector = {
 def mmVecZero(d: (Int, Int)) -> MatrixMapVector = { mmZero d }
 
 def mmVecAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
-  mmAdd 0 iszVec ij v M
+  mmAdd iszVec ij v M
 }
 def add: Pos -> Vector -> MatrixMapVector -> MatrixMapVector = mmVecAdd
 

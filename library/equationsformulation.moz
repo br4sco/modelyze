@@ -46,3 +46,7 @@ def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
   def (_, M) = foldLeft ff (1, mmRealZero (m, n)) G;
   M
 }
+
+def mkCutsetMatrix(IM: MatrixMapReal, vs: [MatrixMap]) -> (MatrixMapReal, [MatrixMap]) = {
+  (IM, vs)
+}

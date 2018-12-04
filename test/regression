@@ -78,6 +78,7 @@ test_files()
 
 test_files "matrix"
 test_files "svector"
+test_files "sreal"
 test_files "eqformulation"
 
 rm -f test.out
