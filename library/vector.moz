@@ -58,7 +58,7 @@ def prodRealVec(r: Real, v: Vector) -> Vector = {
 def chsgnVec(v: Vector) -> Vector = {
   match v with
   | - v_1 -> v
-  | _ -> - v
+  | _ -> -v
 }
 
 def reduce(v: Vector) -> Vector = {

@@ -60,11 +60,8 @@ def iszSReal(v: <Real>) -> Bool = {
   | lift r: Real -> r == 0.
   | _ -> false
 }
-def isuSReal(v: <Real>) -> Bool = {
-  match v with
-  | sval r: Real -> r == 1.
-  | _ -> false
-}
+
+
 def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   if iszSReal l && iszSReal r then 0.
   else if iszSReal l then r
@@ -76,16 +73,30 @@ def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   }
 }
 def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
+  def isuSReal(v: <Real>) -> Bool = {
+    match v with
+    | sval r: Real -> r == 1.
+    | _ -> false
+  };
+
+  def isnuSReal(v: <Real>) -> Bool = {
+    match v with
+    | sval r: Real -> r == -1.
+    | _ -> false
+  };
+
   if iszSReal l then 0.
   else if iszSReal r then 0.
   else if isuSReal l then r
   else if isuSReal r then l
+  else if isnuSReal l then -r
+  else if isnuSReal r then -l
   else l * r
 }
 def chsgnSReal(v: <Real>) -> <Real> = {
   match v with
   | - v_1 -> v
-  | _ -> - v
+  | _ -> -v
 }
 
 def _mem(ij: Pos, Mm: MMap) -> Bool = {
@@ -197,6 +208,7 @@ def mmRealAdd(ij: Pos, v: Real, M: MatrixMapReal) -> MatrixMapReal = {
 }
 def add: Pos -> Real -> MatrixMapReal -> MatrixMapReal = mmRealAdd
 def mmSRealAdd(ij: Pos, v: <Real>, M: MatrixMapSReal) -> MatrixMapSReal = {
+  // def vv: <Real> = v;
   mmAdd iszSReal ij v M
 }
 def add: Pos -> <Real> -> MatrixMapSReal -> MatrixMapSReal = mmSRealAdd
@@ -215,8 +227,9 @@ def find: Pos -> MatrixMapInt -> Int = mmIntFind
 def mmRealFind(ij: Pos, M: MatrixMapReal) -> Real = { mmFind 0. ij M }
 def find: Pos -> MatrixMapReal -> Real = mmRealFind
 def mmSRealFind(ij: Pos, M: MatrixMapSReal) -> <Real> = {
-def z: <Real> = 0.;
-mmFind z ij M }
+  def z: <Real> = 0.;
+  mmFind z ij M
+}
 def find: Pos -> MatrixMapSReal -> <Real> = mmSRealFind
 
 def matrixToList(mfind: MatrixFind, M: Matrix) -> [[Dyn]] = {
@@ -439,6 +452,9 @@ def tr(M: MatrixMapInt) -> MatrixMapInt = {
 }
 def tr(M: MatrixMapReal) -> MatrixMapReal = {
   matrixTranspose mmRealFind mmRealAdd mmRealZero M
+}
+def tr(M: MatrixMapSReal) -> MatrixMapSReal = {
+  matrixTranspose mmSRealFind mmSRealAdd mmSRealZero M
 }
 
 def matrixSub(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, s: Pos,
