@@ -14,3 +14,4 @@ tmux*
 .vsocde
 /.vscode/tasks.json
 obipy-resources/
+/.atom-build.yaml
