@@ -18,31 +18,20 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include Vector
+include EquationsFormulation
 
-type Node = Dyn
-type Edge = (Node, Node)
+def n1, n2, n3, n4: Node
 
-def IN_EDGE = -1.
-def OUT_EDGE = 1.
-def NO_EDGE = 0.
+def G = [
+          (n1, n2),
+          (n2, n3),
+          (n3, n1)
+        ]
 
-def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
-  def f(a: (Int, (Node => Int)), e: Edge) -> (Int, (Node => Int)) = {
-    def ff(a: (Int, Node => Int), n: Node) -> (Int, (Node => Int)) = {
-      def (c, m) = a;
-      if Map.mem n m then a else (c + 1, Map.add n (c + 1) m)
-    };
-    ff (ff a (fst e)) (snd e)
-  };
+def IM = listToMatrix [
+                        [ 1.,  0., -1.],
+                        [-1.,  1.,  0.],
+                        [ 0., -1.,  1.]
+                      ] (mmRealZero (3, 3))
 
-  def (m, nem) = foldLeft f (0, Map.empty) G;
-  def n = length G;
-
-  def ff(a: (Int, MatrixMapReal), e: Edge) -> (Int, MatrixMapReal) = {
-    def (j, M) = a;
-    (j + 1, add (Map.find (fst e) nem, j) OUT_EDGE (add (Map.find (snd e) nem, j) IN_EDGE M))
-  };
-  def (_, M) = foldLeft ff (1, mmRealZero (m, n)) G;
-  M
-}
+def _ = dprint(mkIncidenceMatrix G == IM)
