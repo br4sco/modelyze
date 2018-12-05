@@ -22,7 +22,6 @@ include EquationsFormulation
 
 def U: Vector
 def ii_V, uu_V, ii_R, uu_R, ii_L, uu_L: Vector
-def i_V, u_V, i_R, u_R, i_L, u_L: Real
 def V, R, L: Real
 def n1, n2, n3: Node
 
@@ -49,4 +48,41 @@ def RL = [
             )
          ]
 
-def _ = dprint(getTopolInfo RL)
+def _ = dprint(getBranchChordTranss [RL])
+
+def i_1, j_1, k_1, i_2, j_2, k_2: Vector
+def r_m, v_m, F_m, t_m, o_m, T_m: Vector
+def r_g, v_g, F_g, t_g, o_g, T_g: Vector
+def m, g, I: Real
+def n_m1, n_m2: Node
+
+def BD = [[
+            (
+             (n_m1, n_m2),
+             [(F_m, m * der v_m)],
+             [(r_m, [i_1, j_1]), (v_m, [i_1, j_1])],
+             [(F_m ,[])]
+            ),
+            (
+             (n_m2, n_m1),
+             [(F_g, (m * g) * j_2)],
+             [(r_g, [i_2, j_2]), (v_g, [i_2, j_2])],
+             [(F_g ,[])]
+            )
+          ],
+          [
+            (
+             (n_m1, n_m2),
+             [(T_m, I * der o_m)],
+             [(t_m, [k_1]), (o_m, [k_1])],
+             [(T_m ,[])]
+            ),
+            (
+             (n_m2, n_m1),
+             [(T_g, zeroVector)],
+             [(t_g, [k_1]), (o_g, [k_1])],
+             [(T_g ,[])]
+            )
+         ]]
+
+def _ = dprint(getBranchChordTranss BD)

@@ -50,6 +50,9 @@ def prodRealVec(r: Real, v: Vector) -> Vector = {
   else if r == -1. then - v
   else r * v
 }
+// def prodVecReal(v: Vector, r: Real) -> Vector = {
+//   prodRealVec r v
+// }
 
 def chsgnVec(v: Vector) -> Vector = {
   match v with
@@ -118,10 +121,19 @@ def mmVectorProd(lM: MatrixMapReal, rM: MatrixMapVector) -> MatrixMapVector = {
 }
 def (*): MatrixMapReal -> MatrixMapVector -> MatrixMapVector = mmVectorProd
 
+// def mmVectorProd(lM: MatrixMapVector, rM: MatrixMapReal) -> MatrixMapVector = {
+//   matrixProd mmVectorFind mmRealFind mmVectorAdd mmVecZero addVec prodVecReal lM rM
+// }
+// def (*): MatrixMapVector -> MatrixMapReal -> MatrixMapVector = mmVectorProd
+
 def tr(M: MatrixMapVector) -> MatrixMapVector = {
   matrixTranspose mmVectorFind mmVectorAdd mmVecZero M
 }
 
 def hsplit(i: Int, M: MatrixMapVector) -> (MatrixMapVector, MatrixMapVector) = {
   matrixHSplit mmVectorFind mmVectorAdd mmVecZero i M
+}
+
+def vsplit(j: Int, M: MatrixMapVector) -> (MatrixMapVector, MatrixMapVector) = {
+  matrixVSplit mmVectorFind mmVectorAdd mmVecZero j M
 }
