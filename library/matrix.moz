@@ -651,9 +651,33 @@ def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
   work (1, 1) M
 }
 
+def trimzerorows(M: MatrixMap) -> MatrixMap = {
+  def (Mm, d) = M;
+  def work(i: Int, o: Int, a: MMap) -> MMap = {
+    if i > rdim M then a
+    else {
+      def r = (Map.find i Mm);
+      if ((Map.size r) != 0) then work (i + 1) o (Map.add (i - o) r a)
+      else work (i + 1) (o + 1) a
+    }
+  };
+  def fMm = work 1 0 (Map.empty);
+  (fMm, (Map.size fMm, cdim M))
+}
+
 def real2sreal(M: MatrixMapReal) -> MatrixMapSReal = {
   def f(ij: Pos) -> <Real> = { find ij M };
   mapij f (mmSRealZero (dim M))
+}
+
+def real2int(M: MatrixMapReal) -> MatrixMapInt = {
+  def f(ij: Pos) -> Int = { real2int (find ij M) };
+  mapij f (mmIntZero (dim M))
+}
+
+def int2real(M: MatrixMapInt) -> MatrixMapReal = {
+  def f(ij: Pos) -> Real = { int2real (find ij M) };
+  mapij f (mmIntZero (dim M))
 }
 
 def argfind(mfind: MatrixFind, p: (Dyn -> Bool), M: Matrix) -> Pos = {
