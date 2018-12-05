@@ -330,6 +330,9 @@ def mapij(f: (Pos -> Int), M: Matrix) -> MatrixMapInt = {
 def mapij(f: (Pos -> Real), M: Matrix) -> MatrixMapReal = {
   mapij mmRealAdd mmRealZero f M
 }
+def mapij(f: (Pos -> <Real>), M: Matrix) -> MatrixMapSReal = {
+  mapij mmSRealAdd mmSRealZero f M
+}
 
 def foldij(f: (Dyn -> Pos -> Dyn), a: Dyn, M: Matrix) -> Dyn = {
   def work(ij: Pos, a: Dyn) -> Dyn = {
@@ -609,4 +612,9 @@ def rowreduce(M: MatrixMapReal) -> MatrixMapReal = {
     }
   };
   work (1, 1) M
+}
+
+def real2sreal(M: MatrixMapReal) -> MatrixMapSReal = {
+  def f(ij: Pos) -> <Real> = { find ij M };
+  mapij f (mmSRealZero (dim M))
 }

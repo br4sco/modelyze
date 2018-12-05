@@ -22,6 +22,7 @@ include Matrix
 
 def r_1, r_2, r_3: Real
 
+def Ir = mmRealId 3
 def I = mmSRealId 3
 def M = mmSRealZero (3, 3)
 def A = listToMatrix [[r_1, r_2, r_3],
@@ -53,3 +54,6 @@ def _ = dp (I * A)
 
 def _ = dp C
 def _ = dp (B * (tr v))
+
+def _ = dp A
+def _ = dp (A * (real2sreal Ir))
