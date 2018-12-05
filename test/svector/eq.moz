@@ -22,11 +22,11 @@ include Vector
 
 def v_1, v_2, v_3: Vector
 
-def _ = dprint(vectorSEq v_1 v_1)
-def _ = dprint(!(vectorSEq v_1 v_3))
-def _ = dprint(!(vectorSEq v_2 v_3))
-def _ = dprint(!(vectorSEq v_2 v_1))
-def _ = dprint(!(vectorSEq (v_2 + v_1) (v_1 + v_2)))
-def _ = dprint(vectorSEq (v_2 + v_1) (v_2 + v_1))
-def _ = dprint(vectorSEq (1. * v_1) (1. * v_1))
-def _ = dprint(!(vectorSEq (1. * v_1) (2. * v_1)))
+def _ = dprint(seq v_1 v_1)
+def _ = dprint(!(seq v_1 v_3))
+def _ = dprint(!(seq v_2 v_3))
+def _ = dprint(!(seq v_2 v_1))
+def _ = dprint(!(seq (v_2 + v_1) (v_1 + v_2)))
+def _ = dprint(seq (v_2 + v_1) (v_2 + v_1))
+def _ = dprint(seq (1. * v_1) (1. * v_1))
+def _ = dprint(!(seq (1. * v_1) (2. * v_1)))

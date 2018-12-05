@@ -24,10 +24,6 @@ type Vector
 type MatrixMapVector = (Int => (Int => Vector), Pos)
 def zeroVector: Vector
 
-def vectorSEq(l: Vector, r: Vector) -> Bool = {
-  Set.mem l (Set.add r (Set.empty))
-}
-
 def (--) : Vector -> Vector
 def (-) : Vector -> Vector -> Vector
 def (+) : Vector -> Vector -> Vector
@@ -36,7 +32,7 @@ def der : Vector -> Vector
 def (') = der
 
 // Operators and functions for Vectors (in lack of type polymorphism)
-def iszVec(v: Vector) -> Bool = { vectorSEq v zeroVector }
+def iszVec(v: Vector) -> Bool = { seq v zeroVector }
 def addVec(l: Vector, r: Vector) -> Vector = {
   if iszVec l && iszVec r then zeroVector
   else if iszVec l then r
@@ -112,6 +108,10 @@ def listToMatrix(l: [[Vector]], M: MatrixMapVector) -> MatrixMapVector = {
   listToMatrix mmVecAdd l M
 }
 def dp(M: MatrixMapVector) -> MatrixMapVector = { dp mmVecFind M }
+
+def matrixToList(M: MatrixMapVector) -> [[Vector]] = {
+  matrixToList mmVecFind M
+}
 
 def matrixProd(lM: MatrixMapReal, rM: MatrixMapVector) -> MatrixMapVector = {
   matrixProd mmRealFind mmVecFind mmVecAdd mmVecZero addVec prodRealVec lM rM

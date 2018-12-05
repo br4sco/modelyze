@@ -47,6 +47,33 @@ def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
   M
 }
 
-def mkCutsetMatrix(IM: MatrixMapReal, vs: [MatrixMap]) -> (MatrixMapReal, [MatrixMap]) = {
-  (IM, vs)
+def mkCutsetMatrix(IM: MatrixMapReal, vs: [MatrixMap])
+  -> (MatrixMapReal, [MatrixMap]) = {
+
+  if forAll (fun v: MatrixMap -> rdim v == cdim IM) vs then {
+    def work(i: Int, a: (MatrixMapInt, [MatrixMap]))
+      -> (MatrixMapInt, [MatrixMap]) = {
+
+      def (M, vs) = a;
+      if i > rdim M then a
+      else {
+        def j_max = snd (argfind (fun v: Int -> v != 0)
+                      (sub (i, 1) (i, cdim M) M));
+        if i == j_max then work (i + 1) a
+        else {
+          work (i + 1) (swcols i j_max M,
+                        map (fun v: MatrixMap -> swrows i j_max v) vs)
+        }
+      }
+    };
+
+    def IMrr = rowreduce IM;
+    def IMrrt = trimzerorows IMrr;
+    if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+    else {
+      def (IA, nvs) = work 1 (real2int IMrrt, vs);
+      def (I, A) = vsplit (rdim IA) IA;
+      (int2real A, nvs)
+    }
+  } else error "Dimensions of variable matrices and incidence matrix does not agree"
 }

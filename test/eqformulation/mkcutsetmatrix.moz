@@ -22,30 +22,53 @@ include EquationsFormulation
 
 def x_1, x_2, x_3: Vector
 def y_1, y_2, y_3: Vector
-def r_1, r_2, r_3: Real
+def r_1, r_2, r_3, r_4: Real
 
-def IM = listToMatrix [
+def f(v: MatrixMapVector) -> [[Vector]] = { matrixToList v }
+def ff(v: MatrixMapSReal) -> [[<Real>]] = { matrixToList v }
+
+def IM1 = listToMatrix [
                         [ 1.,  0., -1.],
                         [-1.,  1.,  0.],
                         [ 0., -1.,  1.]
                       ] (mmRealZero (3, 3))
 
-def Ar = listToMatrix [
+def vs1 = [
+            listToMatrix [[x_1], [x_2], [x_3]] (mmVecZero (3, 1)),
+            listToMatrix [[y_1], [y_2], [y_3]] (mmVecZero (3, 1))
+          ]
+
+def A1r = listToMatrix [
                         [ -1.],
                         [ -1.]
                       ] (mmRealZero (2, 1))
+def vs1r = [
+            [[x_1], [x_2], [x_3]],
+            [[y_1], [y_2], [y_3]]
+           ]
 
-def vs = [
-            listToMatrix [[x_1], [x_2], [x_3]] (mmVecZero (3, 1)),
-            listToMatrix [[y_1], [y_2], [y_3]] (mmVecZero (3, 1))
-         ]
+def IM2 = listToMatrix [[0., 0., 1., 1.], [1., -1., -1., 0.], [-1., 1., 0., -1.]] (mmRealZero (3, 4))
+def vs2 = [
+            listToMatrix [[r_1], [r_2], [r_3], [r_4]] (mmSRealZero (4, 1))
+          ]
+
+def A2r = listToMatrix [
+                        [-1., 1.],
+                        [ 0., 1.]
+                       ] (mmRealZero (2, 2))
+
+def vs2r = [
+            [[r_1], [r_3], [r_2], [r_4]]
+           ]
+
 
 def main = {
-  def _ = dp Ar;
-  def _ = iter (fun v: MatrixMapVector -> def _ = dp v; ()) vs;
+  def (A1, nvs1) = mkCutsetMatrix IM1 vs1;
+  def _ = dprint(A1 == A1r);
+  def _ = dprint(seq (map f nvs1) vs1r);
 
-  def (A, vs) = mkCutsetMatrix IM vs;
-  def _ = dp A;
-  def _ = iter (fun v: MatrixMapVector -> def _ = dp v; ()) vs;
+  def (A2, nvs2) = mkCutsetMatrix IM2 vs2;
+  def _ = dprint(A2 == A2r);
+  def _ = dprint(seq (map ff nvs2) vs2r);
   ()
 }

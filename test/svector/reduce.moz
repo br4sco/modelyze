@@ -22,9 +22,9 @@ include Vector
 
 def v_1, v_2, v_3: Vector
 
-def _ = dprint(vectorSEq (reduce (zeroVector + v_1)) v_1)
-def _ = dprint(vectorSEq (reduce (0. * v_2)) zeroVector)
-def _ = dprint(vectorSEq (reduce (1. * v_2)) v_2)
-def _ = dprint(vectorSEq (reduce ((-1.) * v_2)) (- v_2))
-def _ = dprint(vectorSEq (reduce ((10.) * zeroVector)) (zeroVector))
-def _ = dprint(vectorSEq (reduce ((10.) * zeroVector + 1. * (v_1 + 0. * v_2 + zeroVector))) (v_1))
+def _ = dprint(seq (reduce (zeroVector + v_1)) v_1)
+def _ = dprint(seq (reduce (0. * v_2)) zeroVector)
+def _ = dprint(seq (reduce (1. * v_2)) v_2)
+def _ = dprint(seq (reduce ((-1.) * v_2)) (- v_2))
+def _ = dprint(seq (reduce ((10.) * zeroVector)) (zeroVector))
+def _ = dprint(seq (reduce ((10.) * zeroVector + 1. * (v_1 + 0. * v_2 + zeroVector))) (v_1))
