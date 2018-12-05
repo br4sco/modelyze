@@ -41,5 +41,22 @@ def rrB = (vconcat ( hconcat (mmRealId 5) (mmRealZero (1, 5)))
    [ 0.,  1.],
    [ 0.,  0.]] (mmRealZero (6, 2))))
 
+def C = listToMatrix
+    [
+      [ 1.,  0., -1.,  0.,  0.],
+      [-1., -1.,  0.,  0.,  1.],
+      [ 0.,  0.,  0.,  1., -1.],
+      [ 0.,  1.,  1., -1.,  0.]
+    ] (mmRealZero (4, 5))
+
+def rrC = listToMatrix
+    [
+      [ 1.,  0., -1.,  0.,  0.],
+      [ 0.,  1.,  1.,  0., -1.],
+      [ 0.,  0.,  0.,  1., -1.],
+      [ 0.,  0.,  0.,  0.,  0.]
+    ] (mmRealZero (4, 5))
+
 def _ = dprint(rowreduce A == rrA)
 def _ = dprint(rowreduce B == rrB)
+def _ = dprint(rowreduce C == rrC)

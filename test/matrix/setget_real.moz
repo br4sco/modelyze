@@ -34,3 +34,5 @@ def _ = dprint((find (3, 3) I) == 1.)
 
 def _ = dprint((find (1, 2) I) == 0.)
 def _ = dprint((find (3, 2) I) == 0.)
+
+def _ = dprint((find (1, 1) (add (1, 1) 0. I)) == 0.)
