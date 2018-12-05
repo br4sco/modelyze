@@ -67,8 +67,7 @@ def mkCutsetMatrix(IM: MatrixMapReal, vs: [MatrixMap])
       }
     };
 
-    def IMrr = rowreduce IM;
-    def IMrrt = trimzerorows IMrr;
+    def IMrrt = trimzerorows (rowreduce IM);
     if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
     else {
       def (IA, nvs) = work 1 (real2int IMrrt, vs);
