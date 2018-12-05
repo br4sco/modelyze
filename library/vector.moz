@@ -96,28 +96,32 @@ def reduce(v: Vector) -> Vector = {
 
 def mmVecZero(d: (Int, Int)) -> MatrixMapVector = { mmZero d }
 
-def mmVecAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
+def mmVectorAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
   mmAdd iszVec ij v M
 }
-def add: Pos -> Vector -> MatrixMapVector -> MatrixMapVector = mmVecAdd
+def add: Pos -> Vector -> MatrixMapVector -> MatrixMapVector = mmVectorAdd
 
-def mmVecFind(ij: Pos, M: MatrixMapVector) -> Vector = { mmFind zeroVector ij M }
-def add: Pos -> MatrixMapVector -> Vector = mmVecFind
+def mmVectorFind(ij: Pos, M: MatrixMapVector) -> Vector = { mmFind zeroVector ij M }
+def add: Pos -> MatrixMapVector -> Vector = mmVectorFind
 
 def listToMatrix(l: [[Vector]], M: MatrixMapVector) -> MatrixMapVector = {
-  listToMatrix mmVecAdd l M
+  listToMatrix mmVectorAdd l M
 }
-def dp(M: MatrixMapVector) -> MatrixMapVector = { dp mmVecFind M }
+def dp(M: MatrixMapVector) -> MatrixMapVector = { dp mmVectorFind M }
 
 def matrixToList(M: MatrixMapVector) -> [[Vector]] = {
-  matrixToList mmVecFind M
+  matrixToList mmVectorFind M
 }
 
-def matrixProd(lM: MatrixMapReal, rM: MatrixMapVector) -> MatrixMapVector = {
-  matrixProd mmRealFind mmVecFind mmVecAdd mmVecZero addVec prodRealVec lM rM
+def mmVectorProd(lM: MatrixMapReal, rM: MatrixMapVector) -> MatrixMapVector = {
+  matrixProd mmRealFind mmVectorFind mmVectorAdd mmVecZero addVec prodRealVec lM rM
 }
-def (*): MatrixMapReal -> MatrixMapVector -> MatrixMapVector = matrixProd
+def (*): MatrixMapReal -> MatrixMapVector -> MatrixMapVector = mmVectorProd
 
 def tr(M: MatrixMapVector) -> MatrixMapVector = {
-  matrixTranspose mmVecFind mmVecAdd mmVecZero M
+  matrixTranspose mmVectorFind mmVectorAdd mmVecZero M
+}
+
+def hsplit(i: Int, M: MatrixMapVector) -> (MatrixMapVector, MatrixMapVector) = {
+  matrixHSplit mmVectorFind mmVectorAdd mmVecZero i M
 }

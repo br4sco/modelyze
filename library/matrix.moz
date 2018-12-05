@@ -27,6 +27,7 @@ type Matrix = (Dyn, Pos)
 type MatrixFind = Pos -> Dyn -> Dyn
 type MatrixAdd = Pos -> Dyn -> Dyn -> Matrix
 type MatrixZero = (Int, Int) -> Matrix
+type MatrixProd = Matrix -> Matrix -> Matrix
 
 // Data structures to hold sparse matrices
 type MMap = (Int => (Int => Dyn))
@@ -434,19 +435,19 @@ def matrixProd(mfindl: MatrixFind, mfindr: MatrixFind, madd: MatrixAdd,
   if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
   else mapij madd mzero f (mzero (rdim lM, cdim rM))
 }
-def matrixProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = {
+def mmIntProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = {
   matrixProd mmIntFind mmIntFind mmIntAdd mmIntZero addInt prodInt lM rM
 }
-def (*): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = matrixProd
-def matrixProd(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
+def (*): MatrixMapInt -> MatrixMapInt -> MatrixMapInt = mmIntProd
+def mmRealProd(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
   matrixProd mmRealFind mmRealFind mmRealAdd mmRealZero addReal prodReal lM rM
 }
-def (*): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = matrixProd
-def matrixProd(lM: MatrixMapSReal, rM: MatrixMapSReal) -> MatrixMapSReal = {
+def (*): MatrixMapReal -> MatrixMapReal -> MatrixMapReal = mmRealProd
+def mmSRealProd(lM: MatrixMapSReal, rM: MatrixMapSReal) -> MatrixMapSReal = {
   matrixProd mmSRealFind mmSRealFind mmSRealAdd mmSRealZero addSReal prodSReal
     lM rM
 }
-def (*): MatrixMapSReal -> MatrixMapSReal -> MatrixMapSReal = matrixProd
+def (*): MatrixMapSReal -> MatrixMapSReal -> MatrixMapSReal = mmSRealProd
 
 def matrixTranspose(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
   M: Matrix) -> Matrix = {
@@ -498,6 +499,9 @@ def hsplit(i: Int, M: MatrixMapInt) -> (MatrixMapInt, MatrixMapInt) = {
 }
 def hsplit(i: Int, M: MatrixMapReal) -> (MatrixMapReal, MatrixMapReal) = {
   matrixHSplit mmRealFind mmRealAdd mmRealZero i M
+}
+def hsplit(i: Int, M: MatrixMapSReal) -> (MatrixMapSReal, MatrixMapSReal) = {
+  matrixHSplit mmSRealFind mmSRealAdd mmSRealZero i M
 }
 
 def matrixSub(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, s: Pos,

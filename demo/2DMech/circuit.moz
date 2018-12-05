@@ -20,34 +20,35 @@ written by Oscar Eriksson oerikss@kth.se
 
 include EquationsFormulation
 
-def i_V, u_V, i_R, u_R, i_L, u_L, V: Vector
-def R, L: Real
+def U: Vector
+def ii_V, uu_V, ii_R, uu_R, ii_L, uu_L: Vector
+def i_V, u_V, i_R, u_R, i_L, u_L: Real
+def V, R, L: Real
 def n1, n2, n3: Node
 
-def C = [
-          (n1, n2, i_V, u_V),
-          (n2, n3, i_R, u_R),
-          (n3, n1, i_L, u_L)
-        ]
+def RL = [[
+            (
+             (n1, n2),
+             [(uu_V, V * U)],
+             [(uu_V, [])],
+             [(ii_V ,[U])]
+            ),
 
-def terminals = listToMap [
-                            (u_V, V),
-                            (u_R, R * i_R),
-                            (i_R, (1./ R) * u_R),
-                            (u_L, L * der i_L)
-                          ]
+            (
+             (n2, n3),
+             [(ii_R, R * ii_R), (uu_R, (1. / R) * ii_R)],
+             [(uu_R, [])],
+             [(ii_R, [])]
+            ),
 
-def main = {
-  def (A, B, tv, av) = buildMatrices C;
-  def _ = dprint(pp A);
-  def _ = dprint(pp B);
-  def _ = dprint(tv);
-  def _ = dprint(av);
-  def ct = vectorize (buildChordTransMap A tv);
-  def bt = vectorize (buildBranchTransMap B av);
-  def _ = dprint(ct);
-  def _ = dprint(bt);
-  def _ = dprint(terminals);
-  def _ = eqGen tv av terminals (union ct bt);
-  ()
-}
+            (
+             (n3, n1),
+             [(uu_L, L * der ii_L)],
+             [(uu_L, [])],
+             [(ii_L, [U])]
+            )
+         ]]
+
+def _ = dprint(RL)
+
+// def f(v: <Real>) = { }
