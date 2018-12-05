@@ -32,6 +32,20 @@ def IN_EDGE = -1.
 def OUT_EDGE = 1.
 def NO_EDGE = 0.
 
+def transpose(ll: [[Dyn]]) -> [[Dyn]] = {
+  def work(ll: [[Dyn]], a: [[Dyn]]) -> [[Dyn]] = {
+    match ll with
+    | [] -> a
+    | l::ls -> {
+        match l with
+        | [] -> reverse a
+        | x::xs -> work (map (fun l: [Dyn] -> tl l) ll)
+            ((map (fun l: [Dyn] -> hd l) ll)::a)
+      }
+  };
+  work ll []
+}
+
 def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
   def f(a: (Int, (Node => Int)), e: Edge) -> (Int, (Node => Int)) = {
     def ff(a: (Int, Node => Int), n: Node) -> (Int, (Node => Int)) = {
@@ -51,14 +65,12 @@ def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
   def (_, M) = foldLeft ff (1, mmRealZero (m, n)) G;
   M
 }
-def mkCutsetMatrix(IM: MatrixMapReal, X: [MatrixMap], Y: [MatrixMap])
-  -> (MatrixMapReal, [MatrixMap], [MatrixMap]) = {
+def mkCutsetMatrix(IM: MatrixMapReal, X: MatrixMap, Y: MatrixMap)
+  -> (MatrixMapReal, MatrixMap, MatrixMap) = {
 
-  if ((forAll (fun x: MatrixMap -> rdim x == cdim IM) X) &&
-     (forAll (fun y: MatrixMap -> rdim y == cdim IM) Y))
-  then {
-    def work(i: Int, a: (MatrixMapInt, [MatrixMap], [MatrixMap]))
-      -> (MatrixMapInt, [MatrixMap], [MatrixMap]) = {
+  if rdim X == cdim IM && rdim Y == cdim IM then {
+    def work(i: Int, a: (MatrixMapInt, MatrixMap, MatrixMap))
+      -> (MatrixMapInt, MatrixMap, MatrixMap) = {
 
       def (M, X, Y) = a;
       if i > rdim M then a
@@ -68,8 +80,8 @@ def mkCutsetMatrix(IM: MatrixMapReal, X: [MatrixMap], Y: [MatrixMap])
         if i == j_max then work (i + 1) a
         else {
           work (i + 1) (swcols i j_max M,
-                        map (fun x: MatrixMap -> swrows i j_max x) X,
-                        map (fun y: MatrixMap -> swrows i j_max y) Y)
+                        swrows i j_max X,
+                        swrows i j_max Y)
         }
       }
     };
@@ -154,10 +166,14 @@ def substitute(x: MatrixMapVector, y: MatrixMapVector, ter: (Vector => Vector),
 //   substitute mmSRealFind mmSRealAdd x y ter tran
 // }
 
-// def getTopolInfo(D: Domain)
-//   -> (MatrixMapReal, [MatrixMapVector], [MatrixMapVector]) = {
+def getTopolInfo(D: Domain) = {
+  // -> (MatrixMapReal, [MatrixMapVector], [MatrixMapVector]) = {
 
-//   def G = map (fun me: ModelEdge -> fst me) D;
-//   def m = length G;
-//   def
-// }
+  def G = map (fun me: ModelEdge -> fst me) D;
+  def m = length G;
+  def X =
+            (map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
+            (map (fun me: ModelEdge -> def (_, _, cvs, _) = me; cvs) D));
+            X
+
+}

@@ -26,7 +26,7 @@ def i_V, u_V, i_R, u_R, i_L, u_L: Real
 def V, R, L: Real
 def n1, n2, n3: Node
 
-def RL = [[
+def RL = [
             (
              (n1, n2),
              [(uu_V, V * U)],
@@ -47,8 +47,6 @@ def RL = [[
              [(uu_L, [])],
              [(ii_L, [U])]
             )
-         ]]
+         ]
 
-def _ = dprint(RL)
-
-// def f(v: <Real>) = { }
+def _ = dprint(getTopolInfo RL)
