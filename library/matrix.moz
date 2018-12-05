@@ -655,3 +655,18 @@ def real2sreal(M: MatrixMapReal) -> MatrixMapSReal = {
   def f(ij: Pos) -> <Real> = { find ij M };
   mapij f (mmSRealZero (dim M))
 }
+
+def argfind(mfind: MatrixFind, p: (Dyn -> Bool), M: Matrix) -> Pos = {
+  def work(ij: Pos) -> Pos = {
+    if ij > dim M then ij
+    else if p (mfind ij M) then ij
+    else work (_nextpos ij (dim M))
+  };
+  work (1, 1)
+}
+def argfind(p: (Int -> Bool), M: MatrixMapInt) -> Pos = {
+  argfind mmIntFind p M
+}
+def argfind(p: (Real -> Bool), M: MatrixMapReal) -> Pos = {
+  argfind mmRealFind p M
+}
