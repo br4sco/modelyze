@@ -48,8 +48,6 @@ def RL = [
             )
          ]
 
-def _ = dprint(getBranchChordTranss [RL])
-
 def i_1, j_1, k_1, i_2, j_2, k_2: Vector
 def r_m, v_m, F_m, t_m, o_m, T_m: Vector
 def r_g, v_g, F_g, t_g, o_g, T_g: Vector
@@ -85,4 +83,8 @@ def BD = [[
             )
          ]]
 
-def _ = dprint(getBranchChordTranss BD)
+def main = {
+  def _ = formulateEqs [RL];
+  def _ = formulateEqs BD;
+  ()
+}

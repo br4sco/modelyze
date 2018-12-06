@@ -28,7 +28,8 @@ type SubsMap = (Vector => Vector)
 type ConstrVar = (Vector, [Vector])
 type ModelEdge = (Edge, [Subs], [ConstrVar], [ConstrVar])
 type Domain = [ModelEdge]
-type TopolInfo = (MatrixMapReal, MatrixMapVector, MatrixMapVector)
+type XYMatrices = (MatrixMapVector, MatrixMapVector)
+type TopolInfo = (MatrixMapReal, XYMatrices)
 
 def IN_EDGE = -1.
 def OUT_EDGE = 1.
@@ -54,9 +55,10 @@ def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
   M
 }
 
-def mkCutsetMatrix(IM: MatrixMapReal, X: MatrixMap, Y: MatrixMap)
-  -> (MatrixMapReal, MatrixMap, MatrixMap) = {
+def mkCutsetMatrix(IM: MatrixMapReal, XY: XYMatrices)
+  -> TopolInfo = {
 
+  def (X, Y) = XY;
   if rdim X == cdim IM && rdim Y == cdim IM then {
     def work(i: Int, a: (MatrixMapInt, MatrixMap, MatrixMap))
       -> (MatrixMapInt, MatrixMap, MatrixMap) = {
@@ -80,90 +82,83 @@ def mkCutsetMatrix(IM: MatrixMapReal, X: MatrixMap, Y: MatrixMap)
     else {
       def (IA, nX, nY) = work 1 (real2int IMrrt, X, Y);
       def (I, A) = vsplit (rdim IA) IA;
-      (int2real A, nX, nY)
+      (int2real A, (nX, nY))
     }
   } else error "Dimensions of variable matrices and incidence matrix does not agree"
 }
 
-def mkBranchChordTranss(T: TopolInfo) -> [Subs] = {
-  def (A, X, Y) = T;
-  def j = rdim A;
-  def (Y_b, Y_c) = hsplit j Y;
-  def (X_b, X_c) = hsplit j X;
-  def CT = zip (concat (matrixToList (tr Y_b)))
-                (concat (matrixToList (tr (-A * Y_c))));
-  def BT = zip (concat (matrixToList (tr X_c)))
-                (concat (matrixToList (tr ((tr A) * X_b))));
-  (append CT BT)
+def substitute(ter: SubsMap, tran: SubsMap, xys: [XYMatrices])
+  -> [XYMatrices] = {
+
+  def subs(xy: XYMatrices) -> XYMatrices = {
+
+    def work(tv: [Vector], av: [Vector])
+      -> ([Vector], [Vector]) = {
+
+      def _ = dprint("=== SUBS using TERMINALS ===");
+
+      def tv = map (fun t: Vector -> subs t ter) tv;
+      def av = map (fun a: Vector -> subs a ter) av;
+
+
+      def _ = dprint("y = ");
+      def _ = dprint(tv);
+      def _ = dprint("x = ");
+      def _ = dprint(av);
+
+      def _ = dprint("=== SUBS using TRANS MAPS ===");
+      def tv = map (fun t: Vector -> subs t tran) tv;
+      def av = map (fun a: Vector -> subs a tran) av;
+
+      def _ = dprint("y = ");
+      def _ = dprint(tv);
+      def _ = dprint("x = ");
+      def _ = dprint(av);
+
+      if(
+          (exists (fun t: Vector -> canSub t ter) tv) ||
+          (exists (fun a: Vector -> canSub a ter) av) ||
+          (exists (fun t: Vector -> canSub t tran) tv) ||
+          (exists (fun a: Vector -> canSub a tran) av)
+        ) then work tv av
+      else (tv, av)
+    };
+
+    def (x, y) = xy;
+    if dim x != dim y || cdim x != 1 then error BAD_MATRIX
+    else {
+      def (xl, yl) = work (concat (matrixToList (tr x)))
+                            (concat (matrixToList (tr y)));
+
+      (tr (listToMatrix [xl] (tr x)), tr (listToMatrix [yl] (tr y)))
+    }
+  };
+  map subs xys
 }
 
-def substitute(mfind: MatrixFind, madd: MatrixAdd,
-  x: Matrix, y: Matrix, ter: (Dyn => Dyn), tran: (Dyn => Dyn))
-  -> (Matrix, Matrix) = {
+def getTopolInfo(Ds: [Domain]) -> [TopolInfo] = {
+  def getTopolInfo(D: Domain) -> TopolInfo = {
 
-  def work(tv: [Dyn], av: [Dyn], ter: (Dyn => Dyn),
-    tran: (Dyn => Dyn)) -> ([Dyn], [Dyn]) = {
+    def G = map (fun me: ModelEdge -> fst me) D;
+    def IM = mkIncidenceMatrix G;
+    def m = cdim IM;
 
-    def _ = dprint("=== SUBS using TERMINALS ===");
+    def Xl = map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
+              (map (fun me: ModelEdge -> def (_, _, cvs, _) = me; cvs) D);
 
-    def tv = map (fun t: Dyn -> subs t ter) tv;
-    def av = map (fun a: Dyn -> subs a ter) av;
+    def nx = length (hd Xl);
+    def X = listToMatrix Xl (mmVecZero (m, nx));
 
+    def Yl = map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
+              (map (fun me: ModelEdge -> def (_, _, _, cvs) = me; cvs) D);
 
-    def _ = dprint("y = ");
-    def _ = dprint(tv);
-    def _ = dprint("x = ");
-    def _ = dprint(av);
+    def ny = length (hd Yl);
+    def Y = listToMatrix Yl (mmVecZero (m, ny));
 
-    def _ = dprint("=== SUBS using TRANS MAPS ===");
-    def tv = map (fun t: Dyn -> subs t tran) tv;
-    def av = map (fun a: Dyn -> subs a tran) av;
-
-    def _ = dprint("y = ");
-    def _ = dprint(tv);
-    def _ = dprint("x = ");
-    def _ = dprint(av);
-
-    if(
-        (exists (fun t: Dyn -> canSub t ter) tv) ||
-        (exists (fun a: Dyn -> canSub a ter) av) ||
-        (exists (fun t: Dyn -> canSub t tran) tv) ||
-        (exists (fun a: Dyn -> canSub a tran) av)
-      ) then work tv av ter tran
-    else (tv, av)
+    mkCutsetMatrix IM (X, Y)
   };
 
-  if dim x != dim y || cdim x != 1 then error BAD_MATRIX
-  else {
-    def (xl, yl) = work (matrixToList mfind x) (matrixToList mfind y) ter tran;
-    (listToMatrix madd xl x, listToMatrix madd yl y)
-  }
-}
-def substitute(x: MatrixMapVector, y: MatrixMapVector, ter: SubsMap,
-  tran: SubsMap) -> (MatrixMapVector, MatrixMapVector) = {
-
-  substitute mmVectorFind mmVectorAdd x y ter tran
-}
-
-def getTopolInfo(D: Domain) -> TopolInfo = {
-
-  def G = map (fun me: ModelEdge -> fst me) D;
-  def IM = mkIncidenceMatrix G;
-  def m = cdim IM;
-
-  def Xl = map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
-            (map (fun me: ModelEdge -> def (_, _, cvs, _) = me; cvs) D);
-
-  def nx = length (hd Xl);
-  def X = listToMatrix Xl (mmVecZero (m, nx));
-
-  def Yl = map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
-            (map (fun me: ModelEdge -> def (_, _, _, cvs) = me; cvs) D);
-
-  def ny = length (hd Yl);
-  def Y = listToMatrix Yl (mmVecZero (m, ny));
-
-  mkCutsetMatrix IM X Y
+  map (fun D: Domain -> getTopolInfo D) Ds
 }
 
 def getTerminals(Ds: [Domain]) -> SubsMap = {
@@ -172,7 +167,56 @@ def getTerminals(Ds: [Domain]) -> SubsMap = {
                 (map (fun me: ModelEdge -> snd me) D)) Ds)))
 }
 
-def getBranchChordTranss(Ds: [Domain]) -> SubsMap = {
-  listToMap (concat (map (fun T: TopolInfo -> mkBranchChordTranss T)
-              (map (fun D: Domain -> getTopolInfo D) Ds)))
+def getBranchChordTranss(Ts: [TopolInfo]) -> SubsMap = {
+  def getBranchChordTranss(T: TopolInfo) -> [Subs] = {
+    def (A, (X, Y)) = T;
+    def j = rdim A;
+    def (Y_b, Y_c) = hsplit j Y;
+    def (X_b, X_c) = hsplit j X;
+    def CT = zip (concat (matrixToList (tr Y_b)))
+                  (concat (matrixToList (tr (-A * Y_c))));
+    def BT = zip (concat (matrixToList (tr X_c)))
+                  (concat (matrixToList (tr ((tr A) * X_b))));
+    (append CT BT)
+  };
+
+  listToMap
+    (concat (map (fun T: TopolInfo -> getBranchChordTranss T) Ts))
+}
+
+def getCircCutEqs(Ts: [TopolInfo]) -> [XYMatrices] = {
+  def f(T: TopolInfo) -> XYMatrices = {
+    def (A, (x, y)) = T;
+    def circM = (vconcat (-(tr A)) (mmRealId (cdim A)));
+    def cutM = (vconcat (mmRealId (rdim A)) A);
+    (circM * x, cutM * y)
+  };
+  map f Ts
+}
+
+def getZerothDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
+  map (fun XY: XYMatrices ->
+        (fst (vsplit 1 (fst XY)), fst (vsplit 1 (snd XY)))) XYs
+}
+
+def formulateEqs(Ds: [Domain]) = {
+  def ters = getTerminals Ds;
+  def Ts = getTopolInfo Ds;
+  def trans = getBranchChordTranss Ts;
+  def (As, XYs) = unzip Ts;
+
+  def _ = dprint("=== TopolInfo ===");
+  def _ = map dp As;
+  def _ = map dp (fst (unzip XYs));
+  def _ = map dp (snd (unzip XYs));
+
+  def xys = getZerothDerivs XYs;
+  def xys_star = substitute ters trans xys;
+
+  def cceqs = getCircCutEqs (zip As xys_star);
+
+  def _ = dprint("=== Circ and Cut Eqs ===");
+  def _ = map dp (fst (unzip cceqs));
+  def _ = map dp (snd (unzip cceqs));
+  ()
 }
