@@ -20,7 +20,6 @@ written by Oscar Eriksson oerikss@kth.se
 
 include EquationsFormulation
 
-def U: Vector
 def ii_V, uu_V, ii_R, uu_R, ii_L, uu_L: Vector
 def V, R, L: Real
 def n1, n2, n3: Node
@@ -29,21 +28,21 @@ def RL = [
             (
              (n1, n2),
              [(uu_V, V * U)],
-             [(uu_V, [zeroVector])],
+             [(uu_V, [])],
              [(ii_V ,[U])]
             ),
 
             (
              (n2, n3),
-             [(ii_R, R * ii_R), (uu_R, (1. / R) * ii_R)],
-             [(uu_R, [zeroVector])],
-             [(ii_R, [zeroVector])]
+             [(uu_R, R * ii_R), (ii_R, (1. / R) * uu_R)],
+             [(uu_R, [])],
+             [(ii_R, [])]
             ),
 
             (
              (n3, n1),
              [(uu_L, L * der ii_L)],
-             [(uu_L, [zeroVector])],
+             [(uu_L, [])],
              [(ii_L, [U])]
             )
          ]
@@ -59,13 +58,13 @@ def BD = [[
              (n_m1, n_m2),
              [(F_m, m * der v_m)],
              [(r_m, [i_1, j_1]), (v_m, [i_1, j_1])],
-             [(F_m ,[zeroVector])]
+             [(F_m ,[])]
             ),
             (
              (n_m2, n_m1),
              [(F_g, (m * g) * j_2)],
              [(r_g, [i_2, j_2]), (v_g, [i_2, j_2])],
-             [(F_g ,[zeroVector])]
+             [(F_g ,[])]
             )
           ],
           [
@@ -73,17 +72,19 @@ def BD = [[
              (n_m1, n_m2),
              [(T_m, I * der o_m)],
              [(t_m, [k_1]), (o_m, [k_1])],
-             [(T_m ,[zeroVector])]
+             [(T_m ,[])]
             ),
             (
              (n_m2, n_m1),
              [(T_g, zeroVector)],
              [(t_g, [k_1]), (o_g, [k_1])],
-             [(T_g ,[zeroVector])]
+             [(T_g ,[])]
             )
          ]]
 
 def main = {
+  // def _ = dprint(getSpaceMap [RL]);
+  // def _ = dprint(getSpaceMap BD);
   def _ = formulateEqs [RL];
   def _ = formulateEqs BD;
   ()

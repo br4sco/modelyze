@@ -23,6 +23,7 @@ include Matrix
 type Vector
 type MatrixMapVector = (Int => (Int => Vector), Pos)
 def zeroVector: Vector
+def U: Vector
 
 def (--) : Vector -> Vector
 def (-) : Vector -> Vector -> Vector
@@ -136,4 +137,12 @@ def hsplit(i: Int, M: MatrixMapVector) -> (MatrixMapVector, MatrixMapVector) = {
 
 def vsplit(j: Int, M: MatrixMapVector) -> (MatrixMapVector, MatrixMapVector) = {
   matrixVSplit mmVectorFind mmVectorAdd mmVectorZero j M
+}
+
+def vconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
+  matrixConcat mmVectorFind mmVectorAdd mmVectorZero lM rM
+}
+
+def hconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
+  tr (vconcat (tr lM) (tr rM))
 }

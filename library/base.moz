@@ -165,6 +165,12 @@ def nth(l:[Dyn], n:Int) -> Dyn = {
     work(l, 0)
 }
 
+def isEmpty(l: [Dyn]) -> Bool = {
+  match l with
+  | [] -> true
+  | _ -> false
+}
+
 def map(f: (Dyn -> Dyn), l: [Dyn]) -> [Dyn] = {
   def work(l: [Dyn], acc: [Dyn]) -> [Dyn] = {
     match l with

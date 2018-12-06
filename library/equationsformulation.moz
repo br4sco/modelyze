@@ -25,7 +25,9 @@ type Node = Dyn
 type Edge = (Node, Node)
 type Subs = (Vector, Vector)
 type SubsMap = (Vector => Vector)
+type SpaceMap = (Vector => [Vector])
 type ConstrVar = (Vector, [Vector])
+type ProjForm = ([Vector], Vector)
 type ModelEdge = (Edge, [Subs], [ConstrVar], [ConstrVar])
 type Domain = [ModelEdge]
 type XYMatrices = (MatrixMapVector, MatrixMapVector)
@@ -100,7 +102,6 @@ def substitute(ter: SubsMap, tran: SubsMap, xys: [XYMatrices])
       def tv = map (fun t: Vector -> subs t ter) tv;
       def av = map (fun a: Vector -> subs a ter) av;
 
-
       // def _ = dprint("y = ");
       // def _ = dprint(tv);
       // def _ = dprint("x = ");
@@ -168,6 +169,17 @@ def getTerminals(Ds: [Domain]) -> SubsMap = {
                 (map (fun me: ModelEdge -> snd me) D)) Ds)))
 }
 
+def getSpaceMap(Ds: [Domain]) -> SpaceMap = {
+  listToMap
+    (concat (concat
+     (map (fun D: Domain ->
+           map (fun me: ModelEdge ->
+                def (_, _, xcvs, ycvs) = me;
+                append xcvs ycvs
+               ) D
+          ) Ds)))
+}
+
 def getBranchChordTranss(Ts: [TopolInfo]) -> SubsMap = {
   def getBranchChordTranss(T: TopolInfo) -> [Subs] = {
     def (A, (X, Y)) = T;
@@ -175,9 +187,9 @@ def getBranchChordTranss(Ts: [TopolInfo]) -> SubsMap = {
     def (Y_b, Y_c) = hsplit j Y;
     def (X_b, X_c) = hsplit j X;
     def CT = zip (concat (matrixToList (tr Y_b)))
-                  (concat (matrixToList (tr (-A * Y_c))));
+                 (concat (matrixToList (tr (-A * Y_c))));
     def BT = zip (concat (matrixToList (tr X_c)))
-                  (concat (matrixToList (tr ((tr A) * X_b))));
+                 (concat (matrixToList (tr ((tr A) * X_b))));
     (append CT BT)
   };
 
@@ -202,11 +214,43 @@ def getZerothDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
 
 def getHighestDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
   map (fun XY: XYMatrices ->
-         def (X, Y) = XY;
-         def nX = cdim X;
-         def nY = cdim Y;
+        def (X, Y) = XY;
+        def nX = cdim X;
+        def nY = cdim Y;
         (if nX > 1 then snd (vsplit (nX - 1)  X) else X,
          if nY > 1 then snd (vsplit (nY - 1)  Y) else Y)) XYs
+}
+
+def getXbYc(Ts: [TopolInfo]) -> [XYMatrices] = {
+  map (fun T: TopolInfo ->
+       def (A, (x, y)) = T;
+       def j = rdim A;
+       def (y_b, y_c) = hsplit j y;
+       def (x_b, x_c) = hsplit j x;
+       (x_b, y_c)
+  ) Ts
+}
+
+def getVPRels(xbycs: [XYMatrices], cceqs: [XYMatrices])
+  -> [XYMatrices] = {
+
+  map (fun e: (XYMatrices, XYMatrices) ->
+       def ((x_b, y_c), (circeqs, cuteqs)) = e;
+       (hconcat x_b y_c, hconcat cuteqs circeqs)
+  ) (zip xbycs cceqs)
+}
+
+def formulateProjs(sm: SpaceMap, vps: [XYMatrices]) -> [ProjForm]  = {
+  concat
+  (map (fun vp: XYMatrices ->
+        zip (map (fun v: Vector ->
+                  Map.find v sm) (concat (matrixToList (tr (fst vp)))))
+            (concat (matrixToList (tr (snd vp))))
+      ) vps)
+}
+
+def filterOutNullSpace(pfs: [ProjForm]) -> [ProjForm] = {
+  filter (fun pf: ProjForm -> !(isEmpty (fst pf))) pfs
 }
 
 def formulateEqs(Ds: [Domain]) = {
@@ -229,7 +273,23 @@ def formulateEqs(Ds: [Domain]) = {
   // def _ = map dp (snd (unzip cceqs));
 
   def h_xys = getHighestDerivs XYs;
-  def _ = map dp (fst (unzip h_xys));
-  def _ = map dp (snd (unzip h_xys));
+  def xbycs = getXbYc (zip As h_xys);
+
+  // def _ = dprint("=== x_b and y_c ===");
+  // def _ = map dp (fst (unzip xbycs));
+  // def _ = map dp (snd (unzip xbycs));
+
+  def vps = getVPRels xbycs cceqs;
+
+  def _ = dprint("=== VP Rels ===");
+  def _ = map dp (fst (unzip vps));
+  def _ = map dp (snd (unzip vps));
+
+  def sm = getSpaceMap Ds;
+  def pfs = formulateProjs sm vps;
+
+  def _ = dprint("=== Projs ===");
+  def _ = dprint(pfs);
+  def _ = dprint(filterOutNullSpace pfs);
   ()
 }
