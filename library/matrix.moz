@@ -39,7 +39,7 @@ type MatrixMapSReal = (Int => (Int => <Real>), Pos)
 def DIMENSION_MISSMATCH = "Dimension missmatch"
 def BAD_MATRIX = "Bad matrix"
 
-// Operators and functions for Ints (in lack of type polymorphism)
+// Operators and functions over Ints (in lack of type polymorphism)
 def iszInt(v: Int) -> Bool = { v == 0 }
 def eqInt(l: Int, r: Int) -> Bool = { l == r }
 def addInt(l: Int, r: Int) -> Int = { l + r }
@@ -47,7 +47,7 @@ def prodInt(l: Int, r: Int) -> Int = { l * r }
 def chsgnInt(v: Int) -> Int = { -v }
 def gtInt(l: Int, r: Int) -> Bool = { l > r }
 
-// Operators and functions for Reals (in lack of type polymorphism)
+// Operators and functions over Reals (in lack of type polymorphism)
 def iszReal(v: Real) -> Bool = { (abs v) < EPSILON }
 def eqReal(l: Real, r: Real) -> Bool = { abs (l - r) < EPSILON }
 def addReal(l: Real, r: Real) -> Real = { l + r }
@@ -61,8 +61,6 @@ def iszSReal(v: <Real>) -> Bool = {
   | lift r: Real -> iszReal r
   | _ -> false
 }
-
-
 def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   if iszSReal l && iszSReal r then 0.
   else if iszSReal l then r

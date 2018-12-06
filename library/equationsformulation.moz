@@ -147,13 +147,13 @@ def getTopolInfo(Ds: [Domain]) -> [TopolInfo] = {
               (map (fun me: ModelEdge -> def (_, _, cvs, _) = me; cvs) D);
 
     def nx = length (hd Xl);
-    def X = listToMatrix Xl (mmVecZero (m, nx));
+    def X = listToMatrix Xl (mmVectorZero (m, nx));
 
     def Yl = map (fun cvs: [ConstrVar] -> map (fun cv: ConstrVar -> fst cv) cvs)
               (map (fun me: ModelEdge -> def (_, _, _, cvs) = me; cvs) D);
 
     def ny = length (hd Yl);
-    def Y = listToMatrix Yl (mmVecZero (m, ny));
+    def Y = listToMatrix Yl (mmVectorZero (m, ny));
 
     mkCutsetMatrix IM (X, Y)
   };

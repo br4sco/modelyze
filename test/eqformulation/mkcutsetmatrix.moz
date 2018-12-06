@@ -22,11 +22,10 @@ include EquationsFormulation
 
 def x_1, x_2, x_3: Vector
 def y_1, y_2, y_3: Vector
-def r_1, r_2, r_3, r_4: Real
-def F_1, F_2, F_3, F_4: Real
+def r_1, r_2, r_3, r_4: Vector
+def F_1, F_2, F_3, F_4: Vector
 
 def f(v: MatrixMapVector) -> [[Vector]] = { matrixToList v }
-def ff(v: MatrixMapSReal) -> [[<Real>]] = { matrixToList v }
 
 def IM1 = listToMatrix [
                         [ 1.,  0., -1.],
@@ -35,10 +34,10 @@ def IM1 = listToMatrix [
                       ] (mmRealZero (3, 3))
 
 def X1 = listToMatrix
-          [[x_1, y_1], [x_2, y_2], [x_3, y_3]] (mmVecZero (3, 2))
+          [[x_1, y_1], [x_2, y_2], [x_3, y_3]] (mmVectorZero (3, 2))
 
 def Y1 = listToMatrix
-          [[x_1, y_1], [x_2, y_2], [x_3, y_3]] (mmVecZero (3, 2))
+          [[x_1, y_1], [x_2, y_2], [x_3, y_3]] (mmVectorZero (3, 2))
 
 
 def A1r = listToMatrix [
@@ -52,10 +51,10 @@ def Y1r = [[x_1, y_1], [x_2, y_2], [x_3, y_3]]
 def IM2 = listToMatrix [[0., 0., 1., 1.], [1., -1., -1., 0.], [-1., 1., 0., -1.]] (mmRealZero (3, 4))
 
 def X2 = listToMatrix
-            [[r_1, F_1], [r_2, F_2], [r_3, F_3], [r_4, F_4]] (mmSRealZero (4, 2))
+            [[r_1, F_1], [r_2, F_2], [r_3, F_3], [r_4, F_4]] (mmVectorZero (4, 2))
 
 def Y2 = listToMatrix
-            [[r_1, F_1], [r_2, F_2], [r_3, F_3], [r_4, F_4]] (mmSRealZero (4, 2))
+            [[r_1, F_1], [r_2, F_2], [r_3, F_3], [r_4, F_4]] (mmVectorZero (4, 2))
 
 def A2r = listToMatrix [
                         [-1., 1.],
@@ -67,14 +66,14 @@ def X2r = [[r_1, F_1], [r_3, F_3], [r_2, F_2], [r_4, F_4]]
 def Y2r = [[r_1, F_1], [r_3, F_3], [r_2, F_2], [r_4, F_4]]
 
 def main = {
-  def (A1, nX1, nY1) = mkCutsetMatrix IM1 X1 Y1;
+  def (A1, (nX1, nY1)) = mkCutsetMatrix IM1 (X1, Y1);
   def _ = dprint(A1 == A1r);
   def _ = dprint(seq (f nX1) X1r);
   def _ = dprint(seq (f nY1) Y1r);
 
-  def (A2, nX2, nY2) = mkCutsetMatrix IM2 X2 Y2;
+  def (A2, (nX2, nY2)) = mkCutsetMatrix IM2 (X2, Y2);
   def _ = dprint(A2 == A2r);
-  def _ = dprint(seq (ff nX2) X2r);
-  def _ = dprint(seq (ff nY2) Y2r);
+  def _ = dprint(seq (f nX2) X2r);
+  def _ = dprint(seq (f nY2) Y2r);
   ()
 }
