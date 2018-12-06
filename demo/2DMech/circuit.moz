@@ -29,21 +29,21 @@ def RL = [
             (
              (n1, n2),
              [(uu_V, V * U)],
-             [(uu_V, [])],
+             [(uu_V, [zeroVector])],
              [(ii_V ,[U])]
             ),
 
             (
              (n2, n3),
              [(ii_R, R * ii_R), (uu_R, (1. / R) * ii_R)],
-             [(uu_R, [])],
-             [(ii_R, [])]
+             [(uu_R, [zeroVector])],
+             [(ii_R, [zeroVector])]
             ),
 
             (
              (n3, n1),
              [(uu_L, L * der ii_L)],
-             [(uu_L, [])],
+             [(uu_L, [zeroVector])],
              [(ii_L, [U])]
             )
          ]
@@ -59,13 +59,13 @@ def BD = [[
              (n_m1, n_m2),
              [(F_m, m * der v_m)],
              [(r_m, [i_1, j_1]), (v_m, [i_1, j_1])],
-             [(F_m ,[])]
+             [(F_m ,[zeroVector])]
             ),
             (
              (n_m2, n_m1),
              [(F_g, (m * g) * j_2)],
              [(r_g, [i_2, j_2]), (v_g, [i_2, j_2])],
-             [(F_g ,[])]
+             [(F_g ,[zeroVector])]
             )
           ],
           [
@@ -73,13 +73,13 @@ def BD = [[
              (n_m1, n_m2),
              [(T_m, I * der o_m)],
              [(t_m, [k_1]), (o_m, [k_1])],
-             [(T_m ,[])]
+             [(T_m ,[zeroVector])]
             ),
             (
              (n_m2, n_m1),
              [(T_g, zeroVector)],
              [(t_g, [k_1]), (o_g, [k_1])],
-             [(T_g ,[])]
+             [(T_g ,[zeroVector])]
             )
          ]]
 

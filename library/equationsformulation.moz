@@ -95,25 +95,26 @@ def substitute(ter: SubsMap, tran: SubsMap, xys: [XYMatrices])
     def work(tv: [Vector], av: [Vector])
       -> ([Vector], [Vector]) = {
 
-      def _ = dprint("=== SUBS using TERMINALS ===");
+      // def _ = dprint("=== SUBS using TERMINALS ===");
 
       def tv = map (fun t: Vector -> subs t ter) tv;
       def av = map (fun a: Vector -> subs a ter) av;
 
 
-      def _ = dprint("y = ");
-      def _ = dprint(tv);
-      def _ = dprint("x = ");
-      def _ = dprint(av);
+      // def _ = dprint("y = ");
+      // def _ = dprint(tv);
+      // def _ = dprint("x = ");
+      // def _ = dprint(av);
 
-      def _ = dprint("=== SUBS using TRANS MAPS ===");
+      // def _ = dprint("=== SUBS using TRANS MAPS ===");
+
       def tv = map (fun t: Vector -> subs t tran) tv;
       def av = map (fun a: Vector -> subs a tran) av;
 
-      def _ = dprint("y = ");
-      def _ = dprint(tv);
-      def _ = dprint("x = ");
-      def _ = dprint(av);
+      // def _ = dprint("y = ");
+      // def _ = dprint(tv);
+      // def _ = dprint("x = ");
+      // def _ = dprint(av);
 
       if(
           (exists (fun t: Vector -> canSub t ter) tv) ||
@@ -199,24 +200,36 @@ def getZerothDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
         (fst (vsplit 1 (fst XY)), fst (vsplit 1 (snd XY)))) XYs
 }
 
+def getHighestDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
+  map (fun XY: XYMatrices ->
+         def (X, Y) = XY;
+         def nX = cdim X;
+         def nY = cdim Y;
+        (if nX > 1 then snd (vsplit (nX - 1)  X) else X,
+         if nY > 1 then snd (vsplit (nY - 1)  Y) else Y)) XYs
+}
+
 def formulateEqs(Ds: [Domain]) = {
   def ters = getTerminals Ds;
   def Ts = getTopolInfo Ds;
   def trans = getBranchChordTranss Ts;
   def (As, XYs) = unzip Ts;
 
-  def _ = dprint("=== TopolInfo ===");
-  def _ = map dp As;
-  def _ = map dp (fst (unzip XYs));
-  def _ = map dp (snd (unzip XYs));
+  // def _ = dprint("=== TopolInfo ===");
+  // def _ = map dp As;
+  // def _ = map dp (fst (unzip XYs));
+  // def _ = map dp (snd (unzip XYs));
 
   def xys = getZerothDerivs XYs;
   def xys_star = substitute ters trans xys;
-
   def cceqs = getCircCutEqs (zip As xys_star);
 
-  def _ = dprint("=== Circ and Cut Eqs ===");
-  def _ = map dp (fst (unzip cceqs));
-  def _ = map dp (snd (unzip cceqs));
+  // def _ = dprint("=== Circ and Cut Eqs ===");
+  // def _ = map dp (fst (unzip cceqs));
+  // def _ = map dp (snd (unzip cceqs));
+
+  def h_xys = getHighestDerivs XYs;
+  def _ = map dp (fst (unzip h_xys));
+  def _ = map dp (snd (unzip h_xys));
   ()
 }
