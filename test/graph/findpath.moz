@@ -1,0 +1,51 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Graph
+
+def n1, n2, n3, n4, n5: Node
+def G = listToMap [(n1, [n2, n3]), (n2, [n3, n1]), (n3, [n2, n3])]
+def p1 = [[n1]]
+def p2 = [[n1, n2]]
+def p3 = [[n1, n3]]
+
+def _ = dprint(seq (findPath G n1 n1) p1)
+def _ = dprint(seq (findPath G n1 n2) p2)
+def _ = dprint(seq (findPath G n1 n3) p3)
+
+def G2 = listToMap [(n1, [n2, n4]), (n2, [n3, n1]), (n3, [n2, n4]), (n4, [n1, n3])]
+def p4 = [[n1]]
+def p5 = [[n1, n2]]
+def p6 = [[n1, n2, n3],[n1, n4, n3]]
+
+def _ = dprint(seq (findPath G2 n1 n1) p4)
+def _ = dprint(seq (findPath G2 n1 n2) p5)
+def _ = dprint(seq (findPath G2 n1 n3) p6)
+
+def G3 = listToMap [(n1, [n2]), (n2, [n1, n3, n4, n5]), (n3, [n2]), (n4, [n2]), (n5, [n2])]
+def p7 = [[n1]]
+def p8 = [[n1, n2]]
+def p9 = [[n1, n2, n3]]
+def p10 = [[n4, n2, n3]]
+
+def _ = dprint(seq (findPath G3 n1 n1) p7)
+def _ = dprint(seq (findPath G3 n1 n2) p8)
+def _ = dprint(seq (findPath G3 n1 n3) p9)
+def _ = dprint(seq (findPath G3 n4 n3) p10)

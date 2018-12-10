@@ -23,12 +23,20 @@ include Base
 type Node
 type Edge = (Node, Node)
 type AdjList = (Node => [Node])
-type Tree = AdjList
 
-// def findPath(T: Tree, s: Node, e: Node) -> [Edge] = {
-//   def work(n: Node, v: Set(Node), a: [Edge]) -> [Edge] = {
-//     def adj = Map.find n T;
-//     if forAll (fun n: Node -> Set.mem n v) adj then a
-//     else
-//   };
-// }
+def findPath(G: AdjList, s: Node, e: Node) -> [[Node]] = {
+
+  def work(v: Set(Node), ps: [[Node]]) -> [[Node]] = {
+    def eps = filter (fun p: [Node] -> seq (hd p) e) ps;
+    if !(isEmpty eps) then eps
+    else {
+      def nvps = filter (fun p: [Node] -> !(Set.mem (hd p) v)) ps;
+      concat (map (fun p: [Node] ->
+                   def n = hd p;
+                   def adj = (Map.find n G);
+                   work (Set.add n v) (map (fun n: Node -> (n::p)) adj)
+                  ) ps)
+    }
+  };
+  map (fun p: [Node] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
+}
