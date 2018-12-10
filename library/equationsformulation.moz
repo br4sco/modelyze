@@ -19,10 +19,9 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include Equation
+include Graph
 include Vector
 
-type Node = Dyn
-type Edge = (Node, Node)
 type Subs = (Vector, Vector)
 type SubsMap = (Vector => Vector)
 type SpaceMap = (Vector => [Vector])

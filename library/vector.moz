@@ -98,6 +98,10 @@ def reduce(v: Vector) -> Vector = {
   | _ -> v
 }
 
+// def dotprod(f: (Vector -> Vector -> Real), l: Vector, r: Vector) -> Real = {
+
+// }
+
 def mmVectorZero(d: (Int, Int)) -> MatrixMapVector = { mmZero d }
 
 def mmVectorAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
