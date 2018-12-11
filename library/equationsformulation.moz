@@ -250,9 +250,9 @@ def formulateEqs(Ds: [Domain]) = {
   def h_xys = getHighestDerivs XYs;
   def xbycs = getXbYc (zip As h_xys);
 
-  // def _ = dprint("=== x_b and y_c ===");
-  // def _ = map dp (fst (unzip xbycs));
-  // def _ = map dp (snd (unzip xbycs));
+  def _ = dprint("=== x_b and y_c ===");
+  def _ = map dp (fst (unzip xbycs));
+  def _ = map dp (snd (unzip xbycs));
 
   def vps = getVPRels xbycs cceqs;
 

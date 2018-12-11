@@ -25,7 +25,7 @@ type Vector
 type MatrixMapVector = (Int => (Int => Vector), Pos)
 type Base = Set(Vector)
 def zeroVector: Vector
-def U: Vector
+def unitVector: Vector
 def VECTORS_DIFFERENT_BASES = "Vectors belong to different bases"
 def EXPECTED_SYMBOLIC_VECTOR = "Expected lhs to be a symbolic vector"
 def UNSUPPORTED_VECTOR_CONSTRUCT = "Unsupported Vector construct"
@@ -41,7 +41,6 @@ def cos : Vector -> Vector
 
 // Operators and functions for Vectors (in lack of type polymorphism)
 def iszVec(v: Vector) -> Bool = { seq v zeroVector }
-def isuVec(v: Vector) -> Bool = { seq v U }
 def addVec(l: Vector, r: Vector) -> Vector = {
   if iszVec l && iszVec r then zeroVector
   else if iszVec l then r
