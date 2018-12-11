@@ -20,12 +20,18 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Vector
 
-def ii, jj, kk: Vector
 def x, y: Real
-def onb = listToSet [ii, jj, kk]
-def dot = ldotprod (onbvDotprod onb)
+def ii, jj, kk: Vector
+def f(v: Vector) -> MatrixMapSReal = {
+  if seq v ii then listToMatrix [[1.], [0.]] (mmSRealZero (2, 1))
+  else if seq v jj then listToMatrix [[0.], [1.]] (mmSRealZero (2, 1))
+  else if seq v kk then listToMatrix [[cos y], [sin x]] (mmSRealZero (2, 1))
+  else error "undefined"
+}
 
-def _ = dprint(dot ii ii)
-def _ = dprint(dot ii ((x + y) * ii))
-def _ = dprint(dot ii ((2. + 1.) * ii))
-def _ = dprint(dot ii ((2. + 1.) * ii + x * jj + y * kk + (x + y') * ii))
+def _ = dp (vectorToMatrix f ii)
+def _ = dp (vectorToMatrix f ((x + y) *. ii))
+def _ = dp (vectorToMatrix f (x *. ii))
+def _ = dp (vectorToMatrix f (der ii))
+def _ = dp (vectorToMatrix f ((2. + 1.) *. ii))
+def _ = dp (vectorToMatrix f ((2. + 1.) *. ii + x *. jj + y *. kk + (x + y') *. ii))
