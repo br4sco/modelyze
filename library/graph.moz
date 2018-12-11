@@ -18,7 +18,7 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include Base
+include Matrix
 
 type Node
 type Edge = (Node, Node)
@@ -39,4 +39,42 @@ def findPath(G: AdjList, s: Node, e: Node) -> [[Node]] = {
     }
   };
   map (fun p: [Node] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
+}
+
+def edgeListToAdjList(G: [Edge]) -> AdjList = {
+  def f(a: AdjList, e: Edge) -> AdjList = {
+    def get(n: Node) -> [Node] = {
+      if Map.mem n a then Map.find n a else []
+    };
+    def add(n1: Node, n2: Node, a: AdjList) -> AdjList = {
+      Map.add n1 (n2::(get n1)) a
+    };
+    def (n1, n2) = e;
+    add n2 n1 (add n1 n2 a)
+  };
+  foldLeft f (Map.empty) G
+}
+
+def IN_EDGE = -1.
+def OUT_EDGE = 1.
+def NO_EDGE = 0.
+
+def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
+  def f(a: (Int, (Node => Int)), e: Edge) -> (Int, (Node => Int)) = {
+    def ff(a: (Int, Node => Int), n: Node) -> (Int, (Node => Int)) = {
+      def (c, m) = a;
+      if Map.mem n m then a else (c + 1, Map.add n (c + 1) m)
+    };
+    ff (ff a (fst e)) (snd e)
+  };
+
+  def (m, nem) = foldLeft f (0, Map.empty) G;
+  def n = length G;
+
+  def ff(a: (Int, MatrixMapReal), e: Edge) -> (Int, MatrixMapReal) = {
+    def (j, M) = a;
+    (j + 1, add (Map.find (fst e) nem, j) OUT_EDGE (add (Map.find (snd e) nem, j) IN_EDGE M))
+  };
+  def (_, M) = foldLeft ff (1, mmRealZero (m, n)) G;
+  M
 }

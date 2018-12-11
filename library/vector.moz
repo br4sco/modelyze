@@ -19,11 +19,15 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include Matrix
+include Equation
 
 type Vector
 type MatrixMapVector = (Int => (Int => Vector), Pos)
+type Base = Set(Vector)
 def zeroVector: Vector
 def U: Vector
+def VECTORS_DIFFERENT_BASES = "Vectors belong to different bases"
+def EXPECTED_SYMBOLIC_VECTOR = "Expected lhs to be a symbolic vector"
 
 def (--) : Vector -> Vector
 def (-) : Vector -> Vector -> Vector
@@ -31,9 +35,12 @@ def (+) : Vector -> Vector -> Vector
 def (*) : Real -> Vector -> Vector
 def der : Vector -> Vector
 def (') = der
+def sin : Vector -> Vector
+def cos : Vector -> Vector
 
 // Operators and functions for Vectors (in lack of type polymorphism)
 def iszVec(v: Vector) -> Bool = { seq v zeroVector }
+def isuVec(v: Vector) -> Bool = { seq v U }
 def addVec(l: Vector, r: Vector) -> Vector = {
   if iszVec l && iszVec r then zeroVector
   else if iszVec l then r
@@ -55,51 +62,100 @@ def prodRealVec(r: Real, v: Vector) -> Vector = {
 //   prodRealVec r v
 // }
 
+// def ldotprod(f: (Vector -> Vector -> Real), lhs: Vector, rhs: Vector) -> <Real> = {
+
+//   def work(v: Vector) -> <Real> = {
+//     match v with
+//     | sym: Vector -> {
+//         if iszVec v then 0.
+//         else if isuVec v then 1.
+//         else f lhs v
+//       }
+//     | -v -> chsgnSReal (work v)
+//     | v_1 - v_2 -> addSReal (work v_1) (chsgnSReal (work v_2))
+//     | v_1 + v_2 -> addSReal (work v_1) (work v_2)
+//     | r * v -> prodSReal r (work v)
+//     | f v -> f (work v)
+//   };
+
+//   match lhs with
+//   | sym: Vector -> if iszVec lhs || iszVec rhs then 0. else work rhs
+//   | _ -> error EXPECTED_SYMBOLIC_VECTOR
+// }
+
+// def lldotprod(f: (Vector -> Vector -> Real), lhs: Vector, rhs: Vector) -> <Real> = {
+//   def work(l: Vector, r: Vector) -> <Real> = {
+//     match (l, r) with
+//     | (sym: Vector, sym: Vector) -> f l r
+//     | (sym: Vector, v) -> ldotprod f l r
+//     | (-v, r) -> work v (-r)
+//     | (v_1 - v_2, r) -> work
+
+//   };
+
+// }
+
+// def onbvDotprod(onb: Base, l: Vector, r: Vector) -> Real = {
+//   if (Set.mem l onb) && (Set.mem r onb) then {
+//     if seq l r then 1.  else 0.
+//   } else error VECTORS_DIFFERENT_BASES
+// }
+
+// def map(f: (Vector -> Vector), v: Vector) -> Vector = {
+//   def work(v: Vector) -> Vector = {
+//     match v with
+//     | sym: Vector -> f v
+//     | op v -> op (work v)
+//   };
+//   work v
+// }
+
+// def chgBase(b: Base, f: (Vector -> Vector), v: Vector) -> Vector = {
+//   def ff(v: Vector) -> Vector = { if (Set.mem v b) then v else f v };
+//   map ff v
+// }
+
 def chsgnVec(v: Vector) -> Vector = {
   match v with
   | - v_1 -> v
   | _ -> -v
 }
 
-def reduce(v: Vector) -> Vector = {
-  match v with
-  | - v_1 -> {
-      def rv_1 = reduce v_1;
-      if iszVec rv_1 then rv_1 else - rv_1
-    }
-  | der v_1 -> {
-      def rv_1 = reduce v_1;
-      if iszVec rv_1 then rv_1 else der rv_1
-    }
-  | v_1 + v_2 -> {
-      def rv_1 = reduce v_1;
-      def rv_2 = reduce v_2;
-      if iszVec rv_1 then rv_2 else {
-        if iszVec rv_2 then rv_1 else rv_1 + rv_2
-      }
-    }
-  | v_1 - v_2 -> {
-      def rv_1 = reduce v_1;
-      def rv_2 = reduce (- v_2);
-      if iszVec rv_1 then rv_2 else {
-        if iszVec rv_2 then rv_1 else rv_1 + rv_2
-      }
-    }
-  | (sval r: Real) * v_2 -> {
-      if r == 0. then zeroVector else {
-        if r == 1. then reduce v_2 else {
-          if r == -1. then reduce (- v_2) else {
-            def rv_2 = reduce v_2;
-            if iszVec rv_2 then rv_2 else r * rv_2
-          }
-        }
-      }
-    }
-  | _ -> v
-}
-
-// def dotprod(f: (Vector -> Vector -> Real), l: Vector, r: Vector) -> Real = {
-
+// def reduce(v: Vector) -> Vector = {
+//   match v with
+//   | - v_1 -> {
+//       def rv_1 = reduce v_1;
+//       if iszVec rv_1 then rv_1 else - rv_1
+//     }
+//   | der v_1 -> {
+//       def rv_1 = reduce v_1;
+//       if iszVec rv_1 then rv_1 else der rv_1
+//     }
+//   | v_1 + v_2 -> {
+//       def rv_1 = reduce v_1;
+//       def rv_2 = reduce v_2;
+//       if iszVec rv_1 then rv_2 else {
+//         if iszVec rv_2 then rv_1 else rv_1 + rv_2
+//       }
+//     }
+//   | v_1 - v_2 -> {
+//       def rv_1 = reduce v_1;
+//       def rv_2 = reduce (- v_2);
+//       if iszVec rv_1 then rv_2 else {
+//         if iszVec rv_2 then rv_1 else rv_1 + rv_2
+//       }
+//     }
+//   | (sval r: Real) * v_2 -> {
+//       if r == 0. then zeroVector else {
+//         if r == 1. then reduce v_2 else {
+//           if r == -1. then reduce (- v_2) else {
+//             def rv_2 = reduce v_2;
+//             if iszVec rv_2 then rv_2 else r * rv_2
+//           }
+//         }
+//       }
+//     }
+//   | _ -> v
 // }
 
 def mmVectorZero(d: (Int, Int)) -> MatrixMapVector = { mmZero d }
@@ -150,3 +206,12 @@ def vconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
 def hconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
   tr (vconcat (tr lM) (tr rM))
 }
+
+// def vectorToMatrix(f: (Vector -> MatrixMapSReal), v: Vector) -> MatrixMapSReal = {
+//   def work(v: Vector) -> MatrixMapReal = {
+//     match v with
+//     | sym: Vector -> f v
+//     | v_1 - v_2 ->
+//   };
+
+// }

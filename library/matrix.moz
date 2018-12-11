@@ -232,7 +232,7 @@ def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
 }
 def dp(M: MatrixMapInt) -> MatrixMapInt = { dp mmIntFind M }
 def dp(M: MatrixMapReal) -> MatrixMapReal = { dp mmRealFind M }
-def dp(M: MatrixMapSReal) -> MatrixMapSReal = { dp mmRealFind M }
+def dp(M: MatrixMapSReal) -> MatrixMapSReal = { dp mmSRealFind M }
 
 def mmAdd(isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: MatrixMap)
   -> MatrixMap = {
@@ -412,6 +412,15 @@ def matrixScalarProd(M: MatrixMapReal, s: Real) -> MatrixMapReal = {
   matrixScalarProd mmRealFind mmRealAdd mmRealZero prodReal s M
 }
 def (*): MatrixMapReal -> Real -> MatrixMapReal = matrixScalarProd
+def matrixScalarProd(s: <Real>, M: MatrixMapSReal) -> MatrixMapSReal = {
+  matrixScalarProd mmSRealFind mmSRealAdd mmSRealZero prodSReal s M
+}
+def (*): <Real> -> MatrixMapSReal -> MatrixMapSReal = matrixScalarProd
+def matrixScalarProd(M: MatrixMapSReal, s: <Real>) -> MatrixMapSReal = {
+  matrixScalarProd mmSRealFind mmSRealAdd mmSRealZero prodSReal s M
+}
+def (*): MatrixMapSReal -> <Real> -> MatrixMapSReal = matrixScalarProd
+
 
 def matrixProd(mfindl: MatrixFind, mfindr: MatrixFind, madd: MatrixAdd,
   mzero: MatrixZero, add: (Dyn -> Dyn -> Dyn), prod: (Dyn -> Dyn -> Dyn),
@@ -698,4 +707,8 @@ def argfind(p: (Int -> Bool), M: MatrixMapInt) -> Pos = {
 }
 def argfind(p: (Real -> Bool), M: MatrixMapReal) -> Pos = {
   argfind mmRealFind p M
+}
+
+def listToMatrix(l: [[Real]], M: MatrixMapSReal) -> MatrixMapSReal = {
+  real2sreal (listToMatrix l (mmRealZero (dim M)))
 }
