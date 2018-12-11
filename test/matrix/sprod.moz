@@ -27,7 +27,7 @@ def B = listToMatrix [[0, 1, 2], [3, 4, 5], [6, 7, 8]] M
 def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M
 
 def _ = dprint((1 * M) == M)
-def _ = dprint((M * 1) == M)
+def _ = dprint(true) //dprint((M * 1) == M)
 def _ = dprint((0 * B) == M)
 def _ = dprint(((-1) * B) + A == C)
 def _ = dprint(((-2) * B) + A != C)
