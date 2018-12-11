@@ -1,3 +1,4 @@
 #!/bin/bash
-../bin/moz --libpaths=../library/ $1 
- 
+MOZ=$(realpath ../bin/moz)
+LIB=$(realpath ../library)
+$MOZ --libpaths=$LIB $1

@@ -74,7 +74,7 @@ def uk(e:<Dyn>,acc:UkSet) -> UkSet = {
   | e1 e2 -> uk(e2,uk(e1,acc))
   | sym:<Real> -> Set.add e acc
   | _ -> acc
-} 
+}
 
 def noUnknowns(eqs:Equations) -> Int =
   Set.size (uk(eqs,Set.empty))

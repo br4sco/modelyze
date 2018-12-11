@@ -74,6 +74,7 @@ def (++) : String -> String -> String = @@string_concat
 
 def INFINITE = 1./0.
 def NEG_INFINITE = -1./0.
+def PI = acos (-1.)
 
 type RealSignal = <Real>
 type IntSignal = <Int>

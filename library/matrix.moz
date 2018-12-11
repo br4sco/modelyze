@@ -336,6 +336,20 @@ def mapij(f: (Pos -> <Real>), M: Matrix) -> MatrixMapSReal = {
   mapij mmSRealAdd mmSRealZero f M
 }
 
+def map(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, f: (Dyn -> Dyn),
+  M: Matrix) -> Matrix = {
+  mapij madd mzero (fun ij: Pos -> f (mfind ij M)) M
+}
+def map(f: (Dyn -> Int), M: Matrix) -> MatrixMapInt = {
+  map mmIntFind mmIntAdd mmIntZero f M
+}
+def map(f: (Dyn -> Real), M: Matrix) -> MatrixMapReal = {
+  map mmRealFind mmRealAdd mmRealZero f M
+}
+def map(f: (Dyn -> <Real>), M: Matrix) -> MatrixMapSReal = {
+  map mmSRealFind mmSRealAdd mmSRealZero f M
+}
+
 def foldij(f: (Dyn -> Pos -> Dyn), a: Dyn, M: Matrix) -> Dyn = {
   def work(ij: Pos, a: Dyn) -> Dyn = {
     if ij > dim M then a else work (_nextpos ij (dim M)) (f a ij)

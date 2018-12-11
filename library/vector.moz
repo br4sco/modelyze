@@ -211,7 +211,10 @@ def hconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
 //   def work(v: Vector) -> MatrixMapReal = {
 //     match v with
 //     | sym: Vector -> f v
-//     | v_1 - v_2 ->
+//     | v_1 - v_2 -> (work v_1) - (work v_2)
+//     | v_1 + v_2 -> (work v_1) + (work v_2)
+//     | r * v -> r * (work v)
+
 //   };
 
 // }
