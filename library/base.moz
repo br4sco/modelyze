@@ -429,3 +429,5 @@ def Union(l: [(Dyn => Dyn)]) -> (Dyn => Dyn) = {
 }
 
 def seq(l: Dyn, r: Dyn) -> Bool = { Set.mem l (Set.add r (Set.empty)) }
+
+def s(r: Real) -> <Real> = { r }
