@@ -25,12 +25,14 @@ def i_V, i_R, u_R, i_L, u_L: Real
 def V, R, L: Real
 def n1, n2, n3: Node
 
+def uvM = listToMatrix [[1.]] (mmSRealZero (1, 1))
+
 def VS(n1: Node, n2: Node) = {
 def ii_V, uu_V: Vector;
 def i_V: Real;
 def V: Real;
 (
-  ((n1, [unitVector]), (n2, [unitVector])),
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
   [(uu_V, V *. unitVector), (ii_V, i_V *. unitVector)],
   [(uu_V, [])],
   [(ii_V, [unitVector])]
@@ -42,7 +44,7 @@ def ii_R, uu_R: Vector;
 def i_R, u_R: Real;
 def R: Real;
 (
-  ((n1, [unitVector]), (n2, [unitVector])),
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
   [(uu_R, R *. ii_R), (ii_R, i_R *. unitVector)],
   [(uu_R, [])],
   [(ii_R, [unitVector])]
@@ -54,7 +56,7 @@ def ii_R, uu_R: Vector;
 def i_R, u_R: Real;
 def R: Real;
 (
-  ((n1, [unitVector]), (n2, [unitVector])),
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
   [(uu_R, u_R *. unitVector), (ii_R, (1. / R) *. uu_R)],
   [(uu_R, [unitVector])],
   [(ii_R, [])]
@@ -66,7 +68,7 @@ def ii_L, uu_L: Vector;
 def i_L: Real;
 def L: Real;
 (
-  ((n1, [unitVector]), (n2, [unitVector])),
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
   [(uu_L, L *. der ii_L), (ii_L, i_L *. unitVector)],
   [(uu_L, [])],
   [(ii_L, [unitVector])]
@@ -78,7 +80,7 @@ def ii_C, uu_C: Vector;
 def u_C: Real;
 def C: Real;
 (
-  ((n1, [unitVector]), (n2, [unitVector])),
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
   [(ii_C, C *. der uu_C), (uu_C, u_C *. unitVector)],
   [(uu_C, [unitVector])],
   [(ii_C, [])]
@@ -99,6 +101,10 @@ def Fx_m, Fy_m, Tk_m: Real
 def Fx_g, Fy_g, Tk_g: Real
 def m, g, I: Real
 def n_m1, n_m2: Node
+
+def iM = tr (listToMatrix [[1., 0.]] (mmSRealZero (1, 2)))
+def jM = tr (listToMatrix [[0., 1.]] (mmSRealZero (1, 2)))
+def kM = tr (listToMatrix [[1.]] (mmSRealZero (1, 1)))
 
 // def mkRoM(o: <Real>) = {
 //   listToMatrix [
@@ -128,13 +134,13 @@ def n_m1, n_m2: Node
 
 def BD = [[
             (
-             ((n_m2, [i_2, j_2, k]), (n_m1, [i_1, j_1, k])),
+             ((n_m2, [(i_2, iM), (j_2, jM), (k, kM)]), (n_m1, [(i_1, iM), (j_1, jM), (k, kM)])),
              [(F_g, (m * g) *. j_2), (r_g, rx_g *. i_2 + ry_g *. j_2), (v_g, vx_g *. i_2 + vy_g *. j_2)],
              [(r_g, [i_2, j_2]), (v_g, [i_2, j_2])],
              [(F_g ,[])]
             ),
             (
-             ((n_m1, [i_1, j_1]), (n_m2, [i_2, j_2])),
+             ((n_m1, [(i_1, iM), (j_1, jM), (k, kM)]), (n_m2, [(i_2, iM), (j_2, jM), (k, kM)])),
              [(F_m, m *. der v_m), (r_m, rx_m *. i_1 + ry_m *. j_1), (v_m, vx_m *. i_1 + vy_m *. j_1)],
              [(r_m, [i_1, j_1]), (v_m, [i_1, j_1])],
              [(F_m ,[])]
@@ -142,13 +148,13 @@ def BD = [[
           ],
           [
             (
-             ((n_m2, [i_2, j_2, k]), (n_m1, [i_1, j_1, k])),
+             ((n_m2, [(i_2, iM), (j_2, jM), (k, kM)]), (n_m1, [(i_1, iM), (j_1, jM), (k, kM)])),
              [(T_m, I *. der o_m), (o_m, ok_m *. k), (t_m, tk_m *. k)],
              [(t_m, [k]), (o_m, [k])],
              [(T_m ,[])]
             ),
             (
-             ((n_m2, [i_2, j_2, k]), (n_m1, [i_1, j_1, k])),
+             ((n_m2, [(i_2, iM), (j_2, jM), (k, kM)]), (n_m1, [(i_1, iM), (j_1, jM), (k, kM)])),
              [(T_g, zeroVector), (o_g, ok_g *. k), (t_g, tk_g *. k)],
              [(t_g, [k]), (o_g, [k])],
              [(T_g ,[])]
@@ -158,7 +164,8 @@ def BD = [[
 def main = {
   // def _ = dprint(getSpaceMap [RL]);
   // def _ = dprint(getSpaceMap BD);
-  // def _ = formulateEqs [RL];
+  def _ = formulateEqs [RL];
   def _ = formulateEqs BD;
+  // def _ = dprint(getBasesToMatrixMap BD);
   ()
 }

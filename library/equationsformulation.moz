@@ -27,7 +27,10 @@ type SubsMap = (Vector => Vector)
 type SpaceMap = (Vector => [Vector])
 type ConstrVar = (Vector, [Vector])
 type ProjForm = ([Vector], Vector)
-type NodeBase = (Node, [Vector])
+type VectorToMatrix = (Vector, MatrixMapSReal)
+type VectorToMatrixMap = (Vector => MatrixMapSReal)
+type VectorBaseMap = (Vector => Base)
+type NodeBase = (Node, [VectorToMatrix])
 type ModelEdge = ((NodeBase, NodeBase), [Subs], [ConstrVar], [ConstrVar])
 type Domain = [ModelEdge]
 type XYMatrices = (MatrixMapVector, MatrixMapVector)
@@ -118,7 +121,6 @@ def getTopolInfo(Ds: [Domain]) -> [TopolInfo] = {
   def getTopolInfo(D: Domain) -> TopolInfo = {
 
     def G = map (fun me: ModelEdge -> def ((n1, _), (n2, _)) = fst me; (n1, n2)) D;
-    def _ = dprint(G);
     def IM = mkIncidenceMatrix G;
     def m = cdim IM;
 
@@ -138,6 +140,24 @@ def getTopolInfo(Ds: [Domain]) -> [TopolInfo] = {
   };
 
   map (fun D: Domain -> getTopolInfo D) Ds
+}
+
+def getBasesToMatrixMap(Ds: [Domain]) -> VectorToMatrixMap = {
+  listToMap (concat (concat (map
+    (fun D: Domain ->
+    (map (fun me: ModelEdge ->
+          def ((_, vm1), (_, vm2)) = fst me; append vm1 vm2) D)) Ds)))
+}
+
+def getVectorBaseMap(Ds: [Domain])
+// -> VectorBaseMap
+= {
+  listToMap (concat (concat (map
+    (fun D: Domain ->
+    (map (fun me: ModelEdge ->
+          def ((_, vm1), (_, vm2)) = fst me;
+
+          append vm1 vm2) D)) Ds)))
 }
 
 def getTerminals(Ds: [Domain]) -> SubsMap = {
@@ -230,6 +250,13 @@ def filterOutNullSpace(pfs: [ProjForm]) -> [ProjForm] = {
   filter (fun pf: ProjForm -> !(isEmpty (fst pf))) pfs
 }
 
+// def projsToMatrices(b2mm: VectorToMatrixMap, pfs: [ProjForm]) = {
+//   def f(pf: ProjForm) -> (MatrixMapSReal, MatrixMapSReal) = {
+//     def (bl, )
+//   };
+//   pfs
+// }
+
 def formulateEqs(Ds: [Domain]) = {
   def ters = getTerminals Ds;
   def Ts = getTopolInfo Ds;
@@ -248,9 +275,9 @@ def formulateEqs(Ds: [Domain]) = {
   def _ = map dp (fst (unzip xys_star));
   def _ = map dp (snd (unzip xys_star));
 
-  // def _ = dprint("=== Circ and Cut Eqs ===");
-  // def _ = map dp (fst (unzip cceqs));
-  // def _ = map dp (snd (unzip cceqs));
+  def _ = dprint("=== Circ and Cut Eqs ===");
+  def _ = map dp (fst (unzip cceqs));
+  def _ = map dp (snd (unzip cceqs));
 
   def h_xys = getHighestDerivs XYs;
   def xbycs = getXbYc (zip As h_xys);
@@ -269,7 +296,10 @@ def formulateEqs(Ds: [Domain]) = {
   def pfs = formulateProjs sm vps;
 
   def _ = dprint("=== Projs ===");
-  // def _ = dprint(pfs);
-  def _ = dprint(filterOutNullSpace pfs);
+  def nnpfs = filterOutNullSpace pfs;
+  def b2mm = getBasesToMatrixMap Ds;
+  def vbm = getVectorBaseMap Ds;
+  def _ = dprint(vbm);
+  // def _ = dprint(projsToMatrices b2mm nnpfs);
   ()
 }
