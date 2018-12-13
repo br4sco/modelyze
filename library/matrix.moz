@@ -38,6 +38,7 @@ type MatrixMapSReal = (Int => (Int => <Real>), Pos)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
 def BAD_MATRIX = "Bad matrix"
+def EMPTY_MATRIX_LIST = "Empty matrix list"
 
 // Operators and functions over Ints (in lack of type polymorphism)
 def iszInt(v: Int) -> Bool = { v == 0 }
@@ -572,6 +573,25 @@ def vconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
 def hconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
   tr (vconcat (tr lM) (tr rM))
 }
+
+def matrixConcatList(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
+  Ms: [Matrix]) -> Matrix = {
+
+  if isEmpty Ms then error EMPTY_MATRIX_LIST
+  else foldLeft (matrixConcat mfind madd mzero) (hd Ms) (tl Ms)
+}
+def vconcat(Ms: [MatrixMapInt]) -> MatrixMapInt = {
+  matrixConcatList mmIntFind mmIntAdd mmIntZero Ms
+}
+// def hconcat(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = {
+//   tr (vconcat (tr lM) (tr rM))
+// }
+def vconcat(Ms: [MatrixMapReal]) -> MatrixMapReal = {
+  matrixConcatList mmRealFind mmRealAdd mmRealZero Ms
+}
+// def hconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
+//   tr (vconcat (tr lM) (tr rM))
+// }
 
 def rowopj(madd: MatrixAdd, f: (Int -> Dyn), i: Int, M: Matrix) -> Matrix = {
   if i <= 0 || i > rdim M then error DIMENSION_MISSMATCH
