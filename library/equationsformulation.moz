@@ -22,21 +22,24 @@ include Equation
 include Graph
 include Vector
 
-type Subs = (Vector, Vector)
+type Terminal = (Vector, Vector)
+type BranchChordTrans = (Vector, Vector)
 type SubsMap = (Vector => Vector)
-type SpaceMap = (Vector => [Vector])
+type Vector2AccThrSpaceMap = (Vector => [Vector])
 type ConstrVar = (Vector, [Vector])
-type ProjForm = ([Vector], Vector)
-type VectorToMatrix = (Vector, MatrixMapSReal)
-type VectorToMatrixMap = (Vector => MatrixMapSReal)
-type VectorBaseMap = (Vector => Base)
-type NodeBase = (Node, [VectorToMatrix])
-type ModelEdge = ((NodeBase, NodeBase), [Subs], [ConstrVar], [ConstrVar])
+type OrthoFormul = ([Vector], Vector)
+type OrthoFormulMatrix = (MatrixMapSReal, MatrixMapSReal)
+type BaseVectorMatrixPair = (Vector, MatrixMapSReal)
+type BaseVector2MatrixMap = (Vector => MatrixMapSReal)
+type BaseVector2BaseMap = (Vector => Base)
+type NodeBasePair = (Node, [BaseVectorMatrixPair])
+type ModelEdge = ((NodeBasePair, NodeBasePair), [Terminal], [ConstrVar], [ConstrVar])
 type Domain = [ModelEdge]
-type XYMatrices = (MatrixMapVector, MatrixMapVector)
-type TopolInfo = (MatrixMapReal, XYMatrices)
+type XY = (MatrixMapVector, MatrixMapVector)
+type TopolInfo = (MatrixMapReal, XY)
+type IncidenceMatrix = MatrixMapReal
 
-def mkCutsetMatrix(IM: MatrixMapReal, XY: XYMatrices)
+def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY)
   -> TopolInfo = {
 
   def (X, Y) = XY;
@@ -68,10 +71,10 @@ def mkCutsetMatrix(IM: MatrixMapReal, XY: XYMatrices)
   } else error "Dimensions of variable matrices and incidence matrix does not agree"
 }
 
-def substitute(ter: SubsMap, tran: SubsMap, xys: [XYMatrices])
-  -> [XYMatrices] = {
+def substitute(ter: SubsMap, tran: SubsMap, xys: [XY])
+  -> [XY] = {
 
-  def subs(xy: XYMatrices) -> XYMatrices = {
+  def subs(xy: XY) -> XY = {
 
     def work(tv: [Vector], av: [Vector])
       -> ([Vector], [Vector]) = {
@@ -142,14 +145,14 @@ def getTopolInfo(Ds: [Domain]) -> [TopolInfo] = {
   map (fun D: Domain -> getTopolInfo D) Ds
 }
 
-def getBasesToMatrixMap(Ds: [Domain]) -> VectorToMatrixMap = {
+def mkBase2MatrixMap(Ds: [Domain]) -> BaseVector2MatrixMap = {
   listToMap (concat (concat (map
     (fun D: Domain ->
     (map (fun me: ModelEdge ->
           def ((_, vm1), (_, vm2)) = fst me; append vm1 vm2) D)) Ds)))
 }
 
-def getVectorBaseMap(Ds: [Domain]) -> VectorBaseMap = {
+def mkBase2BaseMap(Ds: [Domain]) -> BaseVector2BaseMap = {
   listToMap (concat (concat (map
     (fun D: Domain ->
     (map (fun me: ModelEdge ->
@@ -161,13 +164,13 @@ def getVectorBaseMap(Ds: [Domain]) -> VectorBaseMap = {
                ) D)) Ds)))
 }
 
-def getTerminals(Ds: [Domain]) -> SubsMap = {
+def mkTerminalSubs(Ds: [Domain]) -> SubsMap = {
   listToMap (concat
               (concat (map (fun D: Domain ->
                 (map (fun me: ModelEdge -> snd me) D)) Ds)))
 }
 
-def getSpaceMap(Ds: [Domain]) -> SpaceMap = {
+def mkVector2AccThrSpaceMap(Ds: [Domain]) -> Vector2AccThrSpaceMap = {
   listToMap
     (concat (concat
      (map (fun D: Domain ->
@@ -178,8 +181,8 @@ def getSpaceMap(Ds: [Domain]) -> SpaceMap = {
           ) Ds)))
 }
 
-def getBranchChordTranss(Ts: [TopolInfo]) -> SubsMap = {
-  def getBranchChordTranss(T: TopolInfo) -> [Subs] = {
+def mkBranchChordTransMap(Ts: [TopolInfo]) -> SubsMap = {
+  def mkBranchChordTransMap(T: TopolInfo) -> [BranchChordTrans] = {
     def (A, (X, Y)) = T;
     def j = rdim A;
     def (Y_b, Y_c) = hsplit j Y;
@@ -192,11 +195,11 @@ def getBranchChordTranss(Ts: [TopolInfo]) -> SubsMap = {
   };
 
   listToMap
-    (concat (map (fun T: TopolInfo -> getBranchChordTranss T) Ts))
+    (concat (map (fun T: TopolInfo -> mkBranchChordTransMap T) Ts))
 }
 
-def getCircCutEqs(Ts: [TopolInfo]) -> [XYMatrices] = {
-  def f(T: TopolInfo) -> XYMatrices = {
+def mkCircCutRes(Ts: [TopolInfo]) -> [XY] = {
+  def f(T: TopolInfo) -> XY = {
     def (A, (x, y)) = T;
     def circM = (vconcat (-(tr A)) (mmRealId (cdim A)));
     def cutM = (vconcat (mmRealId (rdim A)) A);
@@ -205,13 +208,13 @@ def getCircCutEqs(Ts: [TopolInfo]) -> [XYMatrices] = {
   map f Ts
 }
 
-def getZerothDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
-  map (fun XY: XYMatrices ->
+def getZerothDerivs(XYs: [XY]) -> [XY] = {
+  map (fun XY: XY ->
         (fst (vsplit 1 (fst XY)), fst (vsplit 1 (snd XY)))) XYs
 }
 
-def getHighestDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
-  map (fun XY: XYMatrices ->
+def getHighestDerivs(XYs: [XY]) -> [XY] = {
+  map (fun XY: XY ->
         def (X, Y) = XY;
         def nX = cdim X;
         def nY = cdim Y;
@@ -219,8 +222,7 @@ def getHighestDerivs(XYs: [XYMatrices]) -> [XYMatrices] = {
          if nY > 1 then snd (vsplit (nY - 1)  Y) else Y)) XYs
 }
 
-def getXbYc(Ts: [TopolInfo]) -> [XYMatrices] = {
-  map (fun T: TopolInfo ->
+def getBranchChordVars(Ts: [TopolInfo]) -> [XY] = {  map (fun T: TopolInfo ->
        def (A, (x, y)) = T;
        def j = rdim A;
        def (y_b, y_c) = hsplit j y;
@@ -229,30 +231,31 @@ def getXbYc(Ts: [TopolInfo]) -> [XYMatrices] = {
   ) Ts
 }
 
-def getVPRels(xbycs: [XYMatrices], cceqs: [XYMatrices])
-  -> [XYMatrices] = {
+def mkOrthoCoeffs(xbycs: [XY], cceqs: [XY])
+  -> [XY] = {
 
-  map (fun e: (XYMatrices, XYMatrices) ->
+  map (fun e: (XY, XY) ->
        def ((x_b, y_c), (circeqs, cuteqs)) = e;
        (hconcat x_b y_c, hconcat cuteqs circeqs)
   ) (zip xbycs cceqs)
 }
 
-def formulateProjs(sm: SpaceMap, vps: [XYMatrices]) -> [ProjForm]  = {
+def mkOrthoFormul(sm: Vector2AccThrSpaceMap, vps: [XY]) -> [OrthoFormul]  = {
   concat
-  (map (fun vp: XYMatrices ->
+  (map (fun vp: XY ->
         zip (map (fun v: Vector ->
                   Map.find v sm) (concat (matrixToList (tr (fst vp)))))
             (concat (matrixToList (tr (snd vp))))
       ) vps)
 }
 
-def filterOutNullSpace(pfs: [ProjForm]) -> [ProjForm] = {
-  filter (fun pf: ProjForm -> !(isEmpty (fst pf))) pfs
+def filterOutNullSpace(pfs: [OrthoFormul]) -> [OrthoFormul] = {
+  filter (fun pf: OrthoFormul -> !(isEmpty (fst pf))) pfs
 }
 
-def projsToMatrices(b2mm: VectorToMatrixMap, vbm: VectorBaseMap, pfs: [ProjForm]) = {
-  def f(pf: ProjForm) -> (MatrixMapSReal, MatrixMapSReal) = {
+def mkOrthoFormulMatrix(b2mm: BaseVector2MatrixMap, vbm: BaseVector2BaseMap, pfs: [OrthoFormul])
+  -> [OrthoFormulMatrix] = {
+  def f(pf: OrthoFormul) -> OrthoFormulMatrix = {
     def (bl, v) = pf;
     def base = (Map.find (hd bl) vbm);
     def ff(v: Vector) -> MatrixMapSReal = {
@@ -265,14 +268,14 @@ def projsToMatrices(b2mm: VectorToMatrixMap, vbm: VectorBaseMap, pfs: [ProjForm]
   map f pfs
 }
 
-def project(dxYs: [(MatrixMapSReal, MatrixMapSReal)]) -> [<Real>] = {
-  concat (map (fun dxY: (MatrixMapSReal, MatrixMapSReal) ->
+def mkDynamicRes(dxYs: [OrthoFormulMatrix]) -> [<Real>] = {
+  concat (map (fun dxY: OrthoFormulMatrix ->
        concat (matrixToList ((tr (fst dxY)) * (snd dxY)))
       ) dxYs)
 }
 
 def formulateEqs(Ds: [Domain]) = {
-  def ters = getTerminals Ds;
+  def ters = mkTerminalSubs Ds;
   def Ts = getTopolInfo Ds;
   def (As, XYs) = unzip Ts;
   // def _ = dprint("=== TopolInfo ===");
@@ -280,10 +283,10 @@ def formulateEqs(Ds: [Domain]) = {
   // def _ = map dp (fst (unzip XYs));
   // def _ = map dp (snd (unzip XYs));
 
-  def trans = getBranchChordTranss Ts;
+  def trans = mkBranchChordTransMap Ts;
   def xys = getZerothDerivs XYs;
   def xys_star = substitute ters trans xys;
-  def cceqs = getCircCutEqs (zip As xys_star);
+  def cceqs = mkCircCutRes (zip As xys_star);
 
   // def _ = dprint("=== X* and Y* ===");
   // def _ = map dp (fst (unzip xys_star));
@@ -294,29 +297,29 @@ def formulateEqs(Ds: [Domain]) = {
   // def _ = map dp (snd (unzip cceqs));
 
   def h_xys = getHighestDerivs XYs;
-  def xbycs = getXbYc (zip As h_xys);
+  def xbycs = getBranchChordVars (zip As h_xys);
 
   // def _ = dprint("=== x_b and y_c ===");
   // def _ = map dp (fst (unzip xbycs));
   // def _ = map dp (snd (unzip xbycs));
 
-  def vps = getVPRels xbycs cceqs;
+  def vps = mkOrthoCoeffs xbycs cceqs;
 
-  // def _ = dprint("=== VP Rels ===");
-  // def _ = map dp (fst (unzip vps));
-  // def _ = map dp (snd (unzip vps));
+  def _ = dprint("=== VP Rels ===");
+  def _ = map dp (fst (unzip vps));
+  def _ = map dp (snd (unzip vps));
 
-  def sm = getSpaceMap Ds;
-  def pfs = formulateProjs sm vps;
+  def sm = mkVector2AccThrSpaceMap Ds;
+  def pfs = mkOrthoFormul sm vps;
 
   // def _ = dprint("=== Projs ===");
   def nnpfs = filterOutNullSpace pfs;
-  def b2mm = getBasesToMatrixMap Ds;
-  def vbm = getVectorBaseMap Ds;
-  def pms = projsToMatrices b2mm vbm nnpfs;
+  def b2mm = mkBase2MatrixMap Ds;
+  def vbm = mkBase2BaseMap Ds;
+  def pms = mkOrthoFormulMatrix b2mm vbm nnpfs;
   // def _ = map dp (fst (unzip pms));
   // def _ = map dp (snd (unzip pms));
-  def deqs = project pms;
+  def deqs = mkDynamicRes pms;
   def _ = dprint(deqs);
   ()
 }
