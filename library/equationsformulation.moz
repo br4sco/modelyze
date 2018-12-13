@@ -32,7 +32,7 @@ type OrthoFormul = ([Vector], Vector)
 type OrthoFormulMatrix = (MatrixMapSReal, MatrixMapSReal)
 type BaseVectorMatrixPair = (Vector, MatrixMapSReal)
 type BaseVector2MatrixMap = (Vector => MatrixMapSReal)
-type BaseVector2BaseMap = (Vector => Base)
+type BaseVector2NodeMap = (Vector => Node)
 type Node2BaseMap = (Node => Base)
 type NodeBasePair = (Node, [BaseVectorMatrixPair])
 type ModelEdge =
@@ -156,16 +156,27 @@ def mkBase2MatrixMap(Ds: [Domain]) -> BaseVector2MatrixMap = {
           def ((_, bvmp1), (_, bvmp2)) = fst me; append bvmp1 bvmp2) D)) Ds)))
 }
 
-def mkBase2BaseMap(Ds: [Domain]) -> BaseVector2BaseMap = {
+def mkBase2NodeMap(Ds: [Domain]) -> BaseVector2NodeMap = {
   listToMap (concat (concat (map
     (fun D: Domain ->
     (map (fun me: ModelEdge ->
-          def ((_, bvmp1), (_, bvmp2)) = fst me;
+          def ((n1, bvmp1), (n2, bvmp2)) = fst me;
           def bs1 = fst (unzip bvmp1);
           def bs2 = fst (unzip bvmp2);
-          append (map (fun b: Vector -> (b, listToSet bs1)) bs1)
-                 (map (fun b: Vector -> (b, listToSet bs2)) bs2)
-               ) D)) Ds)))
+          append (map (fun b: Vector -> (b, n1)) bs1)
+                 (map (fun b: Vector -> (b, n2)) bs2)
+         ) D)) Ds)))
+}
+
+def mkNode2BaseMap(Ds: [Domain]) -> Node2BaseMap = {
+  listToMap (concat (concat (map
+    (fun D: Domain ->
+    (map (fun me: ModelEdge ->
+          def ((n1, bvmp1), (n2, bvmp2)) = fst me;
+          def bs1 = fst (unzip bvmp1);
+          def bs2 = fst (unzip bvmp2);
+          [(n1, bs1), (n2, bs2)]
+         ) D)) Ds)))
 }
 
 def mkTerminalSubs(Ds: [Domain]) -> SubsMap = {
@@ -257,11 +268,12 @@ def filterOutNullSpace(ofs: [OrthoFormul]) -> [OrthoFormul] = {
   filter (fun pf: OrthoFormul -> !(isEmpty (fst pf))) ofs
 }
 
-def mkOrthoFormulMatrix(bmm: BaseVector2MatrixMap, bbm: BaseVector2BaseMap,
-  ofs: [OrthoFormul]) -> [OrthoFormulMatrix] = {
+def mkOrthoFormulMatrix(bmm: BaseVector2MatrixMap, bnm: BaseVector2NodeMap,
+  nbm: Node2BaseMap, ofs: [OrthoFormul]) -> [OrthoFormulMatrix] = {
   def f(pf: OrthoFormul) -> OrthoFormulMatrix = {
     def (bs, res) = pf;
-    def base = (Map.find (hd bs) bbm);
+    def n = (Map.find (hd bs) bnm);
+    def base = listToSet (Map.find n nbm);
     def ff(b: Vector) -> MatrixMapSReal = {
       if (Set.mem b base) && (Map.mem b bmm) then Map.find b bmm
       else error "Expression expressed in different bases"
@@ -279,9 +291,9 @@ def mkDynRes(ofms: [OrthoFormulMatrix]) -> [Real] = {
       ) ofms)
 }
 
-def chgBase(b: Base, T: AdjList, etm: Edge2BaseTransMap, ve: Vector) = {
-  ve
-}
+// def chgBase(nbm: Node2BaseMap, etm: Edge2BaseTransMap, T: AdjList, n: Node, ve: Vector) = {
+//   ve
+// }
 
 def formulateRes(Ds: [Domain]) = {
   def terminals = mkTerminalSubs Ds;
@@ -324,8 +336,9 @@ def formulateRes(Ds: [Domain]) = {
   // def _ = dprint("=== Projs ===");
   def nnofs = filterOutNullSpace ofs;
   def bmm = mkBase2MatrixMap Ds;
-  def bbm = mkBase2BaseMap Ds;
-  def ofms = mkOrthoFormulMatrix bmm bbm nnofs;
+  def nbm = mkNode2BaseMap Ds;
+  def bnm = mkBase2NodeMap Ds;
+  def ofms = mkOrthoFormulMatrix bmm bnm nbm nnofs;
   // def _ = map dp (fst (unzip ofms));
   // def _ = map dp (snd (unzip ofms));
   def dres = mkDynRes ofms;

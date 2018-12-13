@@ -23,7 +23,7 @@ include Equation
 
 type Vector
 type MatrixMapVector = (Int => (Int => Vector), Pos)
-type Base = Set(Vector)
+type Base = [Vector]
 def zeroVector: Vector
 def unitVector: Vector
 def VECTORS_DIFFERENT_BASES = "Vectors belong to different bases"
