@@ -18,14 +18,14 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include PlanarMech
+include EquationsFormulation
 
-def F_1 = mkFrame()
-def F_2 = mkFrame()
+def n1, n2: Node
+def i1, j1, i2, j2: Vector
+def x, y, t: Real
 
-def model = [
-              planarBody 2. 4. F_1 F_2,
-              planarGravity 2. F_2 F_1
-            ]
-
-def _ = dprint(formulateRes model)
+def T = [(n1, n2)]
+def b1 =  listToSet [i1, j1]
+def b2 = listToSet [i2, j2]
+def nbm = listToMap [(n1, b1), (n2, b2)]
+def ebtm = listToMap [((n1, n2), (i2, (cos t) *. i1 + (-sin t) *. j1))]

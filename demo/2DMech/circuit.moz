@@ -138,7 +138,8 @@ def BD = [[
              [(F_g, (m * g) *. j_2), (r_g, rx_g *. i_2 + ry_g *. j_2)],
              [(r_g, [i_2, j_2])],
              [(F_g ,[])]
-            ),
+            )
+            ,
             (
              ((n_m1, [(i_1, iM), (j_1, jM), (k, kM)]), (n_m2, [(i_2, iM), (j_2, jM), (k, kM)])),
              [(F_m, m *. r_m''), (r_m, rx_m *. i_1 + ry_m *. j_1)],
@@ -152,7 +153,8 @@ def BD = [[
              [(T_m, I *. t_m''), (t_m, tk_m *. k)],
              [(t_m, [k])],
              [(T_m ,[])]
-            ),
+            )
+            ,
             (
              ((n_m2, [(i_2, iM), (j_2, jM), (k, kM)]), (n_m1, [(i_1, iM), (j_1, jM), (k, kM)])),
              [(T_g, zeroVector), (t_g, tk_g *. k)],
@@ -164,8 +166,8 @@ def BD = [[
 def main = {
   // def _ = dprint(getSpaceMap [RL]);
   // def _ = dprint(getSpaceMap BD);
-  def _ = formulateEqs [RL];
-  def _ = formulateEqs BD;
+  def _ = formulateRes [RL];
+  def _ = formulateRes BD;
   // def _ = dprint(getBasesToMatrixMap BD);
   ()
 }

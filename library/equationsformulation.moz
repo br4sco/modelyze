@@ -24,14 +24,16 @@ include Vector
 
 type Terminal = (Vector, Vector)
 type BranchChordTrans = (Vector, Vector)
+type BaseTrans = (Vector, Vector)
 type SubsMap = (Vector => Vector)
-type Vector2AccThrSpaceMap = (Vector => [Vector])
+type Var2AccThrSpaceMap = (Vector => [Vector])
 type ConstrVar = (Vector, [Vector])
 type OrthoFormul = ([Vector], Vector)
 type OrthoFormulMatrix = (MatrixMapSReal, MatrixMapSReal)
 type BaseVectorMatrixPair = (Vector, MatrixMapSReal)
 type BaseVector2MatrixMap = (Vector => MatrixMapSReal)
 type BaseVector2BaseMap = (Vector => Base)
+type Node2BaseMap = (Node => Base)
 type NodeBasePair = (Node, [BaseVectorMatrixPair])
 type ModelEdge =
   ((NodeBasePair, NodeBasePair), [Terminal], [ConstrVar], [ConstrVar])
@@ -39,6 +41,7 @@ type Domain = [ModelEdge]
 type XY = (MatrixMapVector, MatrixMapVector)
 type TopolInfo = (MatrixMapReal, XY)
 type IncidenceMatrix = MatrixMapReal
+type Edge2BaseTransMap = (Edge => [BaseTrans])
 
 def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
   def (X, Y) = XY;
@@ -171,7 +174,7 @@ def mkTerminalSubs(Ds: [Domain]) -> SubsMap = {
                 (map (fun me: ModelEdge -> snd me) D)) Ds)))
 }
 
-def mkVector2AccThrSpaceMap(Ds: [Domain]) -> Vector2AccThrSpaceMap = {
+def mkVar2AccThrSpaceMap(Ds: [Domain]) -> Var2AccThrSpaceMap = {
   listToMap
     (concat (concat
      (map (fun D: Domain ->
@@ -241,7 +244,7 @@ def mkOrthoCoeffs(xbycs: [XY], ccress: [XY])
   ) (zip xbycs ccress)
 }
 
-def mkOrthoFormul(vatsm: Vector2AccThrSpaceMap, ocs: [XY]) -> [OrthoFormul]  = {
+def mkOrthoFormul(vatsm: Var2AccThrSpaceMap, ocs: [XY]) -> [OrthoFormul]  = {
   concat
   (map (fun vp: XY ->
         zip (map (fun v: Vector ->
@@ -254,13 +257,13 @@ def filterOutNullSpace(ofs: [OrthoFormul]) -> [OrthoFormul] = {
   filter (fun pf: OrthoFormul -> !(isEmpty (fst pf))) ofs
 }
 
-def mkOrthoFormulMatrix(bvmm: BaseVector2MatrixMap, bvbm: BaseVector2BaseMap,
+def mkOrthoFormulMatrix(bmm: BaseVector2MatrixMap, bbm: BaseVector2BaseMap,
   ofs: [OrthoFormul]) -> [OrthoFormulMatrix] = {
   def f(pf: OrthoFormul) -> OrthoFormulMatrix = {
     def (bs, res) = pf;
-    def base = (Map.find (hd bs) bvbm);
+    def base = (Map.find (hd bs) bbm);
     def ff(b: Vector) -> MatrixMapSReal = {
-      if (Set.mem b base) && (Map.mem b bvmm) then Map.find b bvmm
+      if (Set.mem b base) && (Map.mem b bmm) then Map.find b bmm
       else error "Expression expressed in different bases"
     };
 
@@ -270,13 +273,17 @@ def mkOrthoFormulMatrix(bvmm: BaseVector2MatrixMap, bvbm: BaseVector2BaseMap,
   map f ofs
 }
 
-def mkDynamicRes(ofms: [OrthoFormulMatrix]) -> [<Real>] = {
+def mkDynRes(ofms: [OrthoFormulMatrix]) -> [Real] = {
   concat (map (fun ofm: OrthoFormulMatrix ->
        concat (matrixToList ((tr (fst ofm)) * (snd ofm)))
       ) ofms)
 }
 
-def formulateEqs(Ds: [Domain]) = {
+def chgBase(b: Base, T: AdjList, etm: Edge2BaseTransMap, ve: Vector) = {
+  ve
+}
+
+def formulateRes(Ds: [Domain]) = {
   def terminals = mkTerminalSubs Ds;
   def Ts = getTopolInfo Ds;
   def (As, XYs) = unzip Ts;
@@ -307,11 +314,11 @@ def formulateEqs(Ds: [Domain]) = {
 
   def ocs = mkOrthoCoeffs xbycs ccress;
 
-  def _ = dprint("=== VP Rels ===");
-  def _ = map dp (fst (unzip ocs));
-  def _ = map dp (snd (unzip ocs));
+  // def _ = dprint("=== VP Rels ===");
+  // def _ = map dp (fst (unzip ocs));
+  // def _ = map dp (snd (unzip ocs));
 
-  def vatsm = mkVector2AccThrSpaceMap Ds;
+  def vatsm = mkVar2AccThrSpaceMap Ds;
   def ofs = mkOrthoFormul vatsm ocs;
 
   // def _ = dprint("=== Projs ===");
@@ -321,7 +328,7 @@ def formulateEqs(Ds: [Domain]) = {
   def ofms = mkOrthoFormulMatrix bmm bbm nnofs;
   // def _ = map dp (fst (unzip ofms));
   // def _ = map dp (snd (unzip ofms));
-  def dress = mkDynamicRes ofms;
-  def _ = dprint(dress);
+  def dres = mkDynRes ofms;
+  def _ = dprint(dres);
   ()
 }
