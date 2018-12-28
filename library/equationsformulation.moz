@@ -197,7 +197,7 @@ def mkVar2AccThrSpaceMap(Ds: [Domain]) -> Var2AccThrSpaceMap = {
 }
 
 def mkBranchChordSubs(Ts: [TopolInfo]) -> SubsMap = {
-  def mkBranchChordSubs(T: TopolInfo) -> [BranchChordTrans] = {
+  def mkBranchChordSub(T: TopolInfo) -> [BranchChordTrans] = {
     def (A, (X, Y)) = T;
     def j = rdim A;
     def (Y_b, Y_c) = hsplit j Y;
@@ -298,7 +298,6 @@ def mkVar2VarsMap(subs: SubsMap) = {
     (Map.toList subs)
 }
 
-
 // def chgBase(nbm: Node2BaseMap, bnm: BaseVector2NodeMap, etms: [Edge2BaseTransMap], Ts: [AdjList], n: Node, ve: Vector) = {
 //   def base = listToSet (Map.find n nbm);
 //   def f(v: Vector) -> Vector = {
@@ -312,6 +311,16 @@ def mkVar2VarsMap(subs: SubsMap) = {
 // = {
 
 // }
+
+def removeLoops(terminals: SubsMap, T: TopolInfo) -> TopolInfo = {
+  def branchchords = mkBranchChordSubs [T];
+  def work(i: Int, T: TopolInfo) -> TopolInfo = {
+    def (A, (X, Y)) = T;
+    T
+  };
+
+  T
+}
 
 def formulateRes(Ds: [Domain]) = {
   def terminals = mkTerminalSubs Ds;
