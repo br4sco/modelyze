@@ -290,9 +290,13 @@ def mkDynRes(ofms: [OrthoFormulMatrix]) -> [Real] = {
       ) ofms)
 }
 
-// def mkVarVarsMap()  = {
-
-// }
+def mkVar2VarsMap(subs: SubsMap) = {
+  def f(a: Set(Vector), v: Vector) -> Set(Vector) = {
+    Set.add v a
+  };
+  map (fun e: (Vector, Vector) -> (fst e, foldLeft f (Set.empty) (snd e)))
+    (Map.toList subs)
+}
 
 
 // def chgBase(nbm: Node2BaseMap, bnm: BaseVector2NodeMap, etms: [Edge2BaseTransMap], Ts: [AdjList], n: Node, ve: Vector) = {
