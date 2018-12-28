@@ -125,3 +125,24 @@ def vectorToMatrix(f: (Vector -> MatrixMapSReal), v: Vector) -> MatrixMapSReal =
   };
   work v
 }
+
+def map(f: (Vector -> Vector), v: Vector) -> Vector = {
+  def work(v: <Dyn>) -> <Dyn> = {
+    match v with
+    | sym: Vector -> f v
+    | op v -> (work op) (work v)
+    | sval v: Dyn -> v
+    | _ -> v
+  };
+  work v
+}
+
+def foldLeft(f: (Dyn -> Vector -> Dyn), a: Dyn, v: Vector) -> Dyn = {
+  def work(v: Vector, a: Dyn) -> Dyn = {
+    match v with
+    | sym: Vector -> f a v
+    | op v -> work v (work op a)
+    | _ -> a
+  };
+  work v a
+}

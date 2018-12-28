@@ -41,7 +41,7 @@ def findPath(G: AdjList, s: Node, e: Node) -> [[Node]] = {
   map (fun p: [Node] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
 }
 
-def edgeListToAdjList(G: [Edge]) -> AdjList = {
+def edgeList2AdjList(G: [Edge]) -> AdjList = {
   def f(a: AdjList, e: Edge) -> AdjList = {
     def get(n: Node) -> [Node] = {
       if Map.mem n a then Map.find n a else []

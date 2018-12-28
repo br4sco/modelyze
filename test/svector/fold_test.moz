@@ -18,15 +18,17 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include Graph
+include Vector
 
-def n1, n2, n3, n4, n5: Node
-def G = [(n1, n2), (n1, n3), (n2, n3)]
-def G2 = [(n1, n2), (n1, n4), (n2, n3), (n3, n4)]
-def G3 = [(n1, n2), (n2, n3), (n2, n4), (n2, n5)]
-def G4 = [(n1, n2), (n2, n3), (n2, n4), (n2, n5), (n5, n2)]
+def r: Real
+def v_1, v_2, v_3: Vector
 
-def _ = dprint(edgeList2AdjList G)
-def _ = dprint(edgeList2AdjList G2)
-def _ = dprint(edgeList2AdjList G3)
-def _ = dprint(edgeList2AdjList G4)
+def f(a: Set(Vector), v: Vector) -> Set(Vector) = {
+  Set.add v a
+}
+
+def _ = dprint(foldLeft f (Set.empty) (10. *. v_1 + (v_2 + v_3)))
+def _ = dprint(foldLeft f (Set.empty) (10. *. v_1 - (v_2 + ((12. + r) *. v_3))))
+def _ = dprint(foldLeft f (Set.empty) (10. *. v_1 + (v_2 + v_3)))
+def _ = dprint(foldLeft f (Set.empty) (10. *. v_1 - (v_2 + ((12. + r) *. v_3))))
+def _ = dprint(foldLeft f (Set.empty) ((r + 1.) *. v_1 + (r - 2.) *. v_2 + v_3))

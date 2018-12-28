@@ -77,7 +77,7 @@ test_files()
 # test_dill_file "clutch"
 
 # test_files "matrix"
-# test_files "svector"
+test_files "svector"
 # test_files "sreal"
 test_files "eqformulation"
 # test_files "graph"

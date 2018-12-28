@@ -22,10 +22,23 @@ include EquationsFormulation
 
 def n1, n2: Node
 def i1, j1, i2, j2: Vector
-def x, y, t: Real
+def u, w, x, y, t: Real
 
-def T = [(n1, n2)]
-def b1 =  listToSet [i1, j1]
-def b2 = listToSet [i2, j2]
+def T = edgeList2AdjList [(n1, n2)]
+def b1 = [i1, j1]
+def b2 = [i2, j2]
 def nbm = listToMap [(n1, b1), (n2, b2)]
-def ebtm = listToMap [((n1, n2), [(i2, (cos t) *. i1 + (-sin t) *. j1), (j2, (sin t) *. i1 + (cos t) *. j1)])]
+def bnm = listToMap [(i1, n1), (j1, n1), (i2, n2), (j2, n2)]
+def ebtmr = listToMap [
+                        ((n1, n2), [(i2, (cos t) *. i1 + (-sin t) *. j1), (j2, (sin t) *. i1 + (cos t) *. j1)]),
+                        ((n2, n1), [(i1, (cos t) *. i2 + (sin t) *. j2), (j1, (-sin t) *. i2 + (cos t) *. j2)])
+                      ]
+def ebtmt = listToMap [
+                        ((n1, n2), [(i2, x *. i1), (j2, y *. j1)]),
+                        ((n2, n1), [(i1, -x *. i2), (j1, -y *. j2)])
+                      ]
+
+def ve = (u + 1.) *. i2 + (w - 2.) *. j2
+
+// def _ = dprint(chgBase nbm bnm [ebtmr] [T] n2 ve)
+// def _ = dprint(planarTrans nbm )

@@ -23,7 +23,7 @@ include EquationsFormulation
 def ii_V, uu_V, ii_R, uu_R, ii_L, uu_L: Vector
 def i_V, i_R, u_R, i_L, u_L: Real
 def V, R, L: Real
-def n1, n2, n3: Node
+def n1, n2, n3, n4: Node
 
 def uvM = listToMatrix [[1.]] (mmSRealZero (1, 1))
 
@@ -33,7 +33,10 @@ def i_V: Real;
 def V: Real;
 (
   ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
-  [(uu_V, V *. unitVector), (ii_V, i_V *. unitVector)],
+  [
+    (uu_V, V *. unitVector)
+    , (ii_V, i_V *. unitVector)
+  ],
   [(uu_V, [])],
   [(ii_V, [unitVector])]
 )
@@ -45,7 +48,10 @@ def i_R, u_R: Real;
 def R: Real;
 (
   ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
-  [(uu_R, R *. ii_R), (ii_R, i_R *. unitVector)],
+  [
+    (uu_R, R *. ii_R)
+    , (ii_R, i_R *. unitVector)
+  ],
   [(uu_R, [])],
   [(ii_R, [unitVector])]
 )
@@ -57,8 +63,26 @@ def i_R, u_R: Real;
 def R: Real;
 (
   ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
-  [(uu_R, u_R *. unitVector), (ii_R, (1. / R) *. uu_R)],
+  [
+    (uu_R, u_R *. unitVector)
+    , (ii_R, (1. / R) *. uu_R)
+  ],
   [(uu_R, [unitVector])],
+  [(ii_R, [])]
+)
+}
+
+def RS3(n1: Node, n2: Node) = {
+def ii_R, uu_R: Vector;
+def i_R, u_R: Real;
+def R: Real;
+(
+  ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
+  [
+    (uu_R, R *. ii_R)
+    , (ii_R, (1. / R) *. uu_R)
+  ],
+  [(uu_R, [])],
   [(ii_R, [])]
 )
 }
@@ -69,7 +93,10 @@ def i_L: Real;
 def L: Real;
 (
   ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
-  [(uu_L, L *. der ii_L), (ii_L, i_L *. unitVector)],
+  [
+    (uu_L, L *. der ii_L)
+    , (ii_L, i_L *. unitVector)
+  ],
   [(uu_L, [])],
   [(ii_L, [unitVector])]
 )
@@ -81,16 +108,27 @@ def u_C: Real;
 def C: Real;
 (
   ((n1, [(unitVector, uvM)]), (n2, [(unitVector, uvM)])),
-  [(ii_C, C *. der uu_C), (uu_C, u_C *. unitVector)],
+  [
+    (ii_C, C *. der uu_C)
+    , (uu_C, u_C *. unitVector)
+  ],
   [(uu_C, [unitVector])],
   [(ii_C, [])]
 )
 }
 
-def RL = [
+def RC = [
           (VS n1 n2), (RS2 n3 n1), (CS n2 n3)
-          // (VS n1 n2), (CS n2 n3), (LS n3 n1)
+          // (CS n2 n3), (RS3 n3 n1), (VS n1 n2)
+          // (VS n1 n2), (CS n2 n3), (RS2 n3 n1)
+          // (VS n1 n2), (RS n3 n1), (CS n2 n3) //Fail: AccThrSpace is null space
          ]
+
+def LLCCC =
+[
+  (CS n3 n4), (CS n4 n2), (CS n4 n1), (LS n1 n2), (LS n2 n3)
+  // (CS n3 n4), (LS n2 n3), (CS n4 n2), (CS n4 n1), (LS n1 n2) // Fail
+]
 
 def i_1, j_1, i_2, j_2, k: Vector
 def r_m, F_m, t_m, T_m: Vector
@@ -166,8 +204,9 @@ def BD = [[
 def main = {
   // def _ = dprint(getSpaceMap [RL]);
   // def _ = dprint(getSpaceMap BD);
-  def _ = formulateRes [RL];
-  def _ = formulateRes BD;
+  // def _ = formulateRes [RC];
+  def _ = formulateRes [LLCCC];
+  // def _ = formulateRes BD;
   // def _ = dprint(getBasesToMatrixMap BD);
   ()
 }

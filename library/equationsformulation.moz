@@ -41,7 +41,6 @@ type Domain = [ModelEdge]
 type XY = (MatrixMapVector, MatrixMapVector)
 type TopolInfo = (MatrixMapReal, XY)
 type IncidenceMatrix = MatrixMapReal
-type Edge2BaseTransMap = (Edge => [BaseTrans])
 
 def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
   def (X, Y) = XY;
@@ -246,8 +245,7 @@ def getBranchChordVars(Ts: [TopolInfo]) -> [XY] = {  map (fun T: TopolInfo ->
   ) Ts
 }
 
-def mkOrthoCoeffs(xbycs: [XY], ccress: [XY])
-  -> [XY] = {
+def mkOrthoCoeffs(xbycs: [XY], ccress: [XY]) -> [XY] = {
 
   map (fun e: (XY, XY) ->
        def ((x_b, y_c), (circeqs, cuteqs)) = e;
@@ -291,27 +289,43 @@ def mkDynRes(ofms: [OrthoFormulMatrix]) -> [Real] = {
       ) ofms)
 }
 
-// def chgBase(nbm: Node2BaseMap, etm: Edge2BaseTransMap, T: AdjList, n: Node, ve: Vector) = {
-//   ve
+// def mkVarVarsMap()  = {
+
+// }
+
+
+// def chgBase(nbm: Node2BaseMap, bnm: BaseVector2NodeMap, etms: [Edge2BaseTransMap], Ts: [AdjList], n: Node, ve: Vector) = {
+//   def base = listToSet (Map.find n nbm);
+//   def f(v: Vector) -> Vector = {
+//     if (Set.mem v base) then v else v
+//   };
+//   map f ve
+// }
+
+// def planarTrans(nbm: Node2BaseMap, Ts: [AdjList], sn: Node, en: Node)
+
+// = {
+
 // }
 
 def formulateRes(Ds: [Domain]) = {
   def terminals = mkTerminalSubs Ds;
   def Ts = getTopolInfo Ds;
   def (As, XYs) = unzip Ts;
-  // def _ = dprint("=== TopolInfo ===");
-  // def _ = map dp As;
-  // def _ = map dp (fst (unzip XYs));
-  // def _ = map dp (snd (unzip XYs));
+
+  def _ = dprint("=== TopolInfo ===");
+  def _ = map dp As;
+  def _ = map dp (fst (unzip XYs));
+  def _ = map dp (snd (unzip XYs));
 
   def branchchords = mkBranchChordSubs Ts;
   def xys = getZerothDerivs XYs;
   def xys_star = substitute terminals branchchords xys;
   def ccress = mkCircCutRes (zip As xys_star);
 
-  // def _ = dprint("=== X* and Y* ===");
-  // def _ = map dp (fst (unzip xys_star));
-  // def _ = map dp (snd (unzip xys_star));
+  def _ = dprint("=== X* and Y* ===");
+  def _ = map dp (fst (unzip xys_star));
+  def _ = map dp (snd (unzip xys_star));
 
   // def _ = dprint("=== Circ and Cut Eqs ===");
   // def _ = map dp (fst (unzip ccress));
@@ -325,22 +339,21 @@ def formulateRes(Ds: [Domain]) = {
   // def _ = map dp (snd (unzip xbycs));
 
   def ocs = mkOrthoCoeffs xbycs ccress;
-
-  // def _ = dprint("=== VP Rels ===");
-  // def _ = map dp (fst (unzip ocs));
-  // def _ = map dp (snd (unzip ocs));
-
   def vatsm = mkVar2AccThrSpaceMap Ds;
   def ofs = mkOrthoFormul vatsm ocs;
 
-  // def _ = dprint("=== Projs ===");
   def nnofs = filterOutNullSpace ofs;
+
+  // def _ = dprint("=== Ortho Formulation  ===");
   def bmm = mkBase2MatrixMap Ds;
   def nbm = mkNode2BaseMap Ds;
   def bnm = mkBase2NodeMap Ds;
   def ofms = mkOrthoFormulMatrix bmm bnm nbm nnofs;
-  // def _ = map dp (fst (unzip ofms));
-  // def _ = map dp (snd (unzip ofms));
+
+  // def _ = dprint(ofs);
+  // def _ = dprint(nnofs);
+
+  def _ = dprint("=== Residual ===");
   def dres = mkDynRes ofms;
   def _ = dprint(dres);
   ()
