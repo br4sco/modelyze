@@ -73,7 +73,7 @@ def mmVectorAdd(ij: Pos, v: Vector, M: MatrixMapVector) -> MatrixMapVector = {
 def add: Pos -> Vector -> MatrixMapVector -> MatrixMapVector = mmVectorAdd
 
 def mmVectorFind(ij: Pos, M: MatrixMapVector) -> Vector = { mmFind zeroVector ij M }
-def add: Pos -> MatrixMapVector -> Vector = mmVectorFind
+def find: Pos -> MatrixMapVector -> Vector = mmVectorFind
 
 def listToMatrix(l: [[Vector]], M: MatrixMapVector) -> MatrixMapVector = {
   listToMatrix mmVectorAdd l M

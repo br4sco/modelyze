@@ -42,6 +42,7 @@ type XY = (MatrixMapVector, MatrixMapVector)
 type TopolInfo = (MatrixMapReal, XY)
 type IncidenceMatrix = MatrixMapReal
 type Var2VarsMap = (Vector => Set(Vector))
+type Var2IndexMap = (Vector => Int)
 
 def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
   def (X, Y) = XY;
@@ -294,8 +295,20 @@ def mkVar2VarsMap(subs: SubsMap) = {
   def f(a: Set(Vector), v: Vector) -> Set(Vector) = {
     Set.add v a
   };
-  map (fun e: (Vector, Vector) -> (fst e, foldLeft f (Set.empty) (snd e)))
-    (Map.toList subs)
+  listToMap
+  (map (fun e: (Vector, Vector) -> (fst e, foldLeft f (Set.empty) (snd e)))
+    (Map.toList subs))
+}
+
+def mkVar2IndexMap(XY: XY) -> Var2IndexMap = {
+  def (X, Y) = XY;
+  def f(X: MatrixMapVector, a: Var2IndexMap, ij: Pos)
+    -> Var2IndexMap = {
+
+    Map.add (find ij X) (fst ij) a
+  };
+
+  foldij (f Y) (foldij (f X) (Map.empty) X) Y
 }
 
 // def chgBase(nbm: Node2BaseMap, bnm: BaseVector2NodeMap, etms: [Edge2BaseTransMap], Ts: [AdjList], n: Node, ve: Vector) = {
