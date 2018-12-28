@@ -210,7 +210,7 @@ def mkBranchChordSubs(Ts: [TopolInfo]) -> SubsMap = {
   };
 
   listToMap
-    (concat (map (fun T: TopolInfo -> mkBranchChordSubs T) Ts))
+    (concat (map (fun T: TopolInfo -> mkBranchChordSub T) Ts))
 }
 
 def mkCircCutRes(Ts: [TopolInfo]) -> [XY] = {
