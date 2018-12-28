@@ -41,6 +41,7 @@ type Domain = [ModelEdge]
 type XY = (MatrixMapVector, MatrixMapVector)
 type TopolInfo = (MatrixMapReal, XY)
 type IncidenceMatrix = MatrixMapReal
+type Var2VarsMap = (Vector => Set(Vector))
 
 def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
   def (X, Y) = XY;
