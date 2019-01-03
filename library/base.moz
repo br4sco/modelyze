@@ -386,6 +386,13 @@ def map(f: (Dyn -> Dyn), m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
   foldLeft ff (Map.empty) (Map.toList m)
 }
 
+def map(f: (Dyn -> Dyn), s: Set(Dyn)) -> Set(Dyn) = {
+  def ff(a: Set(Dyn), e: Dyn) -> Set(Dyn) = {
+    Set.add (f e) a
+  };
+  foldLeft ff (Set.empty) (Set.toList s)
+}
+
 def fold(f: (Dyn -> Dyn -> Dyn -> Dyn), m: (Dyn => Dyn), a: Dyn) -> Dyn = {
   def ff(a: Dyn, e: (Dyn, Dyn)) -> Dyn = { f (fst e) (snd e) a };
   foldLeft ff a (Map.toList m)
