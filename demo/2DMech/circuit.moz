@@ -126,8 +126,8 @@ def RC = [
 
 def LLCCC =
 [
-  (CS n3 n4), (CS n4 n2), (CS n4 n1), (LS n1 n2), (LS n2 n3)
-  // (CS n3 n4), (LS n2 n3), (CS n4 n2), (CS n4 n1), (LS n1 n2) // Fail
+  // (CS n3 n4), (CS n4 n2), (CS n4 n1), (LS n1 n2), (LS n2 n3)
+  (CS n3 n4), (LS n2 n3), (CS n4 n2), (CS n4 n1), (LS n1 n2) // Fail
 ]
 
 def i_1, j_1, i_2, j_2, k: Vector

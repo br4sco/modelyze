@@ -325,14 +325,78 @@ def mkVar2IndexMap(XY: XY) -> Var2IndexMap = {
 
 // }
 
-def removeLoops(terminals: SubsMap, T: TopolInfo) -> TopolInfo = {
-  def branchchords = mkBranchChordSubs [T];
-  def work(i: Int, T: TopolInfo) -> TopolInfo = {
-    def (A, (X, Y)) = T;
-    T
+def findLoop(terminals: Var2VarsMap, branchchords: Var2VarsMap, v: Vector)
+  -> [[Vector]] = {
+
+  def adv(vvm: Var2VarsMap, a: [[Vector]])  = {
+      concat
+      (map (fun vs: [Vector] ->
+                    def cv = hd vs;
+                    if Map.mem cv vvm then {
+                      def cvs = (Set.toList (Map.find cv vvm));
+                      map (fun ncv: Vector -> ncv::vs) cvs
+                    } else []
+                  ) a);
   };
 
-  T
+  def hasLoop(a: [[Vector]]) -> Bool = {
+    exists (fun vs: [Vector] -> seq v (hd vs)) a
+  };
+
+  def getLoops(a: [[Vector]]) -> [[Vector]] = {
+    filter (fun vs: [Vector] -> seq v (hd vs)) a
+  };
+
+  def work(a: [[Vector]]) -> [[Vector]] = {
+    def a = adv terminals a;
+    if hasLoop a then getLoops a else {
+      def a = adv branchchords a;
+      if hasLoop a then getLoops a
+      else if isEmpty a then a
+      else work a
+    }
+  };
+
+  map (fun vs: [Vector] -> reverse vs) (work [[v]])
+}
+
+def removeLoop(terminals: Var2VarsMap, v: Vector, T: TopolInfo) -> TopolInfo = {
+  def (A, (x, y)) = T;
+  def m = rdim A;
+  def branchchords = mkVar2VarsMap (mkBranchChordSubs [T]);
+  def vim = mkVar2IndexMap (x, y);
+  def ps = findLoop terminals branchchords v;
+
+  if isEmpty ps then T else {
+    def p = hd ps;
+    match p with
+    | v_1::(v_2::(v_3::(v_4::(v_5::vs)))) -> {
+        def s = (Map.find v_1 vim);
+        def e = (Map.find v_3 vim);
+        def (I, A) = vsplit m (rowreduce (swcols s e (vconcat (mmRealId m) A)));
+        def x = swrows s e x;
+        def y = swrows s e y;
+        (A, (x, y))
+      }
+    | _ -> error "Expected at least five elements in loop"
+  }
+}
+
+def removeLoops(terminals: Var2VarsMap, T: TopolInfo) -> TopolInfo = {
+
+  def work(i: Int, T: TopolInfo) -> TopolInfo = {
+    def (A, (x, y)) = T;
+    if i > rdim x then T else {
+      def v = find (i, 1) x;
+      work (i + 1) (removeLoop terminals v T)
+    }
+  };
+
+  work 1 T
+}
+
+def removeLoops(terminals: Var2VarsMap, Ts: [TopolInfo]) -> [TopolInfo] = {
+  map (fun T: TopolInfo -> removeLoops terminals T) Ts
 }
 
 def formulateRes(Ds: [Domain]) = {
@@ -345,8 +409,16 @@ def formulateRes(Ds: [Domain]) = {
   def _ = map dp (fst (unzip XYs));
   def _ = map dp (snd (unzip XYs));
 
+  def _ = dprint("=== Remove Subs loops ===");
+  def Ts = removeLoops (mkVar2VarsMap terminals) Ts;
+  def (As, XYs) = unzip Ts;
+  def _ = map dp As;
+  def _ = map dp (fst (unzip XYs));
+  def _ = map dp (snd (unzip XYs));
+
   def branchchords = mkBranchChordSubs Ts;
   def xys = getZerothDerivs XYs;
+
   def xys_star = substitute terminals branchchords xys;
   def ccress = mkCircCutRes (zip As xys_star);
 

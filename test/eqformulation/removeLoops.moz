@@ -28,7 +28,23 @@ def Y = listToMatrix [[i_V], [i_R], [i_C]] (mmVectorZero (3, 1))
 def terminals = listToMap [(u_V, V), (u_R, i_R), (i_R, u_R), (i_C, u_C)]
 
 def main = {
-  def (A, (X, Y)) = removeLoops terminals (A, (X, Y));
+
+  def terminals = mkVar2VarsMap terminals;
+  def branchchords = ( mkVar2VarsMap (mkBranchChordSubs [(A, (X, Y))]));
+  def _ = dprint(findLoop terminals branchchords u_R);
+  def _ = dprint(findLoop terminals branchchords u_V);
+  def _ = dprint(findLoop terminals branchchords u_C);
+
+  def _ = dprint(findLoop terminals branchchords i_R);
+  def _ = dprint(findLoop terminals branchchords i_V);
+  def _ = dprint(findLoop terminals branchchords i_C);
+
+  def (A, (X, Y)) = removeLoop terminals u_R (A, (X, Y));
+  def _ = dp A;
+  def _ = dp X;
+  def _ = dp Y;
+
+  def (A, (X, Y)) = removeLoops (mkVar2VarsMap terminals) (A, (X, Y));
   def _ = dp A;
   def _ = dp X;
   def _ = dp Y;
