@@ -38,6 +38,7 @@ def der : Vector -> Vector
 def (') = der
 def sin : Vector -> Vector
 def cos : Vector -> Vector
+def dot : Vector -> Vector -> Real
 
 // Operators and functions for Vectors (in lack of type polymorphism)
 def iszVec(v: Vector) -> Bool = { seq v zeroVector }
@@ -109,15 +110,32 @@ def hconcat(lM: MatrixMapVector, rM: MatrixMapVector) -> MatrixMapVector = {
   tr (vconcat (tr lM) (tr rM))
 }
 
-def vectorToMatrix(f: (Vector -> MatrixMapSReal), v: Vector) -> MatrixMapSReal = {
+def evalDot(f: (Vector -> MatrixMapSReal), r: <Real>) -> <Real> = {
+  def work(e: <Dyn>) -> <Dyn>  = {
+    match e with
+    | dot v_1 v_2 -> {
+        def v_1 = f v_1;
+        def v_2 = f v_2;
+        if (dim v_1) != (dim v_2) then error DIMENSION_MISSMATCH
+        else hd (hd (matrixToList ((tr v_1) * v_2)))
+      }
+    | sym: Real -> e
+    | op e -> (work op) (work e)
+    | sval r: Real -> r
+    | sval v: Dyn -> v
+    | _ -> e
+  };
+  work r
+}
 
+def vectorToMatrix(f: (Vector -> MatrixMapSReal), v: Vector) -> MatrixMapSReal = {
   def work(v: Vector) -> MatrixMapSReal = {
     match v with
     | sym: Vector -> f v
     | -v -> -(work v)
     | v_1 - v_2 -> (work v_1) - (work v_2)
     | v_1 + v_2 -> (work v_1) + (work v_2)
-    | r *. v -> { r *. (work v) }
+    | r *. v -> { (evalDot (vectorToMatrix f) r) *. (work v) }
     | der v -> map (fun r: <Real> -> der r) (work v)
     | sin v -> map (fun r: <Real> -> sin r) (work v)
     | cos v -> map (fun r: <Real> -> cos r) (work v)

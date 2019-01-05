@@ -35,3 +35,8 @@ def _ = dp (vectorToMatrix f (x *. ii))
 def _ = dp (vectorToMatrix f (der ii))
 def _ = dp (vectorToMatrix f ((2. + 1.) *. ii))
 def _ = dp (vectorToMatrix f ((2. + 1.) *. ii + x *. jj + y *. kk + (x + y') *. ii))
+
+def _ = dprint(evalDot f (dot ii ii))
+def _ = dprint(evalDot f ((dot ii ii) * 3. + (dot ii jj)))
+def _ = dp (vectorToMatrix f ((dot ii ii) *. ii))
+def _ = dp (vectorToMatrix f (((dot ii ii) * 3. + (dot ii jj)) *. ii))
