@@ -316,6 +316,11 @@ def foldLeft(f: (Dyn -> Dyn -> Dyn), acc: Dyn, a: {Dyn}) -> Dyn = {
   work 0 acc
 }
 
+def arrayToList(a: {Dyn}) -> [Dyn] = {
+  def f(l: [Dyn], e: Dyn) -> [Dyn] = { e::l };
+  reverse (foldLeft f [] a)
+}
+
 def iteri(f: (Int -> Dyn -> ()), a: {Dyn}) -> () = {
   def work(i: Int) -> () = {
     if (Array.length a) == i then ()

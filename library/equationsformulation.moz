@@ -35,14 +35,22 @@ type BaseVector2MatrixMap = (Vector => MatrixMapSReal)
 type BaseVector2NodeMap = (Vector => Node)
 type Node2BaseMap = (Node => Base)
 type NodeBasePair = (Node, [BaseVectorMatrixPair])
+type IVal = (<Real>, Real)
+type Label = (<Real>, String)
+type Res = Real
 type ModelEdge =
   ((NodeBasePair, NodeBasePair), [Terminal], [ConstrVar], [ConstrVar])
 type Domain = [ModelEdge]
-type XY = (MatrixMapVector, MatrixMapVector)
+type DomainTree = [ModelEdge]
+type XY = (MatrixMap, MatrixMap)
 type TopolInfo = (MatrixMapReal, XY)
 type IncidenceMatrix = MatrixMapReal
 type Var2VarsMap = (Vector => Set(Vector))
 type Var2IndexMap = (Vector => Int)
+
+// type DomainGroup
+// def planarMechDomain: [ModelEdge] -> [ModelEdge] -> DomainGroup
+// def electricalDomain: [ModelEdge] -> DomainGroup
 
 def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
   def (X, Y) = XY;
@@ -72,7 +80,7 @@ def mkCutsetMatrix(IM: IncidenceMatrix, XY: XY) -> TopolInfo = {
       (int2real A, (nX, nY))
     }
   } else error "Dimensions of variable matrices and incidence matrix does not agree"
-}
+ }
 
 def substitute(terminals: SubsMap, branchchords: SubsMap, xys: [XY])
   -> [XY] = {
@@ -276,7 +284,7 @@ def mkOrthoFormulMatrix(bmm: BaseVector2MatrixMap, bnm: BaseVector2NodeMap,
     def base = listToSet (Map.find n nbm);
     def ff(b: Vector) -> MatrixMapSReal = {
       if (Set.mem b base) && (Map.mem b bmm) then Map.find b bmm
-      else error "Expression expressed in different bases"
+      else error "Vectors expressed in different bases"
     };
 
     (vconcat (map (fun b: Vector -> vectorToMatrix ff b) bs),
@@ -310,20 +318,6 @@ def mkVar2IndexMap(XY: XY) -> Var2IndexMap = {
 
   foldij (f Y) (foldij (f X) (Map.empty) X) Y
 }
-
-// def chgBase(nbm: Node2BaseMap, bnm: BaseVector2NodeMap, etms: [Edge2BaseTransMap], Ts: [AdjList], n: Node, ve: Vector) = {
-//   def base = listToSet (Map.find n nbm);
-//   def f(v: Vector) -> Vector = {
-//     if (Set.mem v base) then v else v
-//   };
-//   map f ve
-// }
-
-// def planarTrans(nbm: Node2BaseMap, Ts: [AdjList], sn: Node, en: Node)
-
-// = {
-
-// }
 
 def findLoop(terminals: Var2VarsMap, branchchords: Var2VarsMap, v: Vector)
   -> [[Vector]] = {
@@ -404,17 +398,17 @@ def formulateRes(Ds: [Domain]) = {
   def Ts = getTopolInfo Ds;
   def (As, XYs) = unzip Ts;
 
-  def _ = dprint("=== TopolInfo ===");
-  def _ = map dp As;
-  def _ = map dp (fst (unzip XYs));
-  def _ = map dp (snd (unzip XYs));
+  // def _ = dprint("=== TopolInfo ===");
+  // def _ = map dp As;
+  // def _ = map dp (fst (unzip XYs));
+  // def _ = map dp (snd (unzip XYs));
 
-  def _ = dprint("=== Remove Subs loops ===");
+  // def _ = dprint("=== Remove Subs loops ===");
   def Ts = removeLoops (mkVar2VarsMap terminals) Ts;
   def (As, XYs) = unzip Ts;
-  def _ = map dp As;
-  def _ = map dp (fst (unzip XYs));
-  def _ = map dp (snd (unzip XYs));
+  // def _ = map dp As;
+  // def _ = map dp (fst (unzip XYs));
+  // def _ = map dp (snd (unzip XYs));
 
   def branchchords = mkBranchChordSubs Ts;
   def xys = getZerothDerivs XYs;
@@ -422,9 +416,9 @@ def formulateRes(Ds: [Domain]) = {
   def xys_star = substitute terminals branchchords xys;
   def ccress = mkCircCutRes (zip As xys_star);
 
-  def _ = dprint("=== X* and Y* ===");
-  def _ = map dp (fst (unzip xys_star));
-  def _ = map dp (snd (unzip xys_star));
+  // def _ = dprint("=== X* and Y* ===");
+  // def _ = map dp (fst (unzip xys_star));
+  // def _ = map dp (snd (unzip xys_star));
 
   // def _ = dprint("=== Circ and Cut Eqs ===");
   // def _ = map dp (fst (unzip ccress));
@@ -452,8 +446,8 @@ def formulateRes(Ds: [Domain]) = {
   // def _ = dprint(ofs);
   // def _ = dprint(nnofs);
 
-  def _ = dprint("=== Residual ===");
+  // def _ = dprint("=== Residual ===");
   def dres = mkDynRes ofms;
   def _ = dprint(dres);
-  ()
+  dres
 }

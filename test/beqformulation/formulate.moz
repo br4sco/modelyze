@@ -18,13 +18,23 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include EquationsFormulation
+include BasicEqsFormulation
 
-def n1, n2: Node
-def i1, j1, k1, i2, j2, k2: Vector
-def u, w, x, y, t: Real
+def n_1, n_2, n_3: Node
+def u_V, i_V: Real
+def V = mkScalarModelEdge (n_1, n_2) (u_V, i_V) (u_V - 1.)
 
-def T = edgeList2AdjList [(n1, n2)]
-def b1 = [i1, j1, k1]
-def b2 = [i2, j2, k2]
-def nbm = listToMap [(n1, b1), (n2, b2)]
+def u_R, i_R: Real
+def R = mkScalarModelEdge (n_2, n_3) (u_R, i_R) (u_R - i_R)
+
+def u_L, i_L: Real
+def L = mkScalarModelEdge (n_3, n_1) (u_L, i_L) (u_L - der i_L)
+
+def lr = [V, R, L]
+
+def _ = dp V
+def _ = dp R
+def _ = dp L
+def lra = listToArray lr
+def _ = dprint(getGraph lra)
+def _ = dp (mkCutsetMatrix lra)

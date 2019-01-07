@@ -19,6 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include EquationsFormulation
+// include Simulation
 
 def ii_V, uu_V, ii_R, uu_R, ii_L, uu_L: Vector
 def i_V, i_R, u_R, i_L, u_L: Real
@@ -146,7 +147,7 @@ def kM = tr (listToMatrix [[1.]] (mmSRealZero (1, 1)))
 
 // def mkRoM(o: <Real>) = {
 //   listToMatrix [
-//                 [cos o, -sin o],g
+//                 [cos o, -sin o],
 //                 [sin o, cos o]
 //                ] (mmSRealZero (2, 2))
 // }
@@ -205,8 +206,9 @@ def main = {
   // def _ = dprint(getSpaceMap [RL]);
   // def _ = dprint(getSpaceMap BD);
   // def _ = formulateRes [RC];
-  def _ = formulateRes [LLCCC];
-  // def _ = formulateRes BD;
+  def res = formulateRes [LLCCC];
+  // def _ = dprint(zimulate res [] [] (0., 1.) 0.01);
+  def _ = formulateRes BD;
   // def _ = dprint(getBasesToMatrixMap BD);
   ()
 }

@@ -19,12 +19,22 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include EquationsFormulation
+include DILL
 
-def n1, n2: Node
-def i1, j1, k1, i2, j2, k2: Vector
-def u, w, x, y, t: Real
+def zimulate(res: [Res], ivs: [IVal], lbs: [Label], I: Interval, h: Real) = {
+  def f(a: Equations, r: Res) -> Equations = {
+    a; r = 0.
+  };
 
-def T = edgeList2AdjList [(n1, n2)]
-def b1 = [i1, j1, k1]
-def b2 = [i2, j2, k2]
-def nbm = listToMap [(n1, b1), (n2, b2)]
+  def ff(a: HModel, iv: IVal) -> HModel = {
+    a ++ init (fst iv) (snd iv)
+  };
+
+  def eqs = foldLeft f (hd res) res;
+  def ukm = makeUkMap eqs;
+  def flbs = filter (fun l: Label -> Map.mem (fst l) ukm) lbs;
+  def fivs = filter (fun iv: IVal -> Map.mem (fst iv) ukm) ivs;
+  def hm = foldLeft ff (eqs_and_edges eqs) fivs;
+  hm
+  // simulate hm I h flbs 2.9 0.001 false false
+}

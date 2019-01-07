@@ -1,0 +1,83 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Equation
+include Graph
+include Matrix
+
+type AcrossThrough = (MatrixMapSReal, MatrixMapSReal)
+type Res = MatrixMapSReal
+type TransFun = Res -> Res
+type VectorModelEdge = (Edge, AcrossThrough, Res, TransFun)
+
+def dp(vmd: VectorModelEdge) -> VectorModelEdge = {
+  def (e, (X, Y), res, _) = vmd;
+  def _ = dprint(e);
+  def _ = dp X;
+  def _ = dp Y;
+  def _ = dp res;
+  vmd
+}
+
+def sw(a: {Dyn}, i: Int, j: Int) -> () = {
+  def n = (Array.length a);
+  if i < n && 0 <= i && j < n && 0 <= j then {
+    def t = (Array.get a i);
+    def _ = (Array.set a i (Array.get a j));
+    Array.set a j t
+  } else error DIMENSION_MISSMATCH
+}
+
+def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
+  -> VectorModelEdge = {
+
+  def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
+  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: Res -> r)
+}
+
+def getGraph(vmes: {VectorModelEdge}) -> [Edge] = {
+  map (fun vme: VectorModelEdge -> fst vme) (arrayToList vmes)
+}
+
+def mkCutsetMatrix(vmes: {VectorModelEdge}) = {
+  def G = getGraph vmes;
+  def IM = mkIncidenceMatrix G;
+
+  def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
+    if i > rdim a then a
+    else {
+      def j_max = snd (argfind (fun v: Int -> v != 0)
+                    (sub (i, 1) (i, cdim a) a));
+      if i == j_max then work (i + 1) a
+      else {
+        def _ = sw vmes (i - 1) (j_max - 1);
+        work (i + 1) (swcols i j_max a)
+      }
+    }
+  };
+
+  def IMrrt = trimzerorows (rowreduce IM);
+  if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+  else {
+    def IA = work 1 (real2int IMrrt);
+    def (I, A) = vsplit (rdim IA) IA;
+    int2real A
+  }
+}
