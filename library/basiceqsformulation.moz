@@ -25,7 +25,7 @@ include Matrix
 type AcrossThrough = (MatrixMapSReal, MatrixMapSReal)
 type Res = MatrixMapSReal
 type TransFun = Res -> Res
-type VectorModelEdge = (Edge, AcrossThrough, Res, TransFun)
+type VectorModelEdge = (Edge, AcrossThrough, Res, TransFun, TransFun)
 
 def dp(vmd: VectorModelEdge) -> VectorModelEdge = {
   def (e, (X, Y), res, _) = vmd;
@@ -49,11 +49,20 @@ def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
   -> VectorModelEdge = {
 
   def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
-  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: Res -> r)
+  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: Res -> r, fun r: Res -> r)
+}
+
+def getEdge(vme: VectorModelEdge) -> Edge = { fst vme }
+
+def getTransFun(vme: VectorModelEdge) -> (Edge -> Res -> Res) = {
+  def f(e: Edge, r: Res) -> Res = {
+    def
+    if seq e ()
+  };
 }
 
 def getGraph(vmes: {VectorModelEdge}) -> [Edge] = {
-  map (fun vme: VectorModelEdge -> fst vme) (arrayToList vmes)
+  map (fun vme: VectorModelEdge -> getEdge vme) (arrayToList vmes)
 }
 
 def mkCutsetMatrix(vmes: {VectorModelEdge}) = {
@@ -81,3 +90,7 @@ def mkCutsetMatrix(vmes: {VectorModelEdge}) = {
     int2real A
   }
 }
+
+// def teq(C: MatrixMapReal, )  = {
+
+// }

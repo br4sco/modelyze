@@ -108,6 +108,8 @@ def println(s:String) -> () = {
 def println(i:Int) -> () = println(int2string(i))
 def println(i:Real) -> () = println(real2string(i))
 
+def INVALID_ARGUMENT = "Invalid argument"
+
 def OFF = (0, "THIS SHOULD NEVER BE PRINTED!")
 def INFO = (1, "INFO")
 def DEBUG = (2, "DEBUG")
@@ -443,3 +445,15 @@ def Union(l: [(Dyn => Dyn)]) -> (Dyn => Dyn) = {
 def seq(l: Dyn, r: Dyn) -> Bool = { Set.mem l (Set.add r (Set.empty)) }
 
 def s(r: Real) -> <Real> = { r }
+
+def sub(a: {Dyn}, s: Int, len: Int) -> {Dyn} = {
+  def n = (Array.length a);
+  if 0 <= s && s < n && len <= n then {
+    def na = (Array.make len (Array.get a s));
+    def f(i: Int, e: Dyn) -> () = {
+      Array.set na i (Array.get a (i + s))
+    };
+    def _ = iteri f na;
+    na
+  } else error INVALID_ARGUMENT
+}

@@ -38,3 +38,4 @@ def _ = dp L
 def lra = listToArray lr
 def _ = dprint(getGraph lra)
 def _ = dp (mkCutsetMatrix lra)
+def _ = dprint(lra)
