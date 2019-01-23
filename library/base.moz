@@ -449,7 +449,7 @@ def s(r: Real) -> <Real> = { r }
 def sub(a: {Dyn}, s: Int, len: Int) -> {Dyn} = {
   def n = (Array.length a);
   if 0 <= s && s < n && len <= n then {
-    def na = (Array.make len (Array.get a s));
+    def na = (Array.make (len - s) (Array.get a s));
     def f(i: Int, e: Dyn) -> () = {
       Array.set na i (Array.get a (i + s))
     };
