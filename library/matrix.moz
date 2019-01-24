@@ -579,6 +579,12 @@ def vconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
 def hconcat(lM: MatrixMapReal, rM: MatrixMapReal) -> MatrixMapReal = {
   tr (vconcat (tr lM) (tr rM))
 }
+def vconcat(lM: MatrixMapSReal, rM: MatrixMapSReal) -> MatrixMapSReal = {
+  matrixConcat mmSRealFind mmSRealAdd mmSRealZero lM rM
+}
+def hconcat(lM: MatrixMapSReal, rM: MatrixMapSReal) -> MatrixMapSReal = {
+  tr (vconcat (tr lM) (tr rM))
+}
 
 def matrixConcatList(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
   Ms: [Matrix]) -> Matrix = {
