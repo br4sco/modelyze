@@ -41,6 +41,18 @@ def findPath(G: AdjList, s: Node, e: Node) -> [[Node]] = {
   map (fun p: [Node] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
 }
 
+def pathToEdgePath(p: [Node]) -> [Edge] = {
+  def f(a: [Edge], n: Node) -> [Edge] = {
+    def (_, n_1) = hd a;
+    (n_1, n)::a
+  };
+
+  match p with
+  | [] -> []
+  | _::[] -> []
+  | n_1::(n_2::ns) -> reverse (foldLeft f [(n_1, n_2)] ns)
+}
+
 def edgeList2AdjList(G: [Edge]) -> AdjList = {
   def f(a: AdjList, e: Edge) -> AdjList = {
     def get(n: Node) -> [Node] = {

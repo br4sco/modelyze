@@ -23,7 +23,8 @@ include Base
 def EPSILON = 1.e-15
 
 type Pos = (Int, Int)
-type Matrix = (Dyn, Pos)
+type Dim  = (Int, Int)
+type Matrix = (Dyn, Dim)
 type MatrixFind = Pos -> Dyn -> Dyn
 type MatrixAdd = Pos -> Dyn -> Dyn -> Matrix
 type MatrixZero = (Int, Int) -> Matrix
@@ -31,10 +32,11 @@ type MatrixProd = Matrix -> Matrix -> Matrix
 
 // Data structures to hold sparse matrices
 type MMap = (Int => (Int => Dyn))
-type MatrixMap = (MMap, Pos)
-type MatrixMapInt = (Int => (Int => Int), Pos)
-type MatrixMapReal = (Int => (Int => Real), Pos)
-type MatrixMapSReal = (Int => (Int => <Real>), Pos)
+type MatrixMap = (MMap, Dim)
+type MatrixMapInt = (Int => (Int => Int), Dim)
+type MatrixMapReal = (Int => (Int => Real), Dim)
+type MatrixMapSReal = (Int => (Int => <Real>), Dim)
+type MatrixMapIntDyn = (Int => (Int => (Int, Dyn)), Dim)
 
 def DIMENSION_MISSMATCH = "Dimension missmatch"
 def BAD_MATRIX = "Bad matrix"

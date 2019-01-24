@@ -22,10 +22,11 @@ include Equation
 include Graph
 include Matrix
 
-type AcrossThrough = (MatrixMapSReal, MatrixMapSReal)
+type ModelVar = MatrixMapSReal
 type Res = MatrixMapSReal
-type TransFun = Res -> Res
-type VectorModelEdge = (Edge, AcrossThrough, Res, TransFun, TransFun)
+type TransFun = ModelVar -> ModelVar
+type VectorModelEdge = (Edge, (ModelVar, ModelVar), Res, TransFun, TransFun)
+type BaseModelVar = (Node, ModelVar)
 
 def dp(vmd: VectorModelEdge) -> VectorModelEdge = {
   def (e, (X, Y), res, _) = vmd;
@@ -44,30 +45,59 @@ def sw(a: {Dyn}, i: Int, j: Int) -> () = {
     Array.set a j t
   } else error DIMENSION_MISSMATCH
 }
+def mapToIdx(l: [Dyn]) -> [Int] = {
+  def f(i: Int, e: Dyn) -> Int = { i };
+  mapi f l
+}
 
 def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
   -> VectorModelEdge = {
 
   def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
-  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: Res -> r, fun r: Res -> r)
+  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: ModelVar -> r, fun r: ModelVar -> r)
 }
 
 def getEdge(vme: VectorModelEdge) -> Edge = { fst vme }
-
-def getTransFun(vme: VectorModelEdge) -> (Edge -> Res -> Res) = {
-  def f(e: Edge, r: Res) -> Res = {
-    def
-    if seq e ()
-  };
+def getModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = { snd vme }
+def getResidual(vme: VectorModelEdge) -> Res = {
+  def (_, _, res, _, _) = vme; res
+}
+def getTransFun(vme: VectorModelEdge) -> TransFun = {
+  def (_, _, _, tf, _) = vme; tf
+}
+def getInvTransFun(vme: VectorModelEdge) -> TransFun = {
+  def (_, _, _, _, rtf) = vme; rtf
 }
 
-def getGraph(vmes: {VectorModelEdge}) -> [Edge] = {
-  map (fun vme: VectorModelEdge -> getEdge vme) (arrayToList vmes)
+def getResiduals(vmes: [VectorModelEdge]) -> [Res] = {
+  map (fun vme: VectorModelEdge -> getResidual vme) vmes
 }
 
-def mkCutsetMatrix(vmes: {VectorModelEdge}) = {
-  def G = getGraph vmes;
+def mkTransMap(vme: VectorModelEdge) -> (Edge => TransFun) = {
+  def (n_1, n_2) = getEdge vme;
+  listToMap [((n_1, n_2), getTransFun vme), ((n_2, n_1), getInvTransFun vme)]
+}
+
+def mkTransMap(vmes: [VectorModelEdge]) -> (Edge => TransFun) = {
+  Union (map (fun vme: VectorModelEdge -> mkTransMap vme) vmes)
+}
+
+def mkGraph(vmes: [VectorModelEdge]) -> [Edge] = {
+  map (fun vme: VectorModelEdge -> getEdge vme) vmes
+}
+
+def mkBaseModelVars(vmes: [VectorModelEdge]) -> [(BaseModelVar, BaseModelVar)] = {
+  map (fun vme: VectorModelEdge -> {
+    def (n, _) = getEdge vme;
+    def (x, y) = getModelVars vme;
+    ((n, x), (n, y))
+  }) vmes
+}
+
+def mkCutsetMatrix(vmes: [VectorModelEdge]) -> (MatrixMapInt, ([VectorModelEdge], [VectorModelEdge])) = {
+  def G = mkGraph vmes;
   def IM = mkIncidenceMatrix G;
+  def vmes = listToArray vmes;
 
   def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
     if i > rdim a then a
@@ -87,10 +117,66 @@ def mkCutsetMatrix(vmes: {VectorModelEdge}) = {
   else {
     def IA = work 1 (real2int IMrrt);
     def (I, A) = vsplit (rdim IA) IA;
-    int2real A
+    def T = arrayToList (sub vmes 0 (rdim A));
+    def C = arrayToList (sub vmes (rdim A) (Array.length vmes));
+    (A, (T, C))
   }
 }
 
-// def teq(C: MatrixMapReal, )  = {
+def trans(tm: (Edge => TransFun), p: [Edge], v: ModelVar) -> ModelVar = {
+  def f(a: ModelVar, e: Edge) -> ModelVar = {
+    if Map.mem e tm then (Map.find e tm) a
+    else error "Edge not in trans map"
+  };
 
-// }
+  foldLeft f v p
+}
+
+def teq(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt, pbmvs: [BaseModelVar], sbmvs: [BaseModelVar]) = {
+  def ipbmvs = zip (mapToIdx pbmvs) pbmvs;
+  def isbmvs = zip (mapToIdx sbmvs) sbmvs;
+  map (fun ipbmv: (Int, BaseModelVar) -> {
+    def (i, (n_1, pv)) = ipbmv;
+
+    def isbmvs =
+    filter (fun isbmv: (Int, BaseModelVar) -> {
+      def (j, sbmv) = isbmv;
+      find (i + 1, j + 1) C != 0
+    }) isbmvs;
+
+    def smvs =
+    map (fun isbmv: (Int, BaseModelVar) -> {
+      def (j, (n_2, sv)) = isbmv;
+      def p = pathToEdgePath (hd (findPath T n_1 n_2));
+      (find (i + 1, j + 1) C, trans tm p sv)
+    }) isbmvs;
+
+    def f(r: Res, smv: (Int, ModelVar)) -> Res = {
+      def (c, v) = smv;
+      r + (int2real c) *. v
+    };
+    def ress =
+    foldLeft f pv smvs;
+
+    ress
+  }) ipbmvs
+}
+
+def formulateTopolRes(vmes: [VectorModelEdge]) = {
+  def (A, (T, C)) = mkCutsetMatrix vmes;
+  def B = -(tr A);
+  def eal = edgeList2AdjList (mkGraph T);
+  def tm = mkTransMap T;
+  def (tbxs, tbys) = unzip (mkBaseModelVars T);
+  def (cbxs, cbys) = unzip (mkBaseModelVars C);
+  def cutres = teq eal tm A tbys cbys;
+  def circres = teq eal tm B cbxs tbxs;
+  append cutres circres
+}
+
+def formulateRes(vmes: [VectorModelEdge]) = {
+  def termres = getResiduals vmes;
+  def topres = formulateTopolRes vmes;
+  concat (map (fun r: Res -> concat (matrixToList r))
+    (append termres topres))
+}
