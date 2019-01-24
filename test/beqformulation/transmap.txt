@@ -1,0 +1,1 @@
+{(n_3_1, n_2_1) => function @fresh332{TmVar(0)}, (n_3_1, n_1_1) => function @fresh332{TmVar(0)}, (n_2_1, n_3_1) => function @fresh332{TmVar(0)}, (n_2_1, n_1_1) => function @fresh332{TmVar(0)}, (n_1_1, n_3_1) => function @fresh332{TmVar(0)}, (n_1_1, n_2_1) => function @fresh332{TmVar(0)}}

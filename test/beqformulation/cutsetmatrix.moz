@@ -33,7 +33,9 @@ def L = mkScalarModelEdge (n_3, n_1) (u_L, i_L) (u_L - der i_L)
 def lr = [V, R, L]
 
 def main = {
-  def _ = dprint(formulateTopolRes lr);
-  def _ = dprint(formulateRes lr);
+  def (A, (T, C)) = mkCutsetMatrix lr;
+  def _ = dp A;
+  def _ = dprint(T);
+  def _ = dprint(C);
   ()
 }

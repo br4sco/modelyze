@@ -33,7 +33,12 @@ def L = mkScalarModelEdge (n_3, n_1) (u_L, i_L) (u_L - der i_L)
 def lr = [V, R, L]
 
 def main = {
-  def _ = dprint(formulateTopolRes lr);
-  def _ = dprint(formulateRes lr);
+  def (A, (T, C)) = mkCutsetMatrix lr;
+  def tm = mkTransMap lr;
+  def eal = edgeList2AdjList (mkGraph T);
+  def (tbxs, tbys) = unzip (mkBaseModelVars T);
+  def (cbxs, cbys) = unzip (mkBaseModelVars C);
+  def _ = dprint(teq eal tm A tbys cbys);
+  def _ = dprint(teq eal tm (-(tr A)) cbxs tbxs);
   ()
 }
