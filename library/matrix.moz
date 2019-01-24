@@ -96,9 +96,12 @@ def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
   else l * r
 }
 def chsgnSReal(v: <Real>) -> <Real> = {
-  match v with
-  | - v_1 -> v
-  | _ -> -v
+  if iszSReal v then v
+  else {
+    match v with
+    | - v_1 -> v
+    | _ -> -v
+  }
 }
 
 def _mem(ij: Pos, Mm: MMap) -> Bool = {
