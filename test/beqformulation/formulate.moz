@@ -33,7 +33,7 @@ def L = mkScalarModelEdge (n_3, n_1) (u_L, i_L) (u_L - der i_L)
 def lr = [V, R, L]
 
 def main = {
-  def _ = dprint(formulateTopolRes lr);
-  def _ = dprint(formulateRes lr);
+  def _ = dprint(mkTopolResiduals lr);
+  def _ = dprint(mkResiduals lr);
   ()
 }

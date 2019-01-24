@@ -50,16 +50,18 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
   mapi f l
 }
 
-def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
-  -> VectorModelEdge = {
+def trans(tm: (Edge => TransFun), p: [Edge], v: ModelVar) -> ModelVar = {
+  def f(a: ModelVar, e: Edge) -> ModelVar = {
+    if Map.mem e tm then (Map.find e tm) a
+    else error "Edge not in trans map"
+  };
 
-  def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
-  (e, (sToM (fst xy), sToM (snd xy)), sToM r, fun r: ModelVar -> r, fun r: ModelVar -> r)
+  foldLeft f v p
 }
 
 def getEdge(vme: VectorModelEdge) -> Edge = { fst vme }
 def getModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = { snd vme }
-def getResidual(vme: VectorModelEdge) -> Res = {
+def getTerminal(vme: VectorModelEdge) -> Res = {
   def (_, _, res, _, _) = vme; res
 }
 def getTransFun(vme: VectorModelEdge) -> TransFun = {
@@ -69,8 +71,16 @@ def getInvTransFun(vme: VectorModelEdge) -> TransFun = {
   def (_, _, _, _, rtf) = vme; rtf
 }
 
-def getResiduals(vmes: [VectorModelEdge]) -> [Res] = {
-  map (fun vme: VectorModelEdge -> getResidual vme) vmes
+def getTerminals(vmes: [VectorModelEdge]) -> [Res] = {
+  map (fun vme: VectorModelEdge -> getTerminal vme) vmes
+}
+
+def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
+  -> VectorModelEdge = {
+
+  def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
+  (e, (sToM (fst xy), sToM (snd xy)), sToM r,
+   fun r: ModelVar -> r, fun r: ModelVar -> r)
 }
 
 def mkTransMap(vme: VectorModelEdge) -> (Edge => TransFun) = {
@@ -86,7 +96,8 @@ def mkGraph(vmes: [VectorModelEdge]) -> [Edge] = {
   map (fun vme: VectorModelEdge -> getEdge vme) vmes
 }
 
-def mkBaseModelVars(vmes: [VectorModelEdge]) -> [(BaseModelVar, BaseModelVar)] = {
+def mkBaseModelVars(vmes: [VectorModelEdge])
+  -> [(BaseModelVar, BaseModelVar)] = {
   map (fun vme: VectorModelEdge -> {
     def (n, _) = getEdge vme;
     def (x, y) = getModelVars vme;
@@ -94,7 +105,9 @@ def mkBaseModelVars(vmes: [VectorModelEdge]) -> [(BaseModelVar, BaseModelVar)] =
   }) vmes
 }
 
-def mkCutsetMatrix(vmes: [VectorModelEdge]) -> (MatrixMapInt, ([VectorModelEdge], [VectorModelEdge])) = {
+def mkCutsetMatrix(vmes: [VectorModelEdge])
+  -> (MatrixMapInt, ([VectorModelEdge], [VectorModelEdge])) = {
+
   def G = mkGraph vmes;
   def IM = mkIncidenceMatrix G;
   def vmes = listToArray vmes;
@@ -123,16 +136,9 @@ def mkCutsetMatrix(vmes: [VectorModelEdge]) -> (MatrixMapInt, ([VectorModelEdge]
   }
 }
 
-def trans(tm: (Edge => TransFun), p: [Edge], v: ModelVar) -> ModelVar = {
-  def f(a: ModelVar, e: Edge) -> ModelVar = {
-    if Map.mem e tm then (Map.find e tm) a
-    else error "Edge not in trans map"
-  };
+def mkTopolResiduals(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt,
+  pbmvs: [BaseModelVar], sbmvs: [BaseModelVar]) = {
 
-  foldLeft f v p
-}
-
-def teq(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt, pbmvs: [BaseModelVar], sbmvs: [BaseModelVar]) = {
   def ipbmvs = zip (mapToIdx pbmvs) pbmvs;
   def isbmvs = zip (mapToIdx sbmvs) sbmvs;
   map (fun ipbmv: (Int, BaseModelVar) -> {
@@ -162,21 +168,21 @@ def teq(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt, pbmvs: [BaseModelVa
   }) ipbmvs
 }
 
-def formulateTopolRes(vmes: [VectorModelEdge]) = {
+def mkTopolResiduals(vmes: [VectorModelEdge]) -> [Res] = {
   def (A, (T, C)) = mkCutsetMatrix vmes;
   def B = -(tr A);
   def eal = edgeList2AdjList (mkGraph T);
   def tm = mkTransMap T;
   def (tbxs, tbys) = unzip (mkBaseModelVars T);
   def (cbxs, cbys) = unzip (mkBaseModelVars C);
-  def cutres = teq eal tm A tbys cbys;
-  def circres = teq eal tm B cbxs tbxs;
+  def cutres = mkTopolResiduals eal tm A tbys cbys;
+  def circres = mkTopolResiduals eal tm B cbxs tbxs;
   append cutres circres
 }
 
-def formulateRes(vmes: [VectorModelEdge]) = {
-  def termres = getResiduals vmes;
-  def topres = formulateTopolRes vmes;
+def mkResiduals(vmes: [VectorModelEdge]) -> [Real] = {
+  def termres = getTerminals vmes;
+  def topres = mkTopolResiduals vmes;
   concat (map (fun r: Res -> concat (matrixToList r))
     (append termres topres))
 }
