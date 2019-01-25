@@ -1,5 +1,5 @@
 /*
-Modeling Kernel Language (Modelyze) library 
+Modeling Kernel Language (Modelyze) library
 Copyright (C) 2010-2012 David Broman
 
 Modelyze library is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ def makeENode(x:()) -> ENode = {
 }
 
 // Generates an equation graph from an equation system. This
-// function can be used together with pantelides algrithm, 
+// function can be used together with pantelides algrithm,
 // implemented in pantelides.mkl
 def makeEquationGraph(eqs:Equations) -> (EqsGraph,VarMap,Equations) = {
     def travExpr(exp:Expr, accvar:VarSet, accvarmap:VarMap) -> (VarSet,VarMap) = {
@@ -49,12 +49,12 @@ def makeEquationGraph(eqs:Equations) -> (EqsGraph,VarMap,Equations) = {
               def x = (match exp with | der u -> u);
               (Set.add exp accvar,Map.add x exp accvarmap);
           }
-        | sym:Signal -> (Set.add exp accvar,accvarmap) 
+        | sym:Signal -> (Set.add exp accvar,accvarmap)
         | e1 e2 -> {
               def (accvar1,accvarmap1) = travExpr e1 accvar accvarmap;
               travExpr(e2,accvar1,accvarmap1);
           }
-        | _ -> (accvar,accvarmap) 
+        | _ -> (accvar,accvarmap)
   };
   def travEq(eq:Equations, accgraph:EqsGraph, accvarmap:VarMap) -> (EqsGraph,VarMap,<>) = {
     match eq with
@@ -78,21 +78,21 @@ def makeEquationGraph(eqs:Equations) -> (EqsGraph,VarMap,Equations) = {
 // Do index reduction using Panatelides algorithm. The original
 // equations are replaced with the differentiated ones. This
 // approach has the inherent drifting problem. Please use
-// the dummy derivative method (function indexReducationDummyDer) 
+// the dummy derivative method (function indexReducationDummyDer)
 // for mathematically correct reduction. This function is just
 // for testing purposes. Note also that this function
 // will not terminate if the equation system is structurally singular.
-def indexReducationPantelides(eqs:Equations,olddermap:DerivMap) : 
+def indexReducationPantelides(eqs:Equations,olddermap:DerivMap) :
           (Equations,DerivMap) = {
-  
+
   def addDerEqs(eqs:Expr,eqmap:EqMap) : Expr = {
       def wrapder(n:EqNode,exp:Expr) : Expr = {
-          if Map.mem n eqmap 
+          if Map.mem n eqmap
              then der (wrapder (Map.find n eqmap) exp)
              else exp
       };
       match eqs with
-        | ~eqContainer n (e1 = e2) -> 
+        | ~eqContainer n (e1 = e2) ->
           (wrapder n e1) = (wrapder n e2)
         | e1 e2 -> (addDerEqs e1 eqmap) (addDerEqs e2 eqmap)
         | e -> e
@@ -103,22 +103,15 @@ def indexReducationPantelides(eqs:Equations,olddermap:DerivMap) :
 
 
     // Execute Pantelides algorithm
-    def (_,eqmap) = pantelides(graph,varmap,makeVNode,makeENode);    
+    def (_,eqmap) = pantelides(graph,varmap,makeVNode,makeENode);
 
     // Wrap equations to be differentiated into der expressions
     def eqs2 = addDerEqs(augmentedEqs,eqmap);
+    // def _ = dprint(eqs);
+    // def _ = dprint("==");
+    // def _ = dprint(eqs2);
 
-    // Differentiate 
+    // Differentiate
     elaborateDerivatives(eqs2,olddermap)
 
 }
-
-
-
-
-
-
-
-
-
-

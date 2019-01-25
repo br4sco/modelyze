@@ -20,6 +20,9 @@ written by Oscar Eriksson oerikss@kth.se
 
 include BasicEqsFormulation
 
+// type PSVector = (<Real>, <Real>, <Real>)
+type PVector = (Real, Real, Real)
+
 def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal: Res)
   -> VectorModelEdge = {
 

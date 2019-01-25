@@ -1,0 +1,81 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include PlanarMech
+include Simulation
+
+def g = 9.81
+def t_0 = 45. * PI / 180.
+def n_1, n_2, n_3: Node
+
+def zz = mmRealZero (3, 1)
+def g0 = listToMatrix [[0.], [-g]] (mmRealZero (3, 1))
+def l1_0 = listToMatrix [[cos t_0], [sin t_0], [0.]] (mmRealZero (3, 1))
+// def l2_0 = listToMatrix [[0.], [0.], [0.]] (mmRealZero (3, 1))
+
+def x_m, y_m, t_m, Fx_m, Fy_m, T_m: Real
+def aa_m = listToMatrix [[x_m], [y_m], [t_m]] (mmSRealZero (3, 1))
+def tt_m = listToMatrix [[Fx_m], [Fy_m], [T_m]] (mmSRealZero (3, 1))
+def terminal_m = listToMatrix [[Fx_m - x_m''], [Fy_m - y_m''], [T_m - t_m'']] (mmSRealZero (3, 1))
+
+def x_g, y_g, t_g, Fx_g, Fy_g, T_g: Real
+def aa_g = listToMatrix [[x_g], [y_g], [t_g]] (mmSRealZero (3, 1))
+def tt_g = listToMatrix [[Fx_g], [Fy_g], [T_g]] (mmSRealZero (3, 1))
+def terminal_g = listToMatrix [[Fx_g], [Fy_g - g], [T_g]] (mmSRealZero (3, 1))
+
+def x_h, y_h, t_h, Fx_h, Fy_h, T_h: Real
+def aa_h = listToMatrix [[x_h], [y_h], [t_h]] (mmSRealZero (3, 1))
+def tt_h = listToMatrix [[Fx_h], [Fy_h], [T_h]] (mmSRealZero (3, 1))
+def terminal_h = listToMatrix [[x_h], [y_h], [T_h]] (mmSRealZero (3, 1))
+
+def x_l1, y_l1, t_l1, Fx_l1, Fy_l1, T_l1: Real
+def x_l2, y_l2, t_l2, Fx_l2, Fy_l2, T_l2: Real
+
+def aa_l1 = listToMatrix [[x_l1], [y_l1], [t_l1]] (mmSRealZero (3, 1))
+def tt_l1 = listToMatrix [[Fx_l1], [Fy_l1], [T_l1]] (mmSRealZero (3, 1))
+def terminal_l1 = listToMatrix [[x_l1 - cos t_l2], [y_l1 - sin t_l2], [t_l1]] (mmSRealZero (3, 1))
+
+def aa_l2 = listToMatrix [[x_l2], [y_l2], [t_l2]] (mmSRealZero (3, 1))
+def tt_l2 = listToMatrix [[Fx_l2], [Fy_l2], [T_l2]] (mmSRealZero (3, 1))
+def terminal_l2 = listToMatrix [[Fx_l2], [Fy_l2], [T_l2 + Fx_l1 * cos t_l2 + Fy_l1 * sin t_l2]] (mmSRealZero (3, 1))
+
+def e_m = mkPlanarMechModelEdge (n_1, n_2) ((aa_m, l1_0), (tt_m, zz)) terminal_m
+def e_g = mkPlanarMechModelEdge (n_1, n_2) ((aa_g, zz), (tt_g, g0)) terminal_g
+def e_h = mkPlanarMechModelEdge (n_1, n_3) ((aa_h, zz), (tt_h, zz)) terminal_h
+def e_l1 = mkPlanarMechModelEdge (n_2, n_3) ((aa_l1, l1_0), (tt_l1, zz)) terminal_l1
+def e_l2 = mkPlanarMechModelEdge (n_1, n_2) ((aa_l2, zz), (tt_l2, zz)) terminal_l2
+
+def model = [e_m, e_g, e_h, e_l1, e_l2]
+
+def main = {
+  def res = mkResiduals model;
+  def ivs = mkInitVals model;
+  def lbls = [
+              (x_m, "x_m"), (y_m, "t_m"), (t_m, "t_m"),
+              (x_g, "x_g"), (y_g, "t_g"), (t_g, "t_g"),
+              (x_h, "x_h"), (y_h, "t_h"), (t_h, "t_h"),
+              (x_l1, "x_l1"), (y_l1, "t_l1"), (t_l1, "t_l1"),
+              (x_l2, "x_l2"), (y_l2, "t_l2"), (t_l2, "t_l2")
+             ];
+  def m = mkHModel res ivs;
+  def _ = dprint(m);
+  simulate m (0., 3.) 0.01 lbls
+  // ()
+}
