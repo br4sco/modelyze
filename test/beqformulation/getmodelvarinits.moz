@@ -29,10 +29,7 @@ def R = mkScalarModelEdge (n_2, n_3) ((u_R, 0.), (i_R, 0.)) (u_R - i_R)
 
 def u_L, i_L: Real
 def L = mkScalarModelEdge (n_3, n_1) ((u_L, 0.), (i_L, 0.)) (u_L - der i_L)
+
 def lr = [V, R, L]
 
-def main = {
-  def tm = mkTransMap lr;
-  def _ = dprint(tm);
-  ()
-}
+def _ = dprint(mkInitVals lr)

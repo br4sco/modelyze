@@ -1,0 +1,1 @@
+[Fx_m_1 - x_m_1'', Fy_m_1 - y_m_1'', T_m_1, Fx_g_1, Fy_g_1 + sval(9.81), T_g_1, Fx_m_1 + Fx_g_1, Fy_m_1 + Fy_g_1, T_m_1 + T_g_1, x_g_1 - x_m_1, y_g_1 - y_m_1, t_g_1 - t_m_1]

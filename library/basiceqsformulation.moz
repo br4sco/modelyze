@@ -25,14 +25,16 @@ include Matrix
 type ModelVar = MatrixMapSReal
 type Res = MatrixMapSReal
 type TransFun = ModelVar -> ModelVar
-type VectorModelEdge = (Edge, (ModelVar, ModelVar), Res, TransFun, TransFun)
+type ModelVarInit = (ModelVar, MatrixMapReal)
+type InitVal = (<Real>, Real)
+type VectorModelEdge = (Edge, (ModelVarInit, ModelVarInit), Res, TransFun, TransFun)
 type BaseModelVar = (Node, ModelVar)
 
 def dp(vmd: VectorModelEdge) -> VectorModelEdge = {
-  def (e, (X, Y), res, _) = vmd;
+  def (e, ((aa, aa_0), (tt, tt_0)), res, _) = vmd;
   def _ = dprint(e);
-  def _ = dp X;
-  def _ = dp Y;
+  def _ = dp aa;
+  def _ = dp tt;
   def _ = dp res;
   vmd
 }
@@ -60,7 +62,10 @@ def trans(tm: (Edge => TransFun), p: [Edge], v: ModelVar) -> ModelVar = {
 }
 
 def getEdge(vme: VectorModelEdge) -> Edge = { fst vme }
-def getModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = { snd vme }
+def getModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = {
+  def (_, ((aa, _), (tt, _)), _, _, _) = vme;
+  (aa, tt)
+}
 def getTerminal(vme: VectorModelEdge) -> Res = {
   def (_, _, res, _, _) = vme; res
 }
@@ -70,16 +75,34 @@ def getTransFun(vme: VectorModelEdge) -> TransFun = {
 def getInvTransFun(vme: VectorModelEdge) -> TransFun = {
   def (_, _, _, _, rtf) = vme; rtf
 }
+def getModelVarInits(vme: VectorModelEdge) -> [ModelVarInit] = {
+  def (_, (aai, tti), _, _, _) = vme;
+  [aai, tti]
+}
 
 def getTerminals(vmes: [VectorModelEdge]) -> [Res] = {
   map (fun vme: VectorModelEdge -> getTerminal vme) vmes
 }
 
-def mkScalarModelEdge(e: Edge, xy: (<Real>, <Real>), r: <Real>)
+def mkInitVals(vmes: [VectorModelEdge]) -> [InitVal] = {
+  concat
+  (concat (map (fun vme: VectorModelEdge -> {
+      def mvis = getModelVarInits vme;
+      map (fun mvi: ModelVarInit -> {
+        zip
+          (concat (matrixToList (fst mvi)))
+          (concat (matrixToList (snd mvi)))
+      }) mvis
+    }) vmes))
+}
+
+def mkScalarModelEdge(e: Edge, at: ((<Real>, Real), (<Real>, Real)), r: <Real>)
   -> VectorModelEdge = {
 
-  def sToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
-  (e, (sToM (fst xy), sToM (snd xy)), sToM r,
+  def ((a, a_0), (t, t_0)) = at;
+  def rsToM(s: Real) = { listToMatrix [[s]] (mmRealZero (1, 1)) };
+  def ssToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
+  (e, ((ssToM a, rsToM a_0), (ssToM t, rsToM t_0)), ssToM r,
    fun r: ModelVar -> r, fun r: ModelVar -> r)
 }
 

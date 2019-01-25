@@ -18,23 +18,25 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include EquationsFormulation
+include BasicEqsFormulation
 include DILL
 
-def zimulate(res: [Res], ivs: [IVal], lbs: [Label], I: Interval, h: Real) = {
-  def f(a: Equations, r: Res) -> Equations = {
+type Label = (<Real>, String)
+
+def mkHModel(res: [Real], ivs: [InitVal]) -> HModel = {
+  def f(a: Equations, r: <Real>) -> Equations = {
     a; r = 0.
   };
 
-  def ff(a: HModel, iv: IVal) -> HModel = {
-    a ++ init (fst iv) (snd iv)
+  def ff(a: HModel, iv: InitVal) -> HModel = {
+    def (v, r) = iv;
+    a ++ init v r
   };
 
   def eqs = foldLeft f (hd res) res;
-  def ukm = makeUkMap eqs;
-  def flbs = filter (fun l: Label -> Map.mem (fst l) ukm) lbs;
-  def fivs = filter (fun iv: IVal -> Map.mem (fst iv) ukm) ivs;
-  def hm = foldLeft ff (eqs_and_edges eqs) fivs;
-  hm
-  // simulate hm I h flbs 2.9 0.001 false false
+  foldLeft ff (eqs_and_edges eqs) ivs
+}
+
+def simulate(m: HModel, I: Interval, h: Real, lbls: [Label]) -> () = {
+  simulate m I h lbls 2.9 0.001 false false
 }

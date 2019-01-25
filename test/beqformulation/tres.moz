@@ -22,14 +22,13 @@ include BasicEqsFormulation
 
 def n_1, n_2, n_3: Node
 def u_V, i_V: Real
-def V = mkScalarModelEdge (n_1, n_2) (u_V, i_V) (u_V - 1.)
+def V = mkScalarModelEdge (n_1, n_2) ((u_V, 1.), (i_V, 0.)) (u_V - 1.)
 
 def u_R, i_R: Real
-def R = mkScalarModelEdge (n_2, n_3) (u_R, i_R) (u_R - i_R)
+def R = mkScalarModelEdge (n_2, n_3) ((u_R, 0.), (i_R, 0.)) (u_R - i_R)
 
 def u_L, i_L: Real
-def L = mkScalarModelEdge (n_3, n_1) (u_L, i_L) (u_L - der i_L)
-
+def L = mkScalarModelEdge (n_3, n_1) ((u_L, 0.), (i_L, 0.)) (u_L - der i_L)
 def lr = [V, R, L]
 
 def main = {

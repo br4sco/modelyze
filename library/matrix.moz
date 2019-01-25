@@ -223,6 +223,9 @@ def matrixToList(mfind: MatrixFind, M: Matrix) -> [[Dyn]] = {
 
   work (rdim M) []
 }
+def matrixToList(M: MatrixMapReal) -> [[Real]] = {
+  matrixToList mmRealFind M
+}
 def matrixToList(M: MatrixMapSReal) -> [[<Real>]] = {
   matrixToList mmSRealFind M
 }

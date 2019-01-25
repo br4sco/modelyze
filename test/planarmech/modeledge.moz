@@ -1,3 +1,4 @@
+
 /*
 Modeling Kernel Language (Modelyze) library
 Copyright (C) 2010-2012 David Broman
@@ -18,21 +19,22 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include BasicEqsFormulation
+include PlanarMech
 
-def n_1, n_2, n_3: Node
-def u_V, i_V: Real
-def V = mkScalarModelEdge (n_1, n_2) ((u_V, 1.), (i_V, 0.)) (u_V - 1.)
+def g = 9.81
+def n_1, n_2: Node
 
-def u_R, i_R: Real
-def R = mkScalarModelEdge (n_2, n_3) ((u_R, 0.), (i_R, 0.)) (u_R - i_R)
+def zz = mmRealZero (3, 1)
 
-def u_L, i_L: Real
-def L = mkScalarModelEdge (n_3, n_1) ((u_L, 0.), (i_L, 0.)) (u_L - der i_L)
-def lr = [V, R, L]
+def x_m, y_m, t_m, Fx_m, Fy_m, T_m: Real
+def aa_m = listToMatrix [[x_m], [y_m], [t_m]] (mmSRealZero (3, 1))
+def tt_m = listToMatrix [[Fx_m], [Fy_m], [T_m]] (mmSRealZero (3, 1))
+def terminal_m = listToMatrix [[Fx_m - x_m''], [Fy_m - y_m''], [T_m]] (mmSRealZero (3, 1))
 
 def main = {
-  def tm = mkTransMap lr;
-  def _ = dprint(tm);
+  def pm = mkPlanarMechModelEdge (n_1, n_2) ((aa_m, zz), (tt_m, zz)) terminal_m;
+  def (_, _ , _, tf, itf) = dp pm;
+  def _ = dp (tf tt_m);
+  def _ = dp (itf tt_m);
   ()
 }

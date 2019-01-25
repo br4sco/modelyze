@@ -18,7 +18,7 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include BasicEqsFormulation
+include Simulation
 
 def n_1, n_2, n_3: Node
 def u_V, i_V: Real
@@ -29,10 +29,13 @@ def R = mkScalarModelEdge (n_2, n_3) ((u_R, 0.), (i_R, 0.)) (u_R - i_R)
 
 def u_L, i_L: Real
 def L = mkScalarModelEdge (n_3, n_1) ((u_L, 0.), (i_L, 0.)) (u_L - der i_L)
+
 def lr = [V, R, L]
 
 def main = {
-  def tm = mkTransMap lr;
-  def _ = dprint(tm);
-  ()
+  def res = mkResiduals lr;
+  def ivs = mkInitVals lr;
+  def lbls = [(u_L, "u_L"), (i_L, "i")];
+  def m = mkHModel res ivs;
+  simulate m (0., 3.) 0.01 lbls
 }

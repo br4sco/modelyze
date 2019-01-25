@@ -18,79 +18,41 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include EquationsFormulation
+include BasicEqsFormulation
 
-def PLANAR_TRANS = "Planar Translation"
-def PLANAR_ROT = "Planar Rotation"
+def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal: Res)
+  -> VectorModelEdge = {
 
-def g = 9.81
+  def ((aa, _), _) = aatt;
+  def x = find (1, 1) aa;
+  def y = find (2, 1) aa;
+  def t = find (3, 1) aa;
+  def u: <Real> = 1.;
+  def z: <Real> = 0.;
 
-type Frame = (Vector, (Vector, Vector))
-type Terminal = Frame -> (Vector => Vector)
+  def tf(mv: ModelVar) -> ModelVar = {
+    def mv = hconcat mv (mmSRealId 1);
+    def T = listToMatrix [
+                          [cos t, -sin t, z, z],
+                          [sin t,  cos t, z, z],
+                          [z,      z,     u, z],
+                          [z,      z,     z, u]
+                         ] (mmSRealZero (4, 4));
 
-def mkFrame(t: ()) -> Frame = { def i, j, k: Vector; (i, (j, k)) }
-def iof(f: Frame) -> Vector = { fst f }
-def jof(f: Frame) -> Vector = { fst (snd f) }
-def kof(f: Frame) -> Vector = { snd (snd f) }
+    fst (hsplit 3 (T * mv))
+  };
 
-def mkAVar(v: Vector) -> [Vector] = { [v, (der v), (der (der v))] }
-def mkTVar(v: Vector) -> [Vector] = { [v] }
+  def itf(mv: ModelVar) -> ModelVar = {
+    def mv = hconcat mv (mmSRealId 1);
+    def T = listToMatrix [
+                          [cos t,  sin t, z, z],
+                          [-sin t, cos t, z, z],
+                          [z,      z,     u, z],
+                          [z,      z,     z, u]
+                         ] (mmSRealZero (4, 4));
 
-def mkEdge(F_1: Frame, F_2: Frame, tv: Vector, av: Vector) -> VectorEdge = {
-  (F_1, F_2, mkTVar tv, mkAVar av)
+    fst (hsplit 3 (T * mv))
+  };
+
+  (e, aatt, terminal, tf, itf)
 }
-
-def planarBody(m: Real, I : Real, F_1: Frame, F_2: Frame) -> Component = {
-  def F, r, T, o: Vector;
-  listToMap
-  [
-    (PLANAR_TRANS,
-      (
-        [mkEdge F_1 F_2 F r],
-        listToMap
-        [
-          (F, m * r'')
-        ],
-        (Map.empty)
-      )
-    ),
-    (PLANAR_ROT,
-      (
-        [mkEdge F_1 F_2 T o],
-        listToMap
-        [
-          (T, I * o'')
-        ],
-        (Map.empty)
-      )
-    )
-  ]
-}
-
-def planarGravity(m: Real, F_1: Frame, F_2: Frame) -> Component = {
-  def F, r, T, o: Vector;
-  listToMap
-  [
-    (PLANAR_TRANS,
-      (
-        [mkEdge F_1 F_2 F r],
-        listToMap
-        [
-          (F, m * g * (jof F_1))
-        ],
-        (Map.empty)
-      )
-    ),
-    (PLANAR_ROT,
-      (
-        [mkEdge F_1 F_2 T o],
-        listToMap
-        [
-          (T, zero)
-        ],
-        (Map.empty)
-      )
-    )
-  ]
-}
-
