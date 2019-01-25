@@ -210,6 +210,22 @@ def number_of_equations(e: Eqs) -> Int = {
   | _ -> def _ = dprint(e); error "exptected equations"
 }
 
+def cleanup(e: Equations) -> Equations = {
+  def work(e: Equations) -> Equations = {
+    match e with
+    | e1; e2 ->
+       {
+          match (work e1, work e2) with
+          | (mnil _, mnil _) -> mnil ()
+          | (mnil _, e) -> e
+          | (e, mnil _) -> e
+          | (e1b, e2b) -> e1b; e2b
+       }
+    | _ -> e
+  };
+  work e
+}
+
 // ======= SEMANTICS IMPLEMENTAION ==========
 
 def indexred(d: Eqs) -> Eqs = {
@@ -225,7 +241,10 @@ def eval_expr(e: <Real>, z: State) -> Real = {
     | sym: Real -> state_find e z
     | f a -> (work f) (work a)
     | lift v: ? -> v
-    | _ -> error "unsupported eqs_and_edges construct"
+    | _ -> {
+        def _ = dprint(e);
+        error "unsupported eqs_and_edges construct"
+      }
     };
   work e
 }
@@ -493,7 +512,7 @@ def eval_left_limits(m: Equations, z_ll: State) -> Equations = {
 
 def elaborate(m: HModel, z_ll: State) -> CDAE = {
   def mp = eval_left_limits (mmodel_to_model m) z_ll;
-  ((model_to_eqs mp); (elab_topology (get_topology mp)), model_to_ieqs mp)
+  (cleanup ((model_to_eqs mp); (elab_topology (get_topology mp))), model_to_ieqs mp)
 }
 
 def impulse_solving(e: Eqs, z_ll: State, z_g: State, k: Real, h: Real) -> (State, State) = {
@@ -661,7 +680,7 @@ def impulse_solving(e: Eqs, z_ll: State, z_g: State, k: Real, h: Real) -> (State
 // ieh: The stepsize of the implicit Euler scheme during impulse approximation.
 // sll: Denotes whether a left-limit consistent with the predecessor mode should be found (currently buggy and very naive).
 // dtrace: Denotes whether the simulation results for micro-steps should be printed.
-def simulate(m: HModel, I: Interval, h: Real, monitored: [(<Real>, String)], k: Real, ieh: Real, sll: Bool, dtrace: Bool) = {
+def simulate(m: HModel, I: Interval, h: Real, monitored: [(<Real>, String)], k: Real, ieh: Real, sll: Bool, dtrace: Bool) -> () = {
 
   def probes = map (fun e: (<Real>, String) -> fst e) monitored;
   def labels = map (fun e: (<Real>, String) -> snd e) monitored;
@@ -699,11 +718,10 @@ def simulate(m: HModel, I: Interval, h: Real, monitored: [(<Real>, String)], k: 
     def z_ll = state_empty;
     def z_0 = eval_inits m (eval_mexpr_fun z_ll state_empty) state_empty;
     def mp = mode_switch m (eval_mexpr_fun z_ll z_0);
-    def z_0p = eval_inits mp (eval_mexpr_fun z_ll z_0) z_0;
+    def z_0 = eval_inits mp (eval_mexpr_fun z_ll z_0) z_0;
     def (eqs, ieqs) = elaborate mp z_ll;
-    def (z_0pp, t_0p) = search_civs (indexred eqs) z_0p t_0 0.;
-    def ((t_0pp, t_fp), z_llp, z_0ppp) = solve (eqs, ieqs) z_0pp (t_0p, t_f) h probes sll;
-    (z_llp, z_0ppp, (t_fp, t_f))
+    def ((t_0, t_fp), z_ll, z_0) = solve (eqs, ieqs) z_0 (t_0, t_f) h probes sll;
+    (z_ll, z_0, (t_fp, t_f))
   });
 
   def sim(s: MState) -> () = {
@@ -736,4 +754,3 @@ def simulate(m: HModel, I: Interval, h: Real, monitored: [(<Real>, String)], k: 
   def (z_ll, z_0, Ip) = initialize ();
   sim (m, z_ll, z_0, z_0, Ip, 0)
 }
-
