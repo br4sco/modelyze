@@ -20,8 +20,9 @@ written by Oscar Eriksson oerikss@kth.se
 
 include BasicEqsFormulation
 
-// type PSVector = (<Real>, <Real>, <Real>)
-type PVector = (Real, Real, Real)
+type PlanarInitVars = (InitVal, InitVal, InitVal)
+type PlanarVars = (<Real>, <Real>, <Real>)
+type PlanarVals = (Real, Real, Real)
 
 def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal: Res)
   -> VectorModelEdge = {
@@ -58,4 +59,38 @@ def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal:
   };
 
   (e, aatt, terminal, tf, itf)
+}
+
+def mkZeroInitPlanarInitVars(v: PlanarVars) -> PlanarInitVars = {
+  def (v_1, v_2, v_3) = v;
+  ((v_1, 0.), (v_2, 0.), (v_3, 0.))
+}
+
+
+def  planarInitVarsToMatrix(v: PlanarInitVars) -> (MatrixMapSReal, MatrixMapReal) = {
+  def ((v_1, v_1_0), (v_2, v_2_0), (v_3, v_3_0)) = v;
+  (listToMatrix [[v_1], [v_2], [v_3]] (mmSRealZero (3, 1)),
+   listToMatrix [[v_1_0], [v_2_0], [v_3_0]] (mmRealZero (3, 1)))
+}
+
+def getPlanarVars(v: PlanarInitVars) -> PlanarVars = {
+  def ((v_1, _), (v_2, _), (v_3, _)) = v;
+  (v_1, v_2, v_3)
+}
+
+def PlanarBody(m: Real, I: Real, rxryt: PlanarInitVars, FxFyT: PlanarInitVars, e: Edge)
+  -> [VectorModelEdge] = {
+
+  def (rx, ry, t) = getPlanarVars rxryt;
+  def (Fx, Fy, T) = getPlanarVars FxFyT;
+  def terminals = listToMatrix [[Fx - m * rx''], [Fy - m * ry''], [T - I * t'']] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e (planarInitVarsToMatrix rxryt, planarInitVarsToMatrix FxFyT) terminals]
+}
+
+def PlanarGravity(g: Real, e: Edge) -> [VectorModelEdge] = {
+  def rx_g, ry_g, t_g, Fx_g, Fy_g, T_g: Real;
+  def rxryt = mkZeroInitPlanarInitVars (rx_g, ry_g, t_g);
+  def FxFyT = ((Fx_g, 0.), (Fy_g, g), (T_g, 0.));
+  def terminals = listToMatrix [[Fx_g], [Fy_g - g], [T_g]] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e (planarInitVarsToMatrix rxryt, planarInitVarsToMatrix FxFyT) terminals]
 }

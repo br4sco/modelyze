@@ -25,23 +25,14 @@ include Simulation
 def g = -9.81
 def n_1, n_2: Node
 
-def zz = mmRealZero (3, 1)
-def g0 = listToMatrix [[0.], [-g]] (mmRealZero (3, 1))
-
 def x_m, y_m, t_m, Fx_m, Fy_m, T_m: Real
-def aa_m = listToMatrix [[x_m], [y_m], [t_m]] (mmSRealZero (3, 1))
-def tt_m = listToMatrix [[Fx_m], [Fy_m], [T_m]] (mmSRealZero (3, 1))
-def terminal_m = listToMatrix [[Fx_m - x_m''], [Fy_m - y_m''], [T_m - t_m'']] (mmSRealZero (3, 1))
+def rxryt_m = mkZeroInitPlanarInitVars (x_m, y_m, t_m)
+def FxFyT_m = mkZeroInitPlanarInitVars (Fx_m, Fy_m, T_m)
 
-def x_g, y_g, t_g, Fx_g, Fy_g, T_g: Real
-def aa_g = listToMatrix [[x_g], [y_g], [t_g]] (mmSRealZero (3, 1))
-def tt_g = listToMatrix [[Fx_g], [Fy_g], [T_g]] (mmSRealZero (3, 1))
-def terminal_g = listToMatrix [[Fx_g], [Fy_g - g], [T_g]] (mmSRealZero (3, 1))
+def pb = PlanarBody 1. 1. rxryt_m FxFyT_m (n_2, n_1)
+def pg = PlanarGravity g (n_1, n_2)
 
-def pm = mkPlanarMechModelEdge (n_1, n_2) ((aa_m, zz), (tt_m, zz)) terminal_m
-def gf = mkPlanarMechModelEdge (n_2, n_1) ((aa_g, zz), (tt_g, g0)) terminal_g
-
-def model = [pm, gf]
+def model =  append pb pg
 
 def main = {
   def res = mkResiduals model;
