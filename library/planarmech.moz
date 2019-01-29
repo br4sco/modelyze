@@ -24,13 +24,26 @@ type PlanarInitVars = (InitVal, InitVal, InitVal)
 type PlanarVars = (<Real>, <Real>, <Real>)
 type PlanarVals = (Real, Real, Real)
 
-def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal: Res)
-  -> VectorModelEdge = {
+def getPlanarVars(v: PlanarInitVars) -> PlanarVars = {
+  def ((v_1, _), (v_2, _), (v_3, _)) = v;
+  (v_1, v_2, v_3)
+}
 
-  def ((aa, _), _) = aatt;
-  def x = find (1, 1) aa;
-  def y = find (2, 1) aa;
-  def t = find (3, 1) aa;
+def mkZeroInitPlanarInitVars(v: PlanarVars) -> PlanarInitVars = {
+  def (v_1, v_2, v_3) = v;
+  ((v_1, 0.), (v_2, 0.), (v_3, 0.))
+}
+
+def  planarInitVarsToMatrix(v: PlanarInitVars)
+  -> (MatrixMapSReal, MatrixMapReal) = {
+
+  def ((v_1, v_1_0), (v_2, v_2_0), (v_3, v_3_0)) = v;
+  (listToMatrix [[v_1], [v_2], [v_3]] (mmSRealZero (3, 1)),
+   listToMatrix [[v_1_0], [v_2_0], [v_3_0]] (mmRealZero (3, 1)))
+}
+
+def mkTransMatrices(rxryt: PlanarVars) -> (TransFun, TransFun) = {
+  def (rx, ry, t) = rxryt;
   def u: <Real> = 1.;
   def z: <Real> = 0.;
 
@@ -58,39 +71,91 @@ def mkPlanarMechModelEdge(e: Edge, aatt: (ModelVarInit, ModelVarInit), terminal:
     fst (hsplit 3 (T * mv))
   };
 
-  (e, aatt, terminal, tf, itf)
+  (tf, itf)
 }
 
-def mkZeroInitPlanarInitVars(v: PlanarVars) -> PlanarInitVars = {
-  def (v_1, v_2, v_3) = v;
-  ((v_1, 0.), (v_2, 0.), (v_3, 0.))
+def mkPlanarMechModelEdge(e: Edge,
+  vxvyo: PlanarInitVars, rxryt: PlanarInitVars, FxFyT: PlanarInitVars,
+  terminals: Res, derivatives: Res) -> VectorModelEdge = {
+
+  def (tf, itf) = mkTransMatrices (getPlanarVars rxryt);
+  (e, ([planarInitVarsToMatrix vxvyo, planarInitVarsToMatrix rxryt],
+  planarInitVarsToMatrix FxFyT), hconcat derivatives terminals, tf, itf)
 }
 
-
-def  planarInitVarsToMatrix(v: PlanarInitVars) -> (MatrixMapSReal, MatrixMapReal) = {
-  def ((v_1, v_1_0), (v_2, v_2_0), (v_3, v_3_0)) = v;
-  (listToMatrix [[v_1], [v_2], [v_3]] (mmSRealZero (3, 1)),
-   listToMatrix [[v_1_0], [v_2_0], [v_3_0]] (mmRealZero (3, 1)))
-}
-
-def getPlanarVars(v: PlanarInitVars) -> PlanarVars = {
-  def ((v_1, _), (v_2, _), (v_3, _)) = v;
-  (v_1, v_2, v_3)
-}
-
-def PlanarBody(m: Real, I: Real, rxryt: PlanarInitVars, FxFyT: PlanarInitVars, e: Edge)
-  -> [VectorModelEdge] = {
-
+def mkPlanarMechModelEdge(e: Edge,
+  vxvyo: PlanarInitVars, rxryt: PlanarInitVars, FxFyT: PlanarInitVars,
+  terminals: Res) -> VectorModelEdge = {
   def (rx, ry, t) = getPlanarVars rxryt;
+  def (vx, vy, o) = getPlanarVars vxvyo;
+  def derivatives = listToMatrix [[vx - rx'],
+                                  [vy - ry'],
+                                  [o - t']] (mmSRealZero (3, 1));
+  mkPlanarMechModelEdge e vxvyo rxryt FxFyT terminals derivatives
+}
+
+// def mkPlanarMechModelEdge(e: Edge, rxryt: PlanarInitVars, FxFyT: PlanarInitVars,
+//   terminals: Res) -> VectorModelEdge = {
+
+//   def (tf, itf) = mkTransMatrices (getPlanarVars rxryt);
+//   (e, ([planarInitVarsToMatrix rxryt],
+//   planarInitVarsToMatrix FxFyT), terminals, tf, itf)
+// }
+
+def PlanarBody(m: Real, I: Real,
+  vxvyo: PlanarInitVars, rxryt: PlanarInitVars, FxFyT: PlanarInitVars,
+  e: Edge) -> [VectorModelEdge] = {
+
+  def (vx, vy, o) = getPlanarVars vxvyo;
   def (Fx, Fy, T) = getPlanarVars FxFyT;
-  def terminals = listToMatrix [[Fx - m * rx''], [Fy - m * ry''], [T - I * t'']] (mmSRealZero (3, 1));
-  [mkPlanarMechModelEdge e (planarInitVarsToMatrix rxryt, planarInitVarsToMatrix FxFyT) terminals]
+  def terminals = listToMatrix [[Fx - m * vx'],
+                                [Fy - m * vy'],
+                                [T - I * o']] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e vxvyo rxryt FxFyT terminals]
 }
 
 def PlanarGravity(g: Real, e: Edge) -> [VectorModelEdge] = {
-  def rx_g, ry_g, t_g, Fx_g, Fy_g, T_g: Real;
+  def vx_g, vy_g, o_g, rx_g, ry_g, t_g, Fx_g, Fy_g, T_g: Real;
+  def vxvyo = mkZeroInitPlanarInitVars (vx_g, vy_g, o_g);
   def rxryt = mkZeroInitPlanarInitVars (rx_g, ry_g, t_g);
   def FxFyT = ((Fx_g, 0.), (Fy_g, g), (T_g, 0.));
-  def terminals = listToMatrix [[Fx_g], [Fy_g - g], [T_g]] (mmSRealZero (3, 1));
-  [mkPlanarMechModelEdge e (planarInitVarsToMatrix rxryt, planarInitVarsToMatrix FxFyT) terminals]
+  def terminals = listToMatrix [[Fx_g],
+                                [Fy_g - g],
+                                [T_g]] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e vxvyo rxryt FxFyT terminals]
+}
+
+def RotationalDrive(f: <Real>, f_0: Real, fp_0: Real, e: Edge)
+  -> [VectorModelEdge] = {
+
+  def vx_h, vy_h, o_h, rx_h, ry_h, t_h, Fx_h, Fy_h, T_h: Real;
+  def vxvyo = ((vx_h, 0.), (vy_h, 0.), (o_h, fp_0));
+  def rxryt = ((rx_h, 0.), (ry_h, 0.), (t_h, f_0));
+  def FxFyT = mkZeroInitPlanarInitVars (Fx_h, Fy_h, T_h);
+  def terminals = listToMatrix [[rx_h],
+                                [ry_h],
+                                [t_h - f]] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e vxvyo rxryt FxFyT terminals]
+}
+
+def PlanarArm(l: Real,
+  vxvyo_1: PlanarInitVars, rxryt_1: PlanarInitVars, FxFyT_1: PlanarInitVars,
+  vxvyo_2: PlanarInitVars, rxryt_2: PlanarInitVars, FxFyT_2: PlanarInitVars,
+  n_1: Node, n_2: Node, n_3: Node) -> [VectorModelEdge] = {
+
+  def (rx_1, ry_1, o_1) = getPlanarVars rxryt_1;
+  def (Fx_1, Fy_1, _) = getPlanarVars FxFyT_1;
+  def (_, _, t_2) = getPlanarVars rxryt_2;
+  def (Fx_2, Fy_2, T_2) = getPlanarVars FxFyT_2;
+
+  def terminals_1 = listToMatrix [[rx_1 + l * cos t_2],
+                                  [ry_1 + l * sin t_2],
+                                  [o_1]] (mmSRealZero (3, 1));
+  def terminals_2 =
+    listToMatrix [[Fx_2],
+                  [Fy_2],
+                  [T_2 + l * cos t_2 * Fx_1 - l * sin t_2 * Fy_1]]
+                  (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge (n_1, n_2) vxvyo_1 rxryt_1 FxFyT_1 terminals_1,
+   mkPlanarMechModelEdge (n_3, n_1) vxvyo_2 rxryt_2 FxFyT_2 terminals_2]
 }

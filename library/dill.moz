@@ -228,9 +228,12 @@ def cleanup(e: Equations) -> Equations = {
 
 // ======= SEMANTICS IMPLEMENTAION ==========
 
-def indexred(d: Eqs) -> Eqs = {
+def indexred(d: Eqs, z: State) -> (Eqs, State) = {
+  def f(k: <Real>, d: <Real>, a: State) -> State = {
+    if Map.mem (der k) z then Map.add d (Map.find (der k) z) a else a
+  };
   def (dr, dmap) = indexReducationPantelides d (Map.empty);
-  dr
+  (dr, fold f dmap z)
 }
 
 def eval_expr(e: <Real>, z: State) -> Real = {
@@ -307,7 +310,11 @@ def solve(cdae: CDAE, z_0: State, I: Interval, h: Real, probes: [<Real>], sll: B
 
   // Preapare for solving
   def (eqs, ieqs) = cdae;
-  def eqsp = indexred (model_to_eqs eqs);
+  // def _ = dprint(eqs);
+  // def _ = dprint(z_0);
+  def (eqsp, z_0) = indexred (model_to_eqs eqs) z_0;
+  // def _ = dprint(eqsp);
+  // def _ = dprint(z_0);
 
   // Setup the Eqs Solver
   def (resf, nroots, rootf, yy1, yp1, vids, ukm) = get_DAESolver_input eqsp ieqs z_0 0.;

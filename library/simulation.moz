@@ -21,6 +21,12 @@ written by Oscar Eriksson oerikss@kth.se
 include BasicEqsFormulation
 include DILL
 
+def Clock(t_0: Real, t: <Real>) = {
+  init t t_0 ++
+  init (der t) (1.) ++
+  eqs_and_edges (der t = 1.)
+}
+
 type Label = (<Real>, String)
 
 def mkHModel(res: [Real], ivs: [InitVal]) -> HModel = {

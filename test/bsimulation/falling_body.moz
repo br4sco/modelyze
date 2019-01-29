@@ -25,11 +25,12 @@ include Simulation
 def g = 9.81
 def n_1, n_2: Node
 
-def x_m, y_m, t_m, Fx_m, Fy_m, T_m: Real
+def vx_m, vy_m, o_m, x_m, y_m, t_m, Fx_m, Fy_m, T_m: Real
+def vxvyo_m = mkZeroInitPlanarInitVars (vx_m, vy_m, o_m)
 def rxryt_m = mkZeroInitPlanarInitVars (x_m, y_m, t_m)
 def FxFyT_m = mkZeroInitPlanarInitVars (Fx_m, Fy_m, T_m)
 
-def pb = PlanarBody 1. 1. rxryt_m FxFyT_m (n_1, n_2)
+def pb = PlanarBody 1. 1. vxvyo_m rxryt_m FxFyT_m (n_1, n_2)
 def pg = PlanarGravity g (n_1, n_2)
 
 def model =  append pb pg

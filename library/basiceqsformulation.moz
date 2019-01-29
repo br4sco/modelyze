@@ -27,7 +27,7 @@ type Res = MatrixMapSReal
 type TransFun = ModelVar -> ModelVar
 type ModelVarInit = (ModelVar, MatrixMapReal)
 type InitVal = (<Real>, Real)
-type VectorModelEdge = (Edge, (ModelVarInit, ModelVarInit), Res, TransFun, TransFun)
+type VectorModelEdge = (Edge, ([ModelVarInit], ModelVarInit), Res, TransFun, TransFun)
 type BaseModelVar = (Node, ModelVar)
 
 def dp(vmd: VectorModelEdge) -> VectorModelEdge = {
@@ -62,8 +62,9 @@ def trans(tm: (Edge => TransFun), p: [Edge], v: ModelVar) -> ModelVar = {
 }
 
 def getEdge(vme: VectorModelEdge) -> Edge = { fst vme }
-def getModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = {
-  def (_, ((aa, _), (tt, _)), _, _, _) = vme;
+def getHighestOrderModelVars(vme: VectorModelEdge) -> (ModelVar, ModelVar) = {
+  def (_, (aas, (tt, _)), _, _, _) = vme;
+  def (aa, _) = hd aas;
   (aa, tt)
 }
 def getTerminal(vme: VectorModelEdge) -> Res = {
@@ -76,8 +77,8 @@ def getInvTransFun(vme: VectorModelEdge) -> TransFun = {
   def (_, _, _, _, rtf) = vme; rtf
 }
 def getModelVarInits(vme: VectorModelEdge) -> [ModelVarInit] = {
-  def (_, (aai, tti), _, _, _) = vme;
-  [aai, tti]
+  def (_, (aais, tti), _, _, _) = vme;
+  tti::aais
 }
 
 def getTerminals(vmes: [VectorModelEdge]) -> [Res] = {
@@ -102,7 +103,7 @@ def mkScalarModelEdge(e: Edge, at: ((<Real>, Real), (<Real>, Real)), r: <Real>)
   def ((a, a_0), (t, t_0)) = at;
   def rsToM(s: Real) = { listToMatrix [[s]] (mmRealZero (1, 1)) };
   def ssToM(s: <Real>) = { listToMatrix [[s]] (mmSRealZero (1, 1)) };
-  (e, ((ssToM a, rsToM a_0), (ssToM t, rsToM t_0)), ssToM r,
+  (e, ([(ssToM a, rsToM a_0)], (ssToM t, rsToM t_0)), ssToM r,
    fun r: ModelVar -> r, fun r: ModelVar -> r)
 }
 
@@ -123,7 +124,7 @@ def mkBaseModelVars(vmes: [VectorModelEdge])
   -> [(BaseModelVar, BaseModelVar)] = {
   map (fun vme: VectorModelEdge -> {
     def (n, _) = getEdge vme;
-    def (x, y) = getModelVars vme;
+    def (x, y) = getHighestOrderModelVars vme;
     ((n, x), (n, y))
   }) vmes
 }
