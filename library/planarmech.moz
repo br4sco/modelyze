@@ -145,17 +145,17 @@ def PlanarArm(l: Real,
 
   def (rx_1, ry_1, o_1) = getPlanarVars rxryt_1;
   def (Fx_1, Fy_1, _) = getPlanarVars FxFyT_1;
-  def (_, _, t_2) = getPlanarVars rxryt_2;
+  def (rx_2, ry_2, t_2) = getPlanarVars rxryt_2;
   def (Fx_2, Fy_2, T_2) = getPlanarVars FxFyT_2;
 
-  def terminals_1 = listToMatrix [[rx_1 + l * cos t_2],
-                                  [ry_1 + l * sin t_2],
+  def terminals_1 = listToMatrix [[rx_1 - l * cos t_2],
+                                  [ry_1 - l * sin t_2],
                                   [o_1]] (mmSRealZero (3, 1));
   def terminals_2 =
     listToMatrix [[Fx_2],
                   [Fy_2],
                   [T_2 + l * cos t_2 * Fx_1 - l * sin t_2 * Fy_1]]
                   (mmSRealZero (3, 1));
-  [mkPlanarMechModelEdge (n_1, n_2) vxvyo_1 rxryt_1 FxFyT_1 terminals_1,
-   mkPlanarMechModelEdge (n_3, n_1) vxvyo_2 rxryt_2 FxFyT_2 terminals_2]
+  [mkPlanarMechModelEdge (n_2, n_3) vxvyo_1 rxryt_1 FxFyT_1 terminals_1,
+   mkPlanarMechModelEdge (n_1, n_2) vxvyo_2 rxryt_2 FxFyT_2 terminals_2]
 }
