@@ -26,7 +26,7 @@ def G2 = [(n1, n2), (n1, n4), (n2, n3), (n3, n4)]
 def G3 = [(n1, n2), (n2, n3), (n2, n4), (n2, n5)]
 def G4 = [(n1, n2), (n2, n3), (n2, n4), (n2, n5), (n5, n2)]
 
-def _ = dprint(edgeList2AdjList G)
-def _ = dprint(edgeList2AdjList G2)
-def _ = dprint(edgeList2AdjList G3)
-def _ = dprint(edgeList2AdjList G4)
+def _ = dprintln(edgeList2AdjList G)
+def _ = dprintln(edgeList2AdjList G2)
+def _ = dprintln(edgeList2AdjList G3)
+def _ = dprintln(edgeList2AdjList G4)

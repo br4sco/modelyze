@@ -34,4 +34,4 @@ def IM = listToMatrix [
                         [ 0., -1.,  1.]
                       ] (mmRealZero (3, 3))
 
-def _ = dprint(mkIncidenceMatrix G == IM)
+def _ = dprintln(mkIncidenceMatrix G == IM)

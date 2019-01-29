@@ -330,15 +330,16 @@ def solve(cdae: CDAE, z_0: State, I: Interval, h: Real, probes: [<Real>], sll: B
   // Preapare for solving
   def (eqs, ieqs) = cdae;
 
-  def _ = dprintln(eqs);
-  def _ = println "";
+  // def _ = dprintln(eqs);
+  // def _ = println "";
 
   def (eqsp, z_0) = indexred (model_to_eqs eqs) z_0;
-  def _ = dprintln(eqsp);
-  def _ = println "";
 
-  def _ = _print_state z_0;
-  def _ = println "";
+  // def _ = dprintln(eqsp);
+  // def _ = println "";
+
+  // def _ = _print_state z_0;
+  // def _ = println "";
 
   // Setup the Eqs Solver
   def (resf, nroots, rootf, yy1, yp1, vids, ukm) = get_DAESolver_input eqsp ieqs z_0 0.;
@@ -350,8 +351,8 @@ def solve(cdae: CDAE, z_0: State, I: Interval, h: Real, probes: [<Real>], sll: B
   def _ = (DAESolver.calcIcYaYdp s vids yy1 yp1 (t_0 + dt));
 
   // def _ = _print_state (ukmap_yy_yp_to_state ukm yy1 yp1);
-  def _ = _print_state (ukm_yy_to_state ukm yy1);
-  def _ = println "";
+  // def _ = _print_state (ukm_yy_to_state ukm yy1);
+  // def _ = println "";
 
   // Function for printing simulation trace
   def pst(yy: {Real}, yp: {Real}, t: Real) = {

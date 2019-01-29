@@ -42,6 +42,6 @@ def pm = mkPlanarMechModelEdge (n_1, n_2) vv_m rr_m FF_m terminal_m
 def gf = mkPlanarMechModelEdge (n_1, n_2) vv_g rr_g FF_g terminal_g
 
 def main = {
-  def _ = dprint(mkResiduals [pm, gf]);
+  def _ = dprintln(mkResiduals [pm, gf]);
   ()
 }

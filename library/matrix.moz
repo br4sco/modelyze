@@ -234,10 +234,10 @@ def matrixToList(M: MatrixMapSReal) -> [[<Real>]] = {
 def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
   def _ = println("[");
   def _ = iter (fun r: [Dyn] -> {
-      def _ = print("  "); def _ = dprint(r); ()
+      def _ = print("  "); def _ = dprintln(r); ()
     }) (matrixToList mfind M);
   def _ = print("] d = ");
-  def _ = dprint(dim M);
+  def _ = dprintln(dim M);
   M
 }
 def dp(M: MatrixMapInt) -> MatrixMapInt = { dp mmIntFind M }

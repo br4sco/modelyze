@@ -37,7 +37,7 @@ def main = {
   def eal = edgeList2AdjList (mkGraph T);
   def (tbxs, tbys) = unzip (mkBaseModelVars T);
   def (cbxs, cbys) = unzip (mkBaseModelVars C);
-  def _ = dprint(mkTopolResiduals eal tm A tbys cbys);
-  def _ = dprint(mkTopolResiduals eal tm (-(tr A)) cbxs tbxs);
+  def _ = dprintln(mkTopolResiduals eal tm A tbys cbys);
+  def _ = dprintln(mkTopolResiduals eal tm (-(tr A)) cbxs tbxs);
   ()
 }

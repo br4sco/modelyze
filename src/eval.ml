@@ -501,9 +501,9 @@ and eval venv norec t =
   | TmNLEQSolverOp(op,tms) ->
     eval_nleqsolver_op (eval venv norec) op (List.map (eval venv norec) tms)
   | TmDPrint(t) -> let t' = eval venv norec t  in
-    pprint t' |> uprint_endline; t'
+    pprint t' |> uprint_string; t'
   | TmDPrintType(t) -> us"[Printing types is not supported]"
-                       |> uprint_endline; eval venv norec t
+                       |> uprint_string; eval venv norec t
   | TmSymStr(t) -> let t' = eval venv norec t  in
     TmConst(Ast.ConstString(Debugprint.getDebugSymId t'))
   | TmError(fi,t) ->
