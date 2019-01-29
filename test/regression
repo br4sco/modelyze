@@ -80,9 +80,9 @@ test_files()
 # test_files "svector"
 test_files "sreal"
 # test_files "eqformulation"
-# test_files "graph"
-# test_files "beqformulation"
-# test_files "planarmech"
+test_files "graph"
+test_files "beqformulation"
+test_files "planarmech"
 test_files "bsimulation"
 
 rm -f test.out
