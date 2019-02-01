@@ -154,9 +154,9 @@ def mkCutsetMatrix(vmes: [VectorModelEdge])
   else {
     def IA = work 1 (real2int IMrrt);
     def (I, A) = vsplit (rdim IA) IA;
-    def T = arrayToList (sub vmes 0 (rdim A));
-    def C = arrayToList (sub vmes (rdim A) (Array.length vmes));
-    (A, (T, C))
+    def C = arrayToList (sub vmes 0 (rdim A));
+    def T = arrayToList (sub vmes (rdim A) (Array.length vmes));
+    (A, (C, T))
   }
 }
 
@@ -193,14 +193,14 @@ def mkTopolResiduals(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt,
 }
 
 def mkTopolResiduals(vmes: [VectorModelEdge]) -> [Res] = {
-  def (A, (T, C)) = mkCutsetMatrix vmes;
+  def (A, (C, T)) = mkCutsetMatrix vmes;
   def B = -(tr A);
-  def eal = edgeList2AdjList (mkGraph T);
+  def eal = edgeList2AdjList (mkGraph (dprintln T));
   def tm = mkTransMap T;
-  def (tbxs, tbys) = unzip (mkBaseModelVars T);
   def (cbxs, cbys) = unzip (mkBaseModelVars C);
-  def cutres = mkTopolResiduals eal tm A tbys cbys;
-  def circres = mkTopolResiduals eal tm B cbxs tbxs;
+  def (tbxs, tbys) = unzip (mkBaseModelVars T);
+  def cutres = mkTopolResiduals eal tm A cbys tbys;
+  def circres = mkTopolResiduals eal tm B tbxs cbxs;
   append cutres circres
 }
 
