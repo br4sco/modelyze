@@ -29,42 +29,29 @@ def f_0 = t_0
 def fp_0 = 1.
 def l = 1.
 
-def vx_r1,
-    vy_r1,
-    o_r1,
-    rx_r1,
-    ry_r1,
-    t_r1,
-    Fx_r1,
-    Fy_r1,
-    T_r1: Real
+def vx_m,
+    vy_m,
+    o_m,
+    rx_m,
+    ry_m,
+    t_m,
+    Fx_m,
+    Fy_m,
+    T_m: Real
 
-def vx_r2,
-    vy_r2,
-    o_r2,
-    rx_r2,
-    ry_r2,
-    t_r2,
-    Fx_r2,
-    Fy_r2,
-    T_r2: Real
-
-def vxvyo_r1 = ((vx_r1, 0.), (vy_r1, 0.), (o_r1, fp_0))
-def rxryt_r1 = ((rx_r1, l * cos f_0), (ry_r1, l * sin f_0), (t_r1, f_0))
-def FxFyT_r1 = ((Fx_r1, 0.), (Fy_r1, 0.), (T_r1, 0.))
-
-def vxvyo_r2 = ((vx_r2, 0.), (vy_r2, 0.), (o_r2, fp_0))
-def rxryt_r2 = ((rx_r2, 0.), (ry_r2, 0.), (t_r2, f_0))
-def FxFyT_r2 = ((Fx_r2, 0.), (Fy_r2, 0.), (T_r2, 0.))
+def vxvyo_m = ((vx_m, - fp_0 * sin f_0), (vy_m, fp_0 * cos f_0), (o_m, fp_0))
+def rxryt_m = ((rx_m, cos f_0), (ry_m, sin f_0), (t_m, f_0))
+def FxFyT_m = mkZeroInitPlanarInitVars (Fx_m, Fy_m, T_m)
 
 def rd = RotationalDrive f f_0 fp_0 (n_1, n_2)
-def pa = PlanarArm l vxvyo_r1 rxryt_r1 FxFyT_r1 vxvyo_r2 rxryt_r2 FxFyT_r2 n_1 n_2 n_3
-def model =  append pa rd
+def pa = PlanarArm l f_0 fp_0 n_1 n_2 n_3
+def pb = PlanarBody 1. 1. vxvyo_m rxryt_m FxFyT_m (n_1, n_3)
+def model =  concat [pa, rd, pb]
 
 def main = {
   def res = mkResiduals model;
   def ivs = mkInitVals model;
-  def lbls = [(rx_r1, "x_r1"), (ry_r1, "y_r1"), (rx_r2, "x_r2"), (ry_r2, "y_r2"), (t_r2, "t_r2"), (t, "t")];
+  def lbls = [(rx_m, "x_m"), (ry_m, "y_m"), (t, "t")];
   def m = mkHModel res ivs;
   def c = Clock t_0 t;
   simulate (m ++ c) (0., 10.) 0.01 lbls

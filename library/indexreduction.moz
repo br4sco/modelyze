@@ -107,9 +107,6 @@ def indexReducationPantelides(eqs:Equations,olddermap:DerivMap) :
 
     // Wrap equations to be differentiated into der expressions
     def eqs2 = addDerEqs(augmentedEqs,eqmap);
-    // def _ = dprint(eqs);
-    // def _ = dprint("==");
-    // def _ = dprint(eqs2);
 
     // Differentiate
     elaborateDerivatives(eqs2,olddermap)
