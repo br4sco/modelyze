@@ -20,6 +20,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 include PlanarMech
 include Simulation
+include Matlab
 
 def n_1, n_2, n_3: Node
 def t: Real
@@ -39,9 +40,9 @@ def vx_m,
     Fy_m,
     T_m: Real
 
-def vxvyo_m = ((vx_m, - fp_0 * sin f_0), (vy_m, fp_0 * cos f_0), (o_m, fp_0))
-def rxryt_m = ((rx_m, cos f_0), (ry_m, sin f_0), (t_m, f_0))
-def FxFyT_m = mkZeroInitPlanarInitVars (Fx_m, Fy_m, T_m)
+def vxvyo_m = ((vx_m, - fp_0 * l * sin f_0), (vy_m, fp_0 * l * cos f_0), (o_m, fp_0))
+def rxryt_m = ((rx_m, l * cos f_0), (ry_m, l * sin f_0), (t_m, f_0))
+def FxFyT_m = ((Fx_m, - fp_0 * l * cos f_0), (Fy_m, fp_0 * l * sin f_0), (T_m, 0.))
 
 def rd = RotationalDrive f f_0 fp_0 (n_1, n_2)
 def pa = PlanarArm l f_0 fp_0 n_1 n_2 n_3
@@ -51,7 +52,15 @@ def model =  concat [pa, rd, pb]
 def main = {
   def res = mkResiduals model;
   def ivs = mkInitVals model;
-  def lbls = [(rx_m, "x_m"), (ry_m, "y_m"), (t, "t")];
+  def lbls = [(rx_m, "x_m"),
+              (ry_m, "y_m"),
+              (t_m, "t_m"),
+              (vx_m, "vx_m"),
+              (vy_m, "vy_m"),
+              (o_m, "o_m"),
+              (Fx_m, "Fx_m"),
+              (Fy_m, "Fy_m"),
+              (T_m, "T_m")];
   def m = mkHModel res ivs;
   def c = Clock t_0 t;
   simulate (m ++ c) (0., 10.) 0.01 lbls

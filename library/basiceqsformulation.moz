@@ -133,7 +133,9 @@ def mkCutsetMatrix(vmes: [VectorModelEdge])
   -> (MatrixMapInt, ([VectorModelEdge], [VectorModelEdge])) = {
 
   def G = mkGraph vmes;
+  // def _ = dprintln G;
   def IM = mkIncidenceMatrix G;
+  // def _  = map (fun vme: VectorModelEdge -> dp (snd (getHighestOrderModelVars vme))) vmes;
   def vmes = listToArray vmes;
 
   def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
@@ -150,13 +152,14 @@ def mkCutsetMatrix(vmes: [VectorModelEdge])
   };
 
   def IMrrt = trimzerorows (rowreduce IM);
+  // def _ = dp IMrrt;
   if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
   else {
     def IA = work 1 (real2int IMrrt);
     def (I, A) = vsplit (rdim IA) IA;
-    def C = arrayToList (sub vmes 0 (rdim A));
-    def T = arrayToList (sub vmes (rdim A) (Array.length vmes));
-    (A, (C, T))
+    def T = arrayToList (sub vmes 0 (rdim A));
+    def C = arrayToList (sub vmes (rdim A) (Array.length vmes));
+    (A, (T, C))
   }
 }
 
@@ -193,14 +196,20 @@ def mkTopolResiduals(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt,
 }
 
 def mkTopolResiduals(vmes: [VectorModelEdge]) -> [Res] = {
-  def (A, (C, T)) = mkCutsetMatrix vmes;
+  def (A, (T, C)) = mkCutsetMatrix vmes;
+  // def _ = map (fun vm: VectorModelEdge -> dp (snd (getHighestOrderModelVars vm))) T;
+  // def _ = map (fun vm: VectorModelEdge -> dp (fst (getHighestOrderModelVars vm))) C;
   def B = -(tr A);
-  def eal = edgeList2AdjList (mkGraph (dprintln T));
+  // def _ = dp A;
+  // def _ = dp B;
+  def eal = edgeList2AdjList (mkGraph T);
   def tm = mkTransMap T;
   def (cbxs, cbys) = unzip (mkBaseModelVars C);
   def (tbxs, tbys) = unzip (mkBaseModelVars T);
-  def cutres = mkTopolResiduals eal tm A cbys tbys;
-  def circres = mkTopolResiduals eal tm B tbxs cbxs;
+  def cutres = mkTopolResiduals eal tm A tbys cbys;
+  def circres = mkTopolResiduals eal tm B cbxs tbxs;
+  // def _ = map (fun M: MatrixMapSReal -> dp M) cutres;
+  // def _ = map (fun M: MatrixMapSReal -> dp M) circres;
   append cutres circres
 }
 

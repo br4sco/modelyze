@@ -49,12 +49,14 @@ def vx_r2,
     Fy_r2,
     T_r2: Real
 
-def vxvyo_r1 = ((vx_r1, 0.), (vy_r1, 0.), (o_r1, fp_0))
-def rxryt_r1 = ((rx_r1, l * cos f_0), (ry_r1, l * sin f_0), (t_r1, f_0))
+def vxvyo_r1 = ((vx_r1, fp_0 * l * sin f_0), (vy_r1, -fp_0 * l * cos f_0), (o_r1, fp_0))
+def rxryt_r1 = ((rx_r1, - l * cos f_0), (ry_r1, - l * sin f_0), (t_r1, f_0))
 def FxFyT_r1 = ((Fx_r1, 0.), (Fy_r1, 0.), (T_r1, 0.))
 
-def vxvyo_r2 = ((vx_r2, 0.), (vy_r2, 0.), (o_r2, fp_0))
-def rxryt_r2 = ((rx_r2, 0.), (ry_r2, 0.), (t_r2, f_0))
+def vxvyo_r2 = ((vx_r2, -fp_0 * l * sin f_0), (vy_r2, fp_0 * l * cos f_0), (o_r2, fp_0))
+def rxryt_r2 = ((rx_r2, l * cos f_0), (ry_r2, l * sin f_0), (t_r2, f_0))
+// def vxvyo_r2 = ((vx_r2, 0.), (vy_r2, 0.), (o_r2, fp_0))
+// def rxryt_r2 = ((rx_r2, 0.), (ry_r2, 0.), (t_r2, f_0))
 def FxFyT_r2 = ((Fx_r2, 0.), (Fy_r2, 0.), (T_r2, 0.))
 
 def rd = RotationalDrive f f_0 fp_0 (n_1, n_2)
@@ -64,7 +66,7 @@ def model =  append pa rd
 def main = {
   def res = mkResiduals model;
   def ivs = mkInitVals model;
-  def lbls = [(rx_r1, "x_r1"), (ry_r1, "y_r1"), (rx_r2, "x_r2"), (ry_r2, "y_r2"), (t_r2, "t_r2"), (t, "t")];
+  def lbls = [(rx_r1, "x_r1"), (ry_r1, "y_r1"), (t_r1, "t_r1"), (rx_r2, "x_r2"), (ry_r2, "y_r2"), (t_r2, "t_r2")];
   def m = mkHModel res ivs;
   def c = Clock t_0 t;
   simulate (m ++ c) (0., 10.) 0.01 lbls

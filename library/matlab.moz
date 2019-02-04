@@ -23,14 +23,14 @@ include Equation
 def matlabEqs(eqs: Equations) = {
   def workMore(e: <Dyn>) -> () = {
     match e with
+    | der e -> { def _ = print" diff("; def _ = workMore e; print ")" }
     | e_1 + e_2 -> { def _ = workMore e_1; def _ = print " + "; workMore e_2 }
     | e_1 - e_2 -> { def _ = workMore e_1; def _ = print " - "; workMore e_2 }
     | e_1 * e_2 -> { def _ = workMore e_1; def _ = print " * "; workMore e_2 }
     | e_1 / e_2 -> { def _ = workMore e_1; def _ = print " / "; workMore e_2 }
-    // | --e -> { def _ = print " - "; workMore e }
     | sin e -> { def _ = print" sin("; def _ = workMore e; print ")" }
     | cos e -> { def _ = print" cos("; def _ = workMore e; print ")" }
-    | der e -> { def _ = print" diff("; def _ = workMore e; print ")" }
+    // | --e -> { def _ = print " - "; workMore e }
     | sval r: Real -> print r
     | sym: Real -> { def _ = dprint(e); print("(t)") }
   };

@@ -61,7 +61,8 @@ def mkTransMatrices(rxryt: PlanarVars) -> (TransFun, TransFun) = {
                           [z,      z,     z, u]
                          ] (mmSRealZero (4, 4));
 
-    fst (hsplit 3 (T * mv))
+    // def mv = T * mv;
+    fst (hsplit 3 mv)
   };
 
   def itf(mv: ModelVar) -> ModelVar = {
@@ -73,22 +74,28 @@ def mkTransMatrices(rxryt: PlanarVars) -> (TransFun, TransFun) = {
                           [z,      z,     z, u]
                          ] (mmSRealZero (4, 4));
 
-    fst (hsplit 3 (T * mv))
+    // def mv = T * mv;
+    fst (hsplit 3 mv)
   };
 
   (tf, itf)
 }
 
 def mkPlanarMechModelEdge(e: Edge,
-  vxvyo: PlanarInitVars, rxryt_p: PlanarInitVars,rxryt: PlanarInitVars, FxFyT: PlanarInitVars,
-  terminals: Res, derivatives: Res) -> VectorModelEdge = {
+                          vxvyo: PlanarInitVars,
+                          rxryt_p: PlanarInitVars,
+                          rxryt: PlanarInitVars,
+                          FxFyT: PlanarInitVars,
+                          terminals: Res,
+                          derivatives: Res) -> VectorModelEdge = {
 
   def (tf, itf) = mkTransMatrices (getPlanarVars rxryt);
   def M_vxvyo = planarInitVarsToMatrix vxvyo;
   def M_rxryt_p = planarInitVarsToMatrix rxryt_p;
   def M_rxryt = planarInitVarsToMatrix rxryt;
   def M_FxFyT = planarInitVarsToMatrix FxFyT;
-  (e, ([M_vxvyo, M_rxryt_p, M_rxryt], M_FxFyT), hconcat derivatives terminals, tf, itf)
+  (e, ([M_vxvyo, M_rxryt_p, M_rxryt], M_FxFyT),
+    hconcat derivatives terminals, tf, itf)
 }
 
 def mkPlanarMechModelEdge(e: Edge,
@@ -158,16 +165,16 @@ def PlanarArm(l: Real,
   def (_, _, t_2) = getPlanarVars rxryt_2;
   def (Fx_2, Fy_2, T_2) = getPlanarVars FxFyT_2;
 
-  def terminals_1 = listToMatrix [[rx_1 - l * cos t_2],
-                                  [ry_1 - l * sin t_2],
+  def terminals_1 = listToMatrix [[rx_1 + l * cos t_2],
+                                  [ry_1 + l * sin t_2],
                                   [o_1]] (mmSRealZero (3, 1));
   def terminals_2 =
     listToMatrix [[Fx_2],
                   [Fy_2],
-                  [T_2 + l * cos t_2 * Fx_1 - l * sin t_2 * Fy_1]]
+                  [T_2 + l * (cos t_2 * Fx_1 - sin t_2 * Fy_1)]]
                   (mmSRealZero (3, 1));
-  [mkPlanarMechModelEdge (n_2, n_3) vxvyo_1 rxryt_1 FxFyT_1 terminals_1,
-   mkPlanarMechModelEdge (n_1, n_2) vxvyo_2 rxryt_2 FxFyT_2 terminals_2]
+  [mkPlanarMechModelEdge (n_3, n_2) vxvyo_1 rxryt_1 FxFyT_1 terminals_1,
+   mkPlanarMechModelEdge (n_1, n_3) vxvyo_2 rxryt_2 FxFyT_2 terminals_2]
 }
 
 def PlanarArm(l: Real, t_0: Real, o_0: Real, n_1: Node, n_2: Node, n_3: Node)
@@ -176,13 +183,26 @@ def PlanarArm(l: Real, t_0: Real, o_0: Real, n_1: Node, n_2: Node, n_3: Node)
   def vx_r1, vy_r1, o_r1, rx_r1, ry_r1, t_r1, Fx_r1, Fy_r1, T_r1: Real;
   def vx_r2, vy_r2, o_r2, rx_r2, ry_r2, t_r2, Fx_r2, Fy_r2, T_r2: Real;
 
-  def vxvyo_1 = ((vx_r1, -o_0 * l * sin t_0), (vy_r1, o_0 * l * cos t_0), (o_r1, o_0));
-  def rxryt_1 = ((rx_r1, l * cos t_0), (ry_r1, l * sin t_0), (t_r1, t_0));
-  def FxFyT_1 = ((Fx_r1, 0.), (Fy_r1, 0.), (T_r1, 0.));
+  def rx_r1_0 = -l * cos t_0;
+  def ry_r1_0 = -l * sin t_0;
+  def vx_r1_0 = o_0 * l * sin t_0;
+  def vy_r1_0 = -o_0 * l * cos t_0;
+  def Fx_r1_0 = o_0 * l * cos t_0;
+  def Fy_r1_0 = -o_0 * l * sin t_0;
+  def rx_r2_0 = l * cos t_0;
+  def ry_r2_0 = l * sin t_0;
+  def vx_r2_0 = -o_0 * l * sin t_0;
+  def vy_r2_0 = o_0 * l * cos t_0;
+  def T_r2_0 = - l * (cos t_0 * Fx_r1_0 - sin t_0 * Fy_r1_0);
 
-  def vxvyo_2 = ((vx_r2, 0.), (vy_r2, 0.), (o_r2, o_0));
-  def rxryt_2 = ((rx_r2, 0.), (ry_r2, 0.), (t_r2, t_0));
-  def FxFyT_2 = ((Fx_r2, 0.), (Fy_r2, 0.), (T_r2, 0.));
+  def vxvyo_1 =
+    ((vx_r1, vx_r1_0), (vy_r1, vy_r1_0), (o_r1, o_0));
+  def rxryt_1 = ((rx_r1, rx_r1_0), (ry_r1, ry_r1_0), (t_r1, t_0));
+  def FxFyT_1 = ((Fx_r1, Fx_r1_0), (Fy_r1, Fy_r1_0), (T_r1, 0.));
+
+  def vxvyo_2 = ((vx_r2, vx_r2_0), (vy_r2, vy_r2_0), (o_r2, o_0));
+  def rxryt_2 = ((rx_r2, rx_r2_0), (ry_r2, ry_r2_0), (t_r2, t_0));
+  def FxFyT_2 = ((Fx_r2, 0.), (Fy_r2, 0.), (T_r2, T_r2_0));
 
   PlanarArm l vxvyo_1 rxryt_1 FxFyT_1 vxvyo_2 rxryt_2 FxFyT_2 n_1 n_2 n_3
 }
