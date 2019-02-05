@@ -1,0 +1,35 @@
+include DILL2D
+
+def x, y, u, w: Real
+def n_1, n_2: Node
+
+def _ = dprintln (vec x y = vec 1. 1.)
+def _ = dprintln (vec 1. 1. = vec x y)
+def _ = dprintln (vec x y = vec y x)
+def _ = dprintln (vec x y <- vec 1. 1.)
+def _ = dprintln (vec x y + vec x y)
+def _ = dprintln (vec x y + vec 1. 1.)
+def _ = dprintln (vec 1. 1. + vec 1. 1.)
+def _ = dprintln (vec x y - vec x y)
+def _ = dprintln (vec x y - vec 1. 1.)
+def _ = dprintln (vec 1. 1. - vec 1. 1.)
+def _ = dprintln (- (vec x y))
+def _ = dprintln (- (vec 1. 1.))
+def _ = dprintln (2. * vec x y)
+def _ = dprintln (x * vec 1. 1.)
+
+def xx = vec x y
+def yy = vec u w
+def xx_0 = vec 1. 2.
+def yy_0 = vec 3. 4.
+def m = {
+  xx <- xx_0;
+  yy <- yy_0;
+  xx' = yy;
+  vector2Edge (n_1, n_2) xx yy
+}
+
+def _ = dprintln m
+def _ = dprintln (getScalarEdges m)
+def _ = dprintln (getVector2Edges m)
+def _ = dprintln (getInits m)

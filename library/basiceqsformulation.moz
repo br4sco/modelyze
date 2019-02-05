@@ -180,8 +180,9 @@ def mkTopolResiduals(T: AdjList, tm: (Edge => TransFun), C: MatrixMapInt,
     def smvs =
     map (fun isbmv: (Int, BaseModelVar) -> {
       def (j, (n_2, sv)) = isbmv;
-      def p = pathToEdgePath (hd (findPath T n_1 n_2));
-      (find (i + 1, j + 1) C, trans tm p sv)
+      // def p = pathToEdgePath (hd (findPath T n_1 n_2));
+      // (find (i + 1, j + 1) C, trans tm p sv)
+      (find (i + 1, j + 1) C, sv)
     }) isbmvs;
 
     def f(r: Res, smv: (Int, ModelVar)) -> Res = {

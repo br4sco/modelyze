@@ -1,0 +1,69 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include PlanarMech
+include Simulation
+include Matlab
+
+def n_1, n_2, n_3: Node
+def t: Real
+def l = 1.
+def m = 1.
+def I = 1.
+def g = 9.81
+def t_0 = 0.
+
+def vx_m,
+    vy_m,
+    o_m,
+    rx_m,
+    ry_m,
+    t_m,
+    Fx_m,
+    Fy_m,
+    T_m: Real
+
+def vxvyo_m = ((vx_m, 0.), (vy_m, 0.), (o_m, 0.))
+def rxryt_m = ((rx_m, l * cos t_0), (ry_m, l * sin t_0), (t_m, t_0))
+def FxFyT_m = ((Fx_m, 0.), (Fy_m, - m * g), (T_m, 0.))
+
+def rj = RevoluteJoint (n_1, n_2)
+def pa = PlanarArm l t_0 0. n_1 n_2 n_3
+def pb = PlanarBody m I vxvyo_m rxryt_m FxFyT_m (n_1, n_3)
+def pg = PlanarGravity g (n_1, n_3)
+
+def model =  concat [pa, rj, pb, pg]
+
+def main = {
+  def res = mkResiduals model;
+  def ivs = mkInitVals model;
+  def lbls = [(rx_m, "x_m"),
+              (ry_m, "y_m"),
+              (t_m, "t_m"),
+              (vx_m, "vx_m"),
+              (vy_m, "vy_m"),
+              (o_m, "o_m"),
+              (Fx_m, "Fx_m"),
+              (Fy_m, "Fy_m"),
+              (T_m, "T_m")];
+  def m = mkHModel res ivs;
+  def c = Clock t_0 t;
+  simulate (m ++ c) (0., 10.) 0.01 lbls
+}

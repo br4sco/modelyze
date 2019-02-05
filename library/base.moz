@@ -112,30 +112,19 @@ def dprintln(o: Dyn) = { def _ = dprint(o); def _ = println ""; o }
 
 def INVALID_ARGUMENT = "Invalid argument"
 
-def OFF = (0, "THIS SHOULD NEVER BE PRINTED!")
-def INFO = (1, "INFO")
-def DEBUG = (2, "DEBUG")
-def TRACE = (3, "TRACE")
+def LOGGLEVEL = 0
 
-// def loglevel = DEBUG
-def loglevel = OFF
-// def loglevel = INFO
-
-def dlogger(frum: String, level: (Int, String), msg: String, thing: (() -> Dyn))
-  -> () = {
-
-  def (l, s) = level;
-  if l <= (fst loglevel) then {
-    def _ = println("=== start: " ++ msg ++ " === [in: " ++ frum ++ " - " ++ s ++ "]");
-    def _ = dprint(thing ());
-    println("=== end: " ++ msg ++ " ===")
+def logg(lvl: Int, msg: String, f: (() -> ())) -> () = {
+  if lvl <= LOGGLEVEL then {
+    def _ = print(msg);
+    def _ = print(": \n");
+    def _ = f ();
+    println("\n")
   } else ()
 }
 
-def logger(frum: String, level: (Int, String), msg: String, thing: Dyn)
-  -> () = {
-  dlogger frum level msg (fun t: () -> thing)
-}
+def loggprint(o: Dyn) -> (() -> ()) = (fun t: () -> { def _ = dprint(o); () })
+def loggprintln(o: Dyn) -> (() -> ()) = (fun t: () -> { def _ = println ""; def _ = dprintln o; () })
 
 def reverse(lst:[Dyn]) -> [Dyn] = {
     def work(lst:[Dyn],acc:[Dyn]) -> [Dyn] = {

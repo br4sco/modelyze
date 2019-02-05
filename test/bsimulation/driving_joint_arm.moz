@@ -27,6 +27,7 @@ def t_0 = 0.
 def f = t
 def f_0 = t_0
 def fp_0 = 1.
+def fpp_0 = 0.
 def l = 1.
 
 def vx_r1,

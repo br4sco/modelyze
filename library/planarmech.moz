@@ -189,6 +189,7 @@ def PlanarArm(l: Real, t_0: Real, o_0: Real, n_1: Node, n_2: Node, n_3: Node)
   def vy_r1_0 = -o_0 * l * cos t_0;
   def Fx_r1_0 = o_0 * l * cos t_0;
   def Fy_r1_0 = -o_0 * l * sin t_0;
+
   def rx_r2_0 = l * cos t_0;
   def ry_r2_0 = l * sin t_0;
   def vx_r2_0 = -o_0 * l * sin t_0;
@@ -205,4 +206,15 @@ def PlanarArm(l: Real, t_0: Real, o_0: Real, n_1: Node, n_2: Node, n_3: Node)
   def FxFyT_2 = ((Fx_r2, 0.), (Fy_r2, 0.), (T_r2, T_r2_0));
 
   PlanarArm l vxvyo_1 rxryt_1 FxFyT_1 vxvyo_2 rxryt_2 FxFyT_2 n_1 n_2 n_3
+}
+
+def RevoluteJoint(e: Edge) -> [VectorModelEdge]  = {
+  def vx_h, vy_h, o_h, rx_h, ry_h, t_h, Fx_h, Fy_h, T_h: Real;
+  def vxvyo = ((vx_h, 0.), (vy_h, 0.), (o_h, 0.));
+  def rxryt = ((rx_h, 0.), (ry_h, 0.), (t_h, 0.));
+  def FxFyT = mkZeroInitPlanarInitVars (Fx_h, Fy_h, T_h);
+  def terminals = listToMatrix [[rx_h],
+                                [ry_h],
+                                [T_h]] (mmSRealZero (3, 1));
+  [mkPlanarMechModelEdge e vxvyo rxryt FxFyT terminals]
 }
