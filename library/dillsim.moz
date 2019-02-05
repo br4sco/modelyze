@@ -35,11 +35,12 @@ def updYYYP(s: StateMap, ukm: UkMap, y: {Real}, yp: {Real}) -> () = {
   iter f ukm
 }
 
-def indexReducation(e: Equations, s: StateMap) -> (Equations, StateMap) = {
+def indexReduction(e: Equations, s: StateMap) -> (Equations, StateMap) = {
   def (e, dm) = indexReducationPantelides e (Map.empty);
 
   def f(k: <Real>, d: <Real>, a: StateMap) -> StateMap = {
-    if Map.mem (k') s then Map.add d (Map.find (k') s) a else a
+    def a = (if Map.mem (k') s then Map.add d (Map.find (k') s) a else a);
+    if Map.mem (k'') s then Map.add (d') (Map.find (k'') s) a else a
   };
 
   (e, fold f dm s)
@@ -51,10 +52,45 @@ def printLabels(lbs: [Label]) -> () = {
   print "\n"
 }
 
+def printSimState(lbs: [Label], ukm: UkMap, t: Real, yy: {Real}, yp: {Real}) -> ()  = {
+  def ev(v: <Real>) -> Real = { evalFromArrays v ukm yy yp };
+  def _ = print (real2string t);
+  def _ = iter (fun lb: Label ->
+                print ("\t\t" ++ (real2string (ev (fst lb))))
+               ) lbs;
+  print "\n"
+}
+
+
 def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
+  def dt = 0.00001;
   def (t_0, t_f) = I;
 
   def (s, m) = getInits m;
   def e = elaborate m;
-  s
+  def (e, s) = indexReduction e (listToMap s);
+  def ukm = makeUkMap e;
+  def n = (Map.size ukm);
+  def resf = peval (makeResidual ukm e);
+  def yy = (Array.make n 0.);
+  def yp = (Array.make n 0.);
+  def _ = updYYYP s ukm yy yp;
+  def vids = initConditionCorrection ukm;
+  def ss = (DAESolver.init resf t_0 yy yp);
+  def _ = (DAESolver.setStopTime ss t_f);
+  def _ = (DAESolver.calcIcYaYdp ss vids yy yp (t_0 + dt));
+
+  def ps = (fun t: (Real) -> printSimState lbls ukm t yy yp);
+
+  def go(tr: (Real, SolverResult)) -> () = {
+    def (t, r) = tr;
+    if r == DAE_SOLVER_RESULT_STOP_TIME_REACHED then ()
+    else {
+        def _ = ps t;
+        go (DAESolver.solveNormal ss (t + h) yy yp)
+      }
+  };
+
+  def _ = printLabels lbls;
+  go (t_0 + dt, DAE_SOLVER_RESULT_SUCCESS)
 }

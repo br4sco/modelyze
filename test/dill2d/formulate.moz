@@ -20,7 +20,7 @@ def ff = vec 0. (g)
 def fa = ForceActuator ff rr_g FF_g n_1 n_2
 def _ = dprintln fa
 
-def m = b; fa; y_m <- 10.; y_m' <- 5.
+def m = b; fa; y_m <- 10.; y_m' <- 5.; y_m'' <- g
 
 def main = {
   def _ = dprintln m;
