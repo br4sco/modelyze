@@ -29,7 +29,7 @@ def updYYYP(s: StateMap, ukm: UkMap, y: {Real}, yp: {Real}) -> () = {
     def (i, b) = ib;
     if Map.mem v s then {
       def _ = (Array.set y i (Map.find v s));
-      if b then (Array.set yp i (Map.find (v') s)) else ()
+      if b && (Map.mem (v') s) then (Array.set yp i (Map.find (v') s)) else ()
     } else ()
   };
   iter f ukm
@@ -61,6 +61,21 @@ def printSimState(lbs: [Label], ukm: UkMap, t: Real, yy: {Real}, yp: {Real}) -> 
   print "\n"
 }
 
+def printState(ukm: UkMap, yy: {Real}, yp: {Real}) -> () = {
+  def f(k: <Real>, d: (Int, Bool)) -> () = {
+    def (i, b) = d;
+    def _ = dprint(k);
+    def _ = print " <- ";
+    def _ = print (real2string (Array.get yy i));
+    def _ = print " ";
+    def _ = dprint(k');
+    def _ = print " <- ";
+    def _ = print (real2string (Array.get yp i));
+    print "\n"
+  };
+  iter f ukm
+}
+
 
 def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
   def dt = 0.00001;
@@ -68,17 +83,27 @@ def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
 
   def (s, m) = getInits m;
   def e = elaborate m;
+  def _ = logg 1 "Equations" (loggprintln e);
+
   def (e, s) = indexReduction e (listToMap s);
+  def _ = logg 1 "IR Equations" (loggprintln e);
+
   def ukm = makeUkMap e;
   def n = (Map.size ukm);
   def resf = peval (makeResidual ukm e);
   def yy = (Array.make n 0.);
   def yp = (Array.make n 0.);
+
+  def dps = (fun t: () -> printState ukm yy yp);
+
   def _ = updYYYP s ukm yy yp;
+  def _ = logg 1 "Assigned IVs" dps;
+
   def vids = initConditionCorrection ukm;
   def ss = (DAESolver.init resf t_0 yy yp);
   def _ = (DAESolver.setStopTime ss t_f);
   def _ = (DAESolver.calcIcYaYdp ss vids yy yp (t_0 + dt));
+  def _ = logg 1 "Calculated IVs" dps;
 
   def ps = (fun t: (Real) -> printSimState lbls ukm t yy yp);
 

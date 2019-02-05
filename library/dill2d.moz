@@ -181,11 +181,10 @@ def getEquations(e: Equations) -> (Equations, Equations) = {
   work e (NoEqn, NoEqn)
 }
 
-def mkCutsetMatrix(mes: [ModelEdge]) = {
+def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
 
   def G = mkGraph mes;
   def IM = mkIncidenceMatrix G;
-  def _ = dp IM;
   def vs = listToArray (mkVarsList mes);
 
   def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
@@ -206,7 +205,6 @@ def mkCutsetMatrix(mes: [ModelEdge]) = {
   else {
     def IA = work 1 (real2int IMrrt);
     def (I, A) = vsplit (rdim IA) IA;
-    def _ = dprintln (dim A);
     def T = (if dim A < (1, 1) then arrayToList vs
              else arrayToList (sub vs 0 (rdim A)));
     def C = (if dim A < (1, 1) then []
@@ -215,7 +213,8 @@ def mkCutsetMatrix(mes: [ModelEdge]) = {
   }
 }
 
-def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt, pvs: [Dyn], svs: [Dyn]) = {
+def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt,
+  pvs: [Dyn], svs: [Dyn]) -> [Dyn] = {
 
   def ipvs = zip (mapToIdx pvs) pvs;
   def jsvs = zip (mapToIdx svs) svs;
@@ -234,7 +233,8 @@ def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt, pvs: [Dyn], svs
       }) ipvs
 }
 
-def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equations) -> Equations = {
+def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equations)
+  -> Equations = {
   def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l + (int2real c) * r };
   def rs = mkTopolRes bop C pvs svs;
 
@@ -248,7 +248,8 @@ def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equ
   work rs a
 }
 
-def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: Equations) -> Equations = {
+def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: Equations)
+  -> Equations = {
   def bop(c: Int, l: Vector2, r: Vector2) -> Vector2 = { l + (int2real c) * r };
   def rs = mkTopolRes bop C pvs svs;
 
@@ -288,4 +289,17 @@ def Body(m: Real, I: Real, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1:
 def ForceActuator(ff: Vector2, rr: Vector2, FF: Vector2, n_1: Node, n_2: Node) = {
   vector2Edge n_1 n_2 rr FF;
   FF = ff
+}
+
+def Clock(t_0: Real, t: <Real>) = {
+  t <- t_0;
+  t' <- 1.;
+  t' = 1.
+}
+
+def AngularActuator(f: <Real>, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node)  = {
+  scalarEdge n_1 n_2 th T;
+  vector2Edge n_1 n_2 rr FF;
+  rr = v2zero;
+  th = f
 }
