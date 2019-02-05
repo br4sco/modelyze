@@ -1,35 +1,54 @@
 include DILL2D
 
-def x, y, u, w: Real
 def n_1, n_2: Node
 
-def _ = dprintln (vec x y = vec 1. 1.)
-def _ = dprintln (vec 1. 1. = vec x y)
-def _ = dprintln (vec x y = vec y x)
-def _ = dprintln (vec x y <- vec 1. 1.)
-def _ = dprintln (vec x y + vec x y)
-def _ = dprintln (vec x y + vec 1. 1.)
-def _ = dprintln (vec 1. 1. + vec 1. 1.)
-def _ = dprintln (vec x y - vec x y)
-def _ = dprintln (vec x y - vec 1. 1.)
-def _ = dprintln (vec 1. 1. - vec 1. 1.)
-def _ = dprintln (- (vec x y))
-def _ = dprintln (- (vec 1. 1.))
-def _ = dprintln (2. * vec x y)
-def _ = dprintln (x * vec 1. 1.)
+def m = 1.
+def I = 1.
+def x_m, y_m, Fx_m, Fy_m, th_m, T_m: Real
+def rr_m = vec x_m y_m
+def FF_m = vec Fx_m Fy_m
 
-def xx = vec x y
-def yy = vec u w
-def xx_0 = vec 1. 2.
-def yy_0 = vec 3. 4.
-def m = {
-  xx <- xx_0;
-  yy <- yy_0;
-  xx' = yy;
-  vector2Edge (n_1, n_2) xx yy
+def b = Body m I rr_m FF_m th_m T_m n_1 n_2
+def _ = dprintln b
+
+def g = 9.81
+def x_g, y_g, Fx_g, Fy_g: Real
+def rr_g = vec x_g y_g
+def FF_g = vec Fx_g Fy_g
+def ff = vec 0. (-g)
+
+def fa = ForceActuator ff rr_g FF_g n_1 n_2
+def _ = dprintln fa
+
+def m = b; fa
+
+def main = {
+  def (smes, _) = getScalarEdges m;
+  def (vmes, _) = getVector2Edges m;
+  def (A_r, (T_r, C_r)) = mkCutsetMatrix smes;
+  def _ = dp A_r;
+  def _ = dprintln T_r;
+  def _ = dprintln C_r;
+
+  def (x_t_r, y_t_r) = unzip T_r;
+  def (x_c_r, y_c_r) = unzip C_r;
+  def _ = dprintln x_t_r;
+  def _ = dprintln x_c_r;
+  def _ = dprintln y_t_r;
+  def _ = dprintln y_c_r;
+  def _ = dprintln (mkScalarTopolEquations A_r y_t_r y_c_r NoEqn);
+  def _ = dprintln (mkScalarTopolEquations (-(tr A_r)) x_c_r x_t_r NoEqn);
+
+  def _ = dprintln vmes;
+  def (A_t, (T_t, C_t)) = mkCutsetMatrix vmes;
+  def _ = dp A_t;
+  def _ = dprintln T_t;
+  def _ = dprintln C_t;
+
+  def (x_t_t, y_t_t) = unzip T_t;
+  def (x_c_t, y_c_t) = unzip C_t;
+  def _ = dprintln y_t_t;
+  def _ = dprintln y_c_t;
+  def _ = dprintln (mkVector2TopolEquations A_t y_t_t y_c_t NoEqn);
+  ()
 }
-
-def _ = dprintln m
-def _ = dprintln (getScalarEdges m)
-def _ = dprintln (getVector2Edges m)
-def _ = dprintln (getInits m)

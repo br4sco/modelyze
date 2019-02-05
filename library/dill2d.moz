@@ -23,12 +23,38 @@ include Matrix
 include Graph
 include ModelyzeDAE
 
+def sw(a: {Dyn}, i: Int, j: Int) -> () = {
+  def n = (Array.length a);
+  if i < n && 0 <= i && j < n && 0 <= j then {
+    def t = (Array.get a i);
+    def _ = (Array.set a i (Array.get a j));
+    Array.set a j t
+  } else error DIMENSION_MISSMATCH
+}
+
+def mapToIdx(l: [Dyn]) -> [Int] = {
+  def f(i: Int, e: Dyn) -> Int = { i };
+  mapi f l
+}
+
 type Vector2
 def vec: Real -> Real -> Vector2
 def v2zero = vec 0. 0.
 
-def scalarEdge: Edge -> <Real> -> <Real> -> Equations
-def vector2Edge: Edge -> Vector2 -> Vector2 -> Equations
+def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
+def vector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
+
+type ModelEdge = (Edge, (Dyn, Dyn))
+type _ScalarEdge = (Edge, (<Real>, <Real>))
+type _Vector2Edge = (Edge, (Vector2, Vector2))
+
+def mkGraph(mes: [ModelEdge]) -> [Edge] = {
+  map (fun me: ModelEdge -> fst me) mes
+}
+
+def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
+  map (fun me: ModelEdge -> snd me) mes
+}
 
 type InitVal = (<Real>, Real)
 
@@ -109,40 +135,141 @@ def v2der(v: Vector2) -> Vector2 = {
 }
 def ('): Vector2 -> Vector2 = v2der
 
-def getScalarEdges(e: Equations) -> (Equations, Equations) = {
-  def work(e: Equations, a: (Equations, Equations)) -> (Equations, Equations)  = {
+def getScalarEdges(e: Equations) -> ([_ScalarEdge], Equations) = {
+  def work(e: Equations, a: ([_ScalarEdge], Equations)) -> ([_ScalarEdge], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | scalarEdge _ _ _ -> ((fst a); e, snd a)
+    | scalarEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
-  work e (NoEqn, NoEqn)
+  work e ([], NoEqn)
 }
 
-def getVector2Edges(e: Equations) -> (Equations, Equations) = {
-  def work(e: Equations, a: (Equations, Equations)) -> (Equations, Equations)  = {
+def getVector2Edges(e: Equations) -> ([_Vector2Edge], Equations) = {
+  def work(e: Equations, a: ([_Vector2Edge], Equations)) -> ([_Vector2Edge], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | vector2Edge _ _ _ -> ((fst a); e, snd a)
+    | vector2Edge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
-  work e (NoEqn, NoEqn)
+  work e ([], NoEqn)
 }
 
 def getInits(e: Equations) -> ([InitVal], Equations) = {
   def work(e: Equations, a: ([InitVal], Equations)) -> ([InitVal], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | init v v_0 ->
-     {
-      match (v, v_0) with
-      | (sym: Real, lift v_0: Real) -> ((v, v_0)::(fst a), snd a)
-      | _ -> error "Invalid init"
-     }
+    | init v v_0 -> {
+        match (v, v_0) with
+        | (sym: Real, lift v_0: Real) -> ((v, v_0)::(fst a), snd a)
+        | _ -> error "Invalid init"
+      }
     | _ -> (fst a, (snd a); e)
   };
 
   work e ([], NoEqn)
+}
+
+def getEquations(e: Equations) -> (Equations, Equations) = {
+  def work(e: Equations, a: (Equations, Equations)) -> (Equations, Equations) = {
+    match e with
+    | e_1; e_2 -> ((fst a); e, snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+  work e (NoEqn, NoEqn)
+}
+
+def mkCutsetMatrix(mes: [ModelEdge]) = {
+
+  def G = mkGraph mes;
+  def IM = mkIncidenceMatrix G;
+  def _ = dp IM;
+  def vs = listToArray (mkVarsList mes);
+
+  def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
+    if i > rdim a then a
+    else {
+      def j_max = snd (argfind (fun v: Int -> v != 0)
+                    (sub (i, 1) (i, cdim a) a));
+      if i == j_max then work (i + 1) a
+      else {
+        def _ = sw vs (i - 1) (j_max - 1);
+        work (i + 1) (swcols i j_max a)
+      }
+    }
+  };
+
+  def IMrrt = trimzerorows (rowreduce IM);
+  if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+  else {
+    def IA = work 1 (real2int IMrrt);
+    def (I, A) = vsplit (rdim IA) IA;
+    def _ = dprintln (dim A);
+    def T = (if dim A < (1, 1) then arrayToList vs
+             else arrayToList (sub vs 0 (rdim A)));
+    def C = (if dim A < (1, 1) then []
+             else arrayToList (sub vs (rdim A) (Array.length vs)));
+    (A, (T, C))
+  }
+}
+
+def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt, pvs: [Dyn], svs: [Dyn]) = {
+
+  def ipvs = zip (mapToIdx pvs) pvs;
+  def jsvs = zip (mapToIdx svs) svs;
+
+  map (fun ipv: (Int, Dyn) -> {
+        def (i, pv) = ipv;
+
+        def f(a: Dyn, jsv: (Int, Dyn)) -> Dyn = {
+          def (j, sv) = jsv;
+          def c = find (i + 1, j + 1) C;
+          bop c a sv
+        };
+
+        foldLeft f pv jsvs
+
+      }) ipvs
+}
+
+def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equations) -> Equations = {
+  def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l + (int2real c) * r };
+  def rs = mkTopolRes bop C pvs svs;
+
+  def work(rs: [<Real>], a: Equations) -> Equations = {
+    match rs with
+    | [] -> a
+    | r::rs -> work rs (a; r = 0.)
+    | _ -> error "Unmatched"
+  };
+
+  work rs a
+}
+
+def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: Equations) -> Equations = {
+  def bop(c: Int, l: Vector2, r: Vector2) -> Vector2 = { l + (int2real c) * r };
+  def rs = mkTopolRes bop C pvs svs;
+
+  def work(rs: [Vector2], a: Equations) -> Equations = {
+    match rs with
+    | [] -> a
+    | r::rs -> work rs (a; r = v2zero)
+    | _ -> error "Unmatched"
+  };
+
+  work rs a
+}
+
+def Body(m: Real, I: Real, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) = {
+  scalarEdge n_1 n_2 th T;
+  vector2Edge n_1 n_2 rr FF;
+  FF = m * rr'';
+  T = I * th''
+}
+
+def ForceActuator(ff: Vector2, rr: Vector2, FF: Vector2, n_1: Node, n_2: Node) = {
+  vector2Edge n_1 n_2 rr FF;
+  FF = ff
 }

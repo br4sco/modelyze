@@ -450,5 +450,5 @@ def sub(a: {Dyn}, s: Int, len: Int) -> {Dyn} = {
     };
     def _ = iteri f na;
     na
-  } else error INVALID_ARGUMENT
+  } else { error INVALID_ARGUMENT }
 }
