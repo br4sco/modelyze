@@ -1,0 +1,60 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include DILL2D
+
+type Label = (<Real>, String)
+type StateMap = (<Real> => Real)
+type Interval = (Real, Real)
+
+def updYYYP(s: StateMap, ukm: UkMap, y: {Real}, yp: {Real}) -> () = {
+  def f(v: <Real>, ib: (Int, Bool)) -> () = {
+    def (i, b) = ib;
+    if Map.mem v s then {
+      def _ = (Array.set y i (Map.find v s));
+      if b then (Array.set yp i (Map.find (v') s)) else ()
+    } else ()
+  };
+  iter f ukm
+}
+
+def indexReducation(e: Equations, s: StateMap) -> (Equations, StateMap) = {
+  def (e, dm) = indexReducationPantelides e (Map.empty);
+
+  def f(k: <Real>, d: <Real>, a: StateMap) -> StateMap = {
+    if Map.mem (k') s then Map.add d (Map.find (k') s) a else a
+  };
+
+  (e, fold f dm s)
+}
+
+def printLabels(lbs: [Label]) -> () = {
+  def _ = print "t";
+  def _ = iter (fun lb: Label -> print ("\t\t" ++ (snd lb))) lbs;
+  print "\n"
+}
+
+def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
+  def (t_0, t_f) = I;
+
+  def (s, m) = getInits m;
+  def e = elaborate m;
+  s
+}

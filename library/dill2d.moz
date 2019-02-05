@@ -163,7 +163,7 @@ def getInits(e: Equations) -> ([InitVal], Equations) = {
     | e_1; e_2 -> work e_2 (work e_1 a)
     | init v v_0 -> {
         match (v, v_0) with
-        | (sym: Real, lift v_0: Real) -> ((v, v_0)::(fst a), snd a)
+        | (v, lift v_0: Real) -> ((v, v_0)::(fst a), snd a)
         | _ -> error "Invalid init"
       }
     | _ -> (fst a, (snd a); e)
@@ -262,7 +262,6 @@ def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: 
   work rs a
 }
 
-
 def mkTopolEquations(f: (MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations), mes: [ModelEdge], a: Equations) -> Equations = {
   def (A, (T, C)) = mkCutsetMatrix mes;
   def (x_t, y_t) = unzip T;
@@ -273,6 +272,7 @@ def mkTopolEquations(f: (MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equation
 def elaborate(e: Equations) -> Equations = {
   def (ses, e) = getScalarEdges e;
   def (ves, e) = getVector2Edges e;
+  def (e, _) = getEquations e;
   def e = mkTopolEquations mkScalarTopolEquations ses e;
   def e = mkTopolEquations mkVector2TopolEquations ves e;
   cleanupEquations e

@@ -1,0 +1,5 @@
+include FORMULATE
+include DILLSIM
+
+def lbls = [(x_m, "x_m"), (y_m, "y_m")]
+def _ = dprintln (simulate m (0., 10.) 0.01 lbls)

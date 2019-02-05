@@ -15,41 +15,15 @@ def g = 9.81
 def x_g, y_g, Fx_g, Fy_g: Real
 def rr_g = vec x_g y_g
 def FF_g = vec Fx_g Fy_g
-def ff = vec 0. (-g)
+def ff = vec 0. (g)
 
 def fa = ForceActuator ff rr_g FF_g n_1 n_2
 def _ = dprintln fa
 
-def m = b; fa
+def m = b; fa; y_m <- 10.; y_m' <- 5.
 
 def main = {
-  def (smes, _) = getScalarEdges m;
-  def (vmes, _) = getVector2Edges m;
-  def (A_r, (T_r, C_r)) = mkCutsetMatrix smes;
-  def _ = dp A_r;
-  def _ = dprintln T_r;
-  def _ = dprintln C_r;
-
-  def (x_t_r, y_t_r) = unzip T_r;
-  def (x_c_r, y_c_r) = unzip C_r;
-  def _ = dprintln x_t_r;
-  def _ = dprintln x_c_r;
-  def _ = dprintln y_t_r;
-  def _ = dprintln y_c_r;
-  def _ = dprintln (mkScalarTopolEquations A_r y_t_r y_c_r NoEqn);
-  def _ = dprintln (mkScalarTopolEquations (-(tr A_r)) x_c_r x_t_r NoEqn);
-
-  def _ = dprintln vmes;
-  def (A_t, (T_t, C_t)) = mkCutsetMatrix vmes;
-  def _ = dp A_t;
-  def _ = dprintln T_t;
-  def _ = dprintln C_t;
-
-  def (x_t_t, y_t_t) = unzip T_t;
-  def (x_c_t, y_c_t) = unzip C_t;
-  def _ = dprintln y_t_t;
-  def _ = dprintln y_c_t;
-  def _ = dprintln (mkVector2TopolEquations A_t y_t_t y_c_t NoEqn);
+  def _ = dprintln m;
   def _ = dprintln (elaborate m);
   ()
 }
