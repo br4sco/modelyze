@@ -262,6 +262,22 @@ def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: 
   work rs a
 }
 
+
+def mkTopolEquations(f: (MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations), mes: [ModelEdge], a: Equations) -> Equations = {
+  def (A, (T, C)) = mkCutsetMatrix mes;
+  def (x_t, y_t) = unzip T;
+  def (x_c, y_c) = unzip C;
+  f A y_t y_c (f (- (tr A)) x_c x_t a)
+}
+
+def elaborate(e: Equations) -> Equations = {
+  def (ses, e) = getScalarEdges e;
+  def (ves, e) = getVector2Edges e;
+  def e = mkTopolEquations mkScalarTopolEquations ses e;
+  def e = mkTopolEquations mkVector2TopolEquations ves e;
+  cleanupEquations e
+}
+
 def Body(m: Real, I: Real, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) = {
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;

@@ -50,5 +50,6 @@ def main = {
   def _ = dprintln y_t_t;
   def _ = dprintln y_c_t;
   def _ = dprintln (mkVector2TopolEquations A_t y_t_t y_c_t NoEqn);
+  def _ = dprintln (elaborate m);
   ()
 }
