@@ -4,21 +4,32 @@ def n_1, n_2: Node
 
 def m = 1.
 def I = 1.
-def x_m, y_m, Fx_m, Fy_m, th_m, T_m: Real
+def x_m, y_m: Real
+def vx_m, vy_m: Real
+def ax_m, ay_m: Real
+def Fx_m, Fy_m: Real
+def th_m, om_m, al_m, T_m: Real
 def rr_m = vec x_m y_m
+def vv_m = vec vx_m vy_m
+def aa_m = vec ax_m ay_m
 def FF_m = vec Fx_m Fy_m
 
-def b = Body m I rr_m FF_m th_m T_m n_1 n_2
+def b = Body m I rr_m vv_m aa_m FF_m th_m om_m al_m T_m n_1 n_2
 
 def g = 9.81
-def x_g, y_g, Fx_g, Fy_g: Real
+def x_g, y_g: Real
+def vx_g, vy_g: Real
+def ax_g, ay_g: Real
+def Fx_g, Fy_g: Real
 def rr_g = vec x_g y_g
+def vv_g = vec vx_g vy_g
+def aa_g = vec ax_g ay_g
 def FF_g = vec Fx_g Fy_g
-def ff = vec 0. (g)
+def ff = vec 0. (-g)
 
-def fa = ForceActuator ff rr_g FF_g n_1 n_2
+def fa = ForceActuator ff rr_g vv_g aa_g FF_g n_1 n_2
 
-def m = b; fa; y_m <- 10.; y_m' <- 5.; y_m'' <- g
+def m = b; fa; y_m <- 10.; vy_m <- 5.; ay_m <- g
 
 def main = {
   def lbls = [(x_m, "x"), (y_m, "y")];

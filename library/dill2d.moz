@@ -70,6 +70,8 @@ def jOf(v: Vector2) -> <Real> = {
   | _ -> error "Invalid Operand"
 }
 
+def mkVec = (fun t: () -> {def x, y: Real; vec x y})
+
 def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
   match lhs with
   | vec lx ly -> {
@@ -128,6 +130,18 @@ def v2prod(s: <Real>, v: Vector2) -> Vector2 = {
 }
 def (*): <Real> -> Vector2 -> Vector2 = v2prod
 
+def v2dot(lhs: Vector2, rhs: Vector2) -> <Real> = {
+  def f(e: Dyn) -> <Real> = { e };
+  match lhs with
+  | vec lx ly -> {
+      match rhs with
+      | vec rx ry -> (f lx) * (f rx) + (f ly) * (f ry)
+      | _ -> error "Invalid RHS"
+    }
+  | _ -> error "Invalid LHS"
+}
+def (*.): Vector2 -> Vector2 -> <Real> = v2dot
+
 def v2der(v: Vector2) -> Vector2 = {
   match v with
   | vec x y -> vec (der x) (der y)
@@ -185,6 +199,9 @@ def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
 
   def G = mkGraph mes;
   def IM = mkIncidenceMatrix G;
+  def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
+  def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
+
   def vs = listToArray (mkVarsList mes);
 
   def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
@@ -225,7 +242,7 @@ def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt,
         def f(a: Dyn, jsv: (Int, Dyn)) -> Dyn = {
           def (j, sv) = jsv;
           def c = find (i + 1, j + 1) C;
-          bop c a sv
+          if c == 0 then a else bop c a sv
         };
 
         foldLeft f pv jsvs
@@ -265,8 +282,14 @@ def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: 
 
 def mkTopolEquations(f: (MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations), mes: [ModelEdge], a: Equations) -> Equations = {
   def (A, (T, C)) = mkCutsetMatrix mes;
+  def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
+
   def (x_t, y_t) = unzip T;
   def (x_c, y_c) = unzip C;
+
+  def _ = logg 2 "x_t" (loggprint x_t);
+  def _ = logg 2 "x_c" (loggprint x_c);
+
   f A y_t y_c (f (- (tr A)) x_c x_t a)
 }
 
@@ -279,27 +302,106 @@ def elaborate(e: Equations) -> Equations = {
   cleanupEquations e
 }
 
-def Body(m: Real, I: Real, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) = {
-  scalarEdge n_1 n_2 th T;
-  vector2Edge n_1 n_2 rr FF;
-  FF = m * rr'';
-  T = I * th''
-}
-
-def ForceActuator(ff: Vector2, rr: Vector2, FF: Vector2, n_1: Node, n_2: Node) = {
-  vector2Edge n_1 n_2 rr FF;
-  FF = ff
-}
-
 def Clock(t_0: Real, t: <Real>) = {
   t <- t_0;
   t' <- 1.;
   t' = 1.
 }
 
-def AngularActuator(f: <Real>, rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node)  = {
+def Body(m: Real, I: Real,
+         rr: Vector2,
+         vv: Vector2,
+         aa: Vector2,
+         FF: Vector2,
+         th: <Real>,
+         om: <Real>,
+         al: <Real>,
+         T: <Real>,
+         n_1: Node, n_2: Node) = {
+
+  scalarEdge n_1 n_2 al T;
+  vector2Edge n_1 n_2 aa FF;
+  rr' = vv;
+  vv' = aa;
+  FF = -m * aa;
+  th' = om;
+  om' = al;
+  T = -I * al
+}
+
+def ForceActuator(ff: Vector2,
+                  rr: Vector2,
+                  vv: Vector2,
+                  aa: Vector2,
+                  FF: Vector2,
+                  n_1: Node, n_2: Node) = {
+
+  vector2Edge n_1 n_2 aa FF;
+  rr' = vv;
+  vv' = aa;
+  FF = ff
+}
+
+def AngularActuator(f: <Real>,
+                    dft: <Real>,
+                    dftt: <Real>,
+                    rr: Vector2,
+                    vv: Vector2,
+                    aa: Vector2,
+                    FF: Vector2,
+                    th: <Real>,
+                    om: <Real>,
+                    al: <Real>,
+                    T: <Real>,
+                    n_1: Node, n_2: Node)  = {
+
+  scalarEdge n_1 n_2 al T;
+  vector2Edge n_1 n_2 aa FF;
+  rr = v2zero;
+  rr' = vv;
+  vv' = aa;
+  th = f;
+  om = dft;
+  al = dftt
+}
+
+def RigidArm(l: Real,
+             rr: Vector2,
+             vv: Vector2,
+             aa: Vector2,
+             FF: Vector2,
+             th_1: <Real>,
+             om_1: <Real>,
+             al_1: <Real>,
+             T_1: <Real>,
+             th_2: <Real>,
+             om_2: <Real>,
+             al_2: <Real>,
+             T_2: <Real>,
+             n_1: Node, n_2: Node, n_3: Node) = {
+
+  scalarEdge n_3 n_2 al_1 T_1;
+  scalarEdge n_1 n_3 al_2 T_2;
+  vector2Edge n_3 n_2 aa FF;
+  rr = vec (-l * cos th_2) (-l * sin th_2);
+  vv = om_2 * rr;
+  aa = al_2 * rr + om_2 * om_2 * rr;
+  th_1 = 0.;
+  th_1' = om_1;
+  om_1' = al_1;
+  th_2' = om_2;
+  om_2' = al_2;
+  T_2 = l * vec (sin th_2) (-cos th_2) *. FF
+}
+
+def RevoluteJoint(rr: Vector2,
+                  FF: Vector2,
+                  th: <Real>,
+                  T: <Real>,
+                  n_1: Node, n_2: Node)  = {
+
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
   rr = v2zero;
-  th = f
+  T = 0.
 }

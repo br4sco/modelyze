@@ -1,0 +1,47 @@
+include DILLSIM
+
+def n_1, n_2, n_3: Node
+
+// def a = 45. * PI /180.
+def a = 0.
+
+def m = 1.
+def I = 1.
+def x_m, y_m, Fx_m, Fy_m, th_m, T_m: Real
+def rr_m = vec x_m y_m
+def FF_m = vec Fx_m Fy_m
+
+def b = Body m I rr_m FF_m th_m T_m n_1 n_3
+
+def x_h, y_h, Fx_h, Fy_h, th_h, T_h: Real
+def rr_h = vec x_h y_h
+def FF_h = vec Fx_h Fy_h
+
+def aa = RevoluteJoint rr_h FF_h th_h T_h n_1 n_2
+
+def g = -1.
+def x_g, y_g, Fx_g, Fy_g: Real
+def rr_g = vec x_g y_g
+def FF_g = vec Fx_g Fy_g
+def ff = vec 0. (g)
+
+def fa = ForceActuator ff rr_g FF_g n_1 n_3
+
+def l = 1.
+def x_r1, y_r1, Fx_r1, Fy_r1, th_r1, T_r1, th_r2, T_r2: Real
+def rr_r1 = vec x_r1 y_r1
+def FF_r1 = vec Fx_r1 Fy_r1
+
+def ra = RigidArm l rr_r1 FF_r1 th_r1 T_r1 th_r2 T_r2 n_1 n_2 n_3
+
+def m = b; aa; fa; ra;
+  x_m <- 1.;
+  T_m <- (-g)
+
+def main = {
+  def lbls = [(x_m, "x"), (y_m, "y"), (th_m, "th"), (T_m, "T")];
+  def _ = dprintln (mkVec ());
+  def _ = dprintln (mkVec ());
+  ()
+  // simulate m (0., 5.) 0.01 lbls
+}

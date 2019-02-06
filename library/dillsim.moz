@@ -26,11 +26,9 @@ type Interval = (Real, Real)
 
 def updYYYP(s: StateMap, ukm: UkMap, y: {Real}, yp: {Real}) -> () = {
   def f(v: <Real>, ib: (Int, Bool)) -> () = {
-    def (i, b) = ib;
-    if Map.mem v s then {
-      def _ = (Array.set y i (Map.find v s));
-      if b && (Map.mem (v') s) then (Array.set yp i (Map.find (v') s)) else ()
-    } else ()
+    def (i, _) = ib;
+    def _ = (if Map.mem v s then (Array.set y i (Map.find v s)) else ());
+    if Map.mem (v') s then (Array.set yp i (Map.find (v') s)) else ()
   };
   iter f ukm
 }
@@ -67,11 +65,11 @@ def printState(ukm: UkMap, yy: {Real}, yp: {Real}) -> () = {
     def _ = dprint(k);
     def _ = print " <- ";
     def _ = print (real2string (Array.get yy i));
-    def _ = print " ";
+    def _ = print "\t";
     def _ = dprint(k');
     def _ = print " <- ";
     def _ = print (real2string (Array.get yp i));
-    print "\n"
+    if b then print "(D)\n" else print "\n"
   };
   iter f ukm
 }
