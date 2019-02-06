@@ -45,8 +45,8 @@ def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def vector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
 
 type ModelEdge = (Edge, (Dyn, Dyn))
-type _ScalarEdge = (Edge, (<Real>, <Real>))
-type _Vector2Edge = (Edge, (Vector2, Vector2))
+type ScalarEdge = (Edge, (<Real>, <Real>))
+type Vector2Edge = (Edge, (Vector2, Vector2))
 
 def mkGraph(mes: [ModelEdge]) -> [Edge] = {
   map (fun me: ModelEdge -> fst me) mes
@@ -56,7 +56,7 @@ def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
   map (fun me: ModelEdge -> snd me) mes
 }
 
-type InitVal = (<Real>, Real)
+type InitVal = (<Real>, (Real, Bool))
 
 def iOf(v: Vector2) -> <Real> = {
   match v with
@@ -83,16 +83,16 @@ def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
 }
 def (=): Vector2 -> Vector2 -> Equations = v2Eq
 
-def v2init(v: Vector2, v_0: Vector2) -> Equations = {
-  match v with
-  | vec x y -> {
-      match v_0 with
-      | vec x_0 y_0 -> x <- x_0; y <- y_0
-      | _ -> error "Invalid RHS"
-    }
-  | _ -> error "Invalid LHS"
-}
-def (<-): Vector2 -> Vector2 -> Equations = v2init
+// def v2init(v: Vector2, v_0: Vector2) -> Equations = {
+//   match v with
+//   | vec x y -> {
+//       match v_0 with
+//       | vec x_0 y_0 -> x <- x_0; y <- y_0
+//       | _ -> error "Invalid RHS"
+//     }
+//   | _ -> error "Invalid LHS"
+// }
+// def (<-): Vector2 -> Vector2 -> Equations = v2init
 
 def v2add(lhs: Vector2, rhs: Vector2) -> Vector2 = {
   match lhs with
@@ -149,8 +149,8 @@ def v2der(v: Vector2) -> Vector2 = {
 }
 def ('): Vector2 -> Vector2 = v2der
 
-def getScalarEdges(e: Equations) -> ([_ScalarEdge], Equations) = {
-  def work(e: Equations, a: ([_ScalarEdge], Equations)) -> ([_ScalarEdge], Equations)  = {
+def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
+  def work(e: Equations, a: ([ScalarEdge], Equations)) -> ([ScalarEdge], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | scalarEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
@@ -160,8 +160,8 @@ def getScalarEdges(e: Equations) -> ([_ScalarEdge], Equations) = {
   work e ([], NoEqn)
 }
 
-def getVector2Edges(e: Equations) -> ([_Vector2Edge], Equations) = {
-  def work(e: Equations, a: ([_Vector2Edge], Equations)) -> ([_Vector2Edge], Equations)  = {
+def getVector2Edges(e: Equations) -> ([Vector2Edge], Equations) = {
+  def work(e: Equations, a: ([Vector2Edge], Equations)) -> ([Vector2Edge], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | vector2Edge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
@@ -177,7 +177,7 @@ def getInits(e: Equations) -> ([InitVal], Equations) = {
     | e_1; e_2 -> work e_2 (work e_1 a)
     | init v v_0 -> {
         match (v, v_0) with
-        | (v, lift v_0: Real) -> ((v, v_0)::(fst a), snd a)
+        | (v, lift v_0: Real) -> ((v, (v_0, true))::(fst a), snd a)
         | _ -> error "Invalid init"
       }
     | _ -> (fst a, (snd a); e)

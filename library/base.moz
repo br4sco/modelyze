@@ -112,7 +112,7 @@ def dprintln(o: Dyn) = { def _ = dprint(o); def _ = println ""; o }
 
 def INVALID_ARGUMENT = "Invalid argument"
 
-def LOGGLEVEL = 2
+def LOGGLEVEL = 0
 
 def logg(lvl: Int, msg: String, f: (() -> ())) -> () = {
   if lvl <= LOGGLEVEL then {
