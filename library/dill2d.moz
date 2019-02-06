@@ -319,8 +319,8 @@ def Body(m: Real, I: Real,
          T: <Real>,
          n_1: Node, n_2: Node) = {
 
-  scalarEdge n_1 n_2 al T;
-  vector2Edge n_1 n_2 aa FF;
+  scalarEdge n_1 n_2 th T;
+  vector2Edge n_1 n_2 rr FF;
   rr' = vv;
   vv' = aa;
   FF = -m * aa;
@@ -336,7 +336,7 @@ def ForceActuator(ff: Vector2,
                   FF: Vector2,
                   n_1: Node, n_2: Node) = {
 
-  vector2Edge n_1 n_2 aa FF;
+  vector2Edge n_1 n_2 rr FF;
   rr' = vv;
   vv' = aa;
   FF = ff
@@ -355,8 +355,8 @@ def AngularActuator(f: <Real>,
                     T: <Real>,
                     n_1: Node, n_2: Node)  = {
 
-  scalarEdge n_1 n_2 al T;
-  vector2Edge n_1 n_2 aa FF;
+  scalarEdge n_1 n_2 th T;
+  vector2Edge n_1 n_2 rr FF;
   rr = v2zero;
   rr' = vv;
   vv' = aa;

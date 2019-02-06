@@ -3,4 +3,4 @@ cs := getClassNames();
 c := cs[1];
 checkModel(c);
 simulate(c, stopTime = 10.0);
-plotAll();
+plotAll(externalWindow = true);

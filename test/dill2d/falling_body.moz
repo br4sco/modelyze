@@ -29,7 +29,7 @@ def ff = vec 0. (-g)
 
 def fa = ForceActuator ff rr_g vv_g aa_g FF_g n_1 n_2
 
-def m = b; fa; y_m <- 10.; vy_m <- 5.; ay_m <- g
+def m = b; fa; y_m <- 10.; vy_m <- 20.
 
 def main = {
   exportDill2Modelica "Falling_Body" m
