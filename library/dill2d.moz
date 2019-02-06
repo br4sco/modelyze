@@ -311,47 +311,47 @@ def Clock(t_0: Real, t: <Real>) = {
 def Body(m: Real, I: Real,
          rr: Vector2,
          vv: Vector2,
-         aa: Vector2,
+         // aa: Vector2,
          FF: Vector2,
          th: <Real>,
          om: <Real>,
-         al: <Real>,
+         // al: <Real>,
          T: <Real>,
          n_1: Node, n_2: Node) = {
 
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
   rr' = vv;
-  vv' = aa;
-  FF = -m * aa;
+  // vv' = aa;
+  FF = -m * vv';
   th' = om;
-  om' = al;
-  T = -I * al
+  // om' = al;
+  T = -I * om'
 }
 
 def ForceActuator(ff: Vector2,
                   rr: Vector2,
                   vv: Vector2,
-                  aa: Vector2,
+                  // aa: Vector2,
                   FF: Vector2,
                   n_1: Node, n_2: Node) = {
 
   vector2Edge n_1 n_2 rr FF;
   rr' = vv;
-  vv' = aa;
+  // vv' = aa;
   FF = ff
 }
 
 def AngularActuator(f: <Real>,
                     dft: <Real>,
-                    dftt: <Real>,
+                    // dftt: <Real>,
                     rr: Vector2,
                     vv: Vector2,
-                    aa: Vector2,
+                    // aa: Vector2,
                     FF: Vector2,
                     th: <Real>,
                     om: <Real>,
-                    al: <Real>,
+                    // al: <Real>,
                     T: <Real>,
                     n_1: Node, n_2: Node)  = {
 
@@ -359,38 +359,38 @@ def AngularActuator(f: <Real>,
   vector2Edge n_1 n_2 rr FF;
   rr = v2zero;
   rr' = vv;
-  vv' = aa;
+  // vv' = aa;
   th = f;
-  om = dft;
-  al = dftt
+  om = dft
+  // ;al = dftt
 }
 
 def RigidArm(l: Real,
              rr: Vector2,
              vv: Vector2,
-             aa: Vector2,
+             // aa: Vector2,
              FF: Vector2,
              th_1: <Real>,
              om_1: <Real>,
-             al_1: <Real>,
+             // al_1: <Real>,
              T_1: <Real>,
              th_2: <Real>,
              om_2: <Real>,
-             al_2: <Real>,
+             // al_2: <Real>,
              T_2: <Real>,
              n_1: Node, n_2: Node, n_3: Node) = {
 
-  scalarEdge n_3 n_2 al_1 T_1;
-  scalarEdge n_1 n_3 al_2 T_2;
-  vector2Edge n_3 n_2 aa FF;
+  scalarEdge n_3 n_2 th_1 T_1;
+  scalarEdge n_1 n_3 th_2 T_2;
+  vector2Edge n_3 n_2 rr FF;
   rr = vec (-l * cos th_2) (-l * sin th_2);
   vv = om_2 * rr;
-  aa = al_2 * rr + om_2 * om_2 * rr;
+  // vv' = al_2 * rr + om_2 * om_2 * rr;
   th_1 = 0.;
   th_1' = om_1;
-  om_1' = al_1;
+  // om_1' = al_1;
   th_2' = om_2;
-  om_2' = al_2;
+  // om_2' = al_2;
   T_2 = l * vec (sin th_2) (-cos th_2) *. FF
 }
 

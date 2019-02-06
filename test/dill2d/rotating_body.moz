@@ -14,10 +14,20 @@ def Fx_m, Fy_m: Real
 def th_m, om_m, al_m, T_m: Real
 def rr_m = vec x_m y_m
 def vv_m = vec vx_m vy_m
-def aa_m = vec ax_m ay_m
+// def aa_m = vec ax_m ay_m
 def FF_m = vec Fx_m Fy_m
 
-def b = Body m I rr_m vv_m aa_m FF_m th_m om_m al_m T_m n_1 n_2
+def b = Body m
+             I
+             rr_m
+             vv_m
+             // aa_m
+             FF_m
+             th_m
+             om_m
+             // al_m
+             T_m
+             n_1 n_2
 
 def x_h, y_h: Real
 def vx_h, vy_h: Real
@@ -26,13 +36,24 @@ def Fx_h, Fy_h: Real
 def th_h, om_h, al_h, T_h: Real
 def rr_h = vec x_h y_h
 def vv_h = vec vx_h vy_h
-def aa_h = vec ax_h ay_h
+// def aa_h = vec ax_h ay_h
 def FF_h = vec Fx_h Fy_h
 def f = t * t
 def dft = 2. * t
-def dftt = 2.
+// def dftt = 2.
 
-def aa = AngularActuator f dft dftt rr_h vv_h aa_h FF_h th_h om_h al_h T_h n_1 n_2
+def aa = AngularActuator f
+                         dft
+                         // dftt
+                         rr_h
+                         vv_h
+                         // aa_h
+                         FF_h
+                         th_h
+                         om_h
+                         // al_h
+                         T_h
+                         n_1 n_2
 
 def c = Clock t_0 t
 def m = b; aa; c
