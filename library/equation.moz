@@ -115,3 +115,52 @@ def realUnknowns(eqs:Equations) -> (Int,UkMap) = {
 //in an equation system. See definition of UkMap.
 def makeUkMap(eqs:Equations) -> UkMap =
     snd (realUnknowns(eqs))
+
+def setIdIvs(e: Equations, s: (<Real> => Real)) -> (<Real> => Real) = {
+
+  def f(l: <Real>, r: <Real>, a: (<Real> => Real)) -> (<Real> => Real) = {
+    if (Map.mem l a) && !(Map.mem r a) then Map.add r (Map.find l a) a
+    else if !(Map.mem l a) && (Map.mem r a) then Map.add l (Map.find r a) a
+    else if (Map.mem l a) && (Map.mem r a) then {
+      if (Map.find l a) == (Map.find r a) then a
+      else error "Inconsistent ID Iv"
+    } else a
+  };
+
+  def ff(l: <Real>, r: <Real>, a: (<Real> => Real)) -> (<Real> => Real)  = {
+    match (l, r) with
+    | (sym: Real, sym: Real) -> f l r a
+    | (der (sym: Real), sym: Real) -> f l r a
+    | (sym: Real, der (sym: Real)) -> f l r a
+    | _ -> a
+  };
+
+  def fff(l: <Real>, r: <Real>, a: (<Real> => Real)) -> (<Real> => Real)  = {
+    match (l, r) with
+    | (sym: Real, sval r: Real) -> Map.add l r a
+    | (sval l: Real, sym: Real) -> Map.add r l a
+    | (der (sym: Real), sval r: Real) -> Map.add l r a
+    | (sval l: Real, der (sym: Real)) -> Map.add r l a
+    | _ -> a
+  };
+
+  def workxdx(ee: Equations, a: (<Real> => Real)) -> (<Real> => Real)  = {
+    match ee with
+    | e_1 = e_2 -> {
+        def aa = ff e_1 e_2 a;
+        if (Map.size aa) != (Map.size a) then workxdx e aa
+        else a
+      }
+    | e_1; e_2 -> workxdx e_2 (workxdx e_1 a)
+    | _ -> a
+  };
+
+  def workxdxc(e: Equations, a: (<Real> => Real)) -> (<Real> => Real)  = {
+    match e with
+    | e_1 = e_2 -> fff e_1 e_2 a
+    | e_1; e_2 -> workxdxc e_2 (workxdxc e_1 a)
+    | _ -> a
+  };
+
+  workxdx e (workxdxc e s)
+}

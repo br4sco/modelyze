@@ -49,7 +49,7 @@ def FF_r1 = vec Fx_r1 Fy_r1
 def ra = RigidArm l rr_r1 vv_r1 aa_r1 FF_r1 th_r1 om_r1 al_r1 T_r1 th_r2 om_r2 al_r2 T_r2 n_1 n_2 n_3
 
 def c = Clock t_0 t
-def m = b; aa; ra; c; x_m <- 1.
+def m = b; aa; ra; c; x_m <- 1.; ax_m <- (-2.)
 
 def main = {
   def lbls = [(x_m, "x"), (y_m, "y"), (vx_m, "vx"), (vy_m, "vy"), (th_m, "th"), (T_m, "T")];

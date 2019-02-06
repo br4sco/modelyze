@@ -1,0 +1,4 @@
+include ExportDillToModelica
+
+def x, y, z: Real
+def _  = println (exportModelica "A" (cos x = y'; der x = 1. * y * y; z^2. + 1. = 0.) (listToMap [(x, (1., false)), (y, (2., true))]))

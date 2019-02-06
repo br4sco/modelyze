@@ -83,8 +83,17 @@ def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
   def e = elaborate m;
   def _ = logg 1 "Equations" (loggprintln e);
 
-  def (e, s) = indexReduction e (listToMap s);
+  def s = listToMap s;
+  def _ = logg 2 "Ivs from model def" (loggprint s);
+
+  def s =  setIdIvs e s;
+  def _ = logg 2 "Ivs from ids" (loggprint s);
+
+  def (e, _) = indexReduction e s;
   def _ = logg 1 "IR Equations" (loggprintln e);
+
+  def s =  setIdIvs e s;
+  def _ = logg 2 "Ivs from ids" (loggprint s);
 
   def ukm = makeUkMap e;
   def n = (Map.size ukm);

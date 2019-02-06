@@ -18,7 +18,6 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 
 include ModelyzeDAE
 
-
 def g = 9.81
 
 def Pendulum(m:Real,l:Real,a:Real)={
