@@ -1,4 +1,5 @@
 include DILLEXPORT
+include DILLSIM
 
 def n_1, n_2: Node
 
@@ -39,6 +40,6 @@ def fa = ForceActuator ff
 def m = b; fa; y_m <- 10.; vy_m <- 20.
 
 def main = {
-  exportDill2Modelica "Falling_Body" m
-  // exportDill2Matlab m
+  // exportDill2Modelica "Falling_Body" m
+  simulate m (0., 10.) 0.01
 }

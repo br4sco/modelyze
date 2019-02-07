@@ -1,4 +1,5 @@
 include DILLEXPORT
+include DILLSIM
 
 def n_1, n_2: Node
 
@@ -46,5 +47,6 @@ def c = Clock t_0 t
 def m = b; aa; c
 
 def main = {
-  exportDill2Modelica "Rotating_Body" m
+  // exportDill2Modelica "Rotating_Body" m
+  simulate m (0., 10.) 0.01
 }

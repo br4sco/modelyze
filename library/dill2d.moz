@@ -149,6 +149,12 @@ def v2der(v: Vector2) -> Vector2 = {
 }
 def ('): Vector2 -> Vector2 = v2der
 
+def getUknowns(m: Equations) -> [<Real>] = {
+  def f(e: (<Real>, (Int, Bool))) -> <Real> = { fst e };
+  map f (Map.toList (makeUkMap m))
+}
+
+
 def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
   def work(e: Equations, a: ([ScalarEdge], Equations)) -> ([ScalarEdge], Equations)  = {
     match e with

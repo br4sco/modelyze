@@ -75,11 +75,9 @@ def printState(ukm: UkMap, yy: {Real}, yp: {Real}) -> () = {
 }
 
 
-def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
-  def dt = 0.00001;
-  def (t_0, t_f) = I;
-
+def init(m: Equations) -> (Equations, StateMap) = {
   def (s, m) = getInits m;
+  def s = map (fun iv: (<Real>, (Real, Bool)) -> (fst iv, fst (snd iv))) s;
   def e = elaborate m;
   def _ = logg 1 "Equations" (loggprintln e);
 
@@ -94,6 +92,13 @@ def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
 
   def s =  setIdIvs e s;
   def _ = logg 2 "Ivs from ids" (loggprint s);
+
+  (e, s)
+}
+
+def solve(e: Equations, s: StateMap, I: Interval, h: Real, lbls: [Label]) -> () = {
+  def dt = 0.00001;
+  def (t_0, t_f) = I;
 
   def ukm = makeUkMap e;
   def n = (Map.size ukm);
@@ -125,4 +130,15 @@ def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) = {
 
   def _ = printLabels lbls;
   go (t_0 + dt, DAE_SOLVER_RESULT_SUCCESS)
+}
+
+def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) -> () = {
+  def (e, s) = init m;
+  solve e s I h lbls;
+}
+
+def simulate(m: Equations, I: Interval, h: Real) -> () = {
+  def (e, _) = getEquations m;
+  def lbls = map (fun uk: <Real> -> (uk, symstr(uk))) (getUknowns e);
+  simulate m I h lbls
 }
