@@ -370,7 +370,7 @@ def RigidArm(l: Real,
   vector2Edge n_3 n_2 rr FF;
   rr = -l * vec (cos th_2) (sin th_2);
   th_1 = 0.;
-  T_2 = - l * vec (sin th_2) (-cos th_2) *. FF
+  T_2 = -l * vec (sin th_2) (-cos th_2) *. FF
 }
 
 def RevoluteJoint(rr: Vector2,

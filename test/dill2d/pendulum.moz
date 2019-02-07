@@ -69,6 +69,7 @@ def m = b; ra; rj; fa
   ; x_m <- l
 
 def main = {
-  exportDill2Modelica "Pendulum" m
-  // simulate m (0., 10.) 0.01
+  // exportDill2Modelica "Pendulum" m
+  simulate m (0., 10.) 0.01
+    [(x_m, "x"), (y_m, "y"), (th_m, ("th"))]
 }

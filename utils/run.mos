@@ -1,6 +1,9 @@
+echo(false);
 loadFile("/tmp/A.mo");
 cs := getClassNames();
 c := cs[1];
+echo(true);
 checkModel(c);
-simulate(c, stopTime = 10.0, simflags="-lv LOG_LS");
+simulate(c, stopTime = 10.0);
+echo(false);
 plotAll(externalWindow = true);
