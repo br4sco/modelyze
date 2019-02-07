@@ -337,7 +337,7 @@ def ForceActuator(ff: Vector2,
                   n_1: Node, n_2: Node) = {
 
   vector2Edge n_1 n_2 rr FF;
-  rr' = vv;
+  // rr' = vv;
   // vv' = aa;
   FF = ff
 }
@@ -358,7 +358,7 @@ def AngularActuator(f: <Real>,
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
   rr = v2zero;
-  rr' = vv;
+  // rr' = vv;
   // vv' = aa;
   th = f;
   om = dft
@@ -384,24 +384,33 @@ def RigidArm(l: Real,
   scalarEdge n_1 n_3 th_2 T_2;
   vector2Edge n_3 n_2 rr FF;
   rr = vec (-l * cos th_2) (-l * sin th_2);
-  vv = om_2 * rr;
-  // vv' = al_2 * rr + om_2 * om_2 * rr;
+  // vv' = l * (om_2 * om_2 * rr - om_2' * vec (-sin th_2) (cos th_2));
   th_1 = 0.;
-  th_1' = om_1;
+  // th_1' = om_1;
   // om_1' = al_1;
-  th_2' = om_2;
+  // th_2' = om_2;
   // om_2' = al_2;
-  T_2 = l * vec (sin th_2) (-cos th_2) *. FF
+  T_2 = - l * vec (sin th_2) (-cos th_2) *. FF
 }
 
-def RevoluteJoint(rr: Vector2,
-                  FF: Vector2,
+def RevoluteJoint(rr_1: Vector2,
+                  vv_1: Vector2,
+                  FF_1: Vector2,
+                  rr_2: Vector2,
+                  vv_2: Vector2,
+                  FF_2: Vector2,
                   th: <Real>,
+                  om: <Real>,
                   T: <Real>,
                   n_1: Node, n_2: Node)  = {
 
   scalarEdge n_1 n_2 th T;
-  vector2Edge n_1 n_2 rr FF;
-  rr = v2zero;
+  vector2Edge n_1 n_2 rr_1 FF_1;
+  // vector2Edge n_1 n_2 rr_2 FF_2;
+  rr_1 = v2zero;
+  // rr_1' = vv_1;
+  // FF_2 = v2zero;
+  // rr_2' = vv_2;
+  // th' = om;
   T = 0.
 }

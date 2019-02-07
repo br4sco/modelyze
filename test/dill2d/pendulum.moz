@@ -1,47 +1,106 @@
-include DILLSIM
+include DILLEXPORT
 
 def n_1, n_2, n_3: Node
 
-// def a = 45. * PI /180.
-def a = 0.
-
 def m = 1.
 def I = 1.
-def x_m, y_m, Fx_m, Fy_m, th_m, T_m: Real
+def x_m, y_m: Real
+def vx_m, vy_m: Real
+def ax_m, ay_m: Real
+def Fx_m, Fy_m: Real
+def th_m, om_m, al_m, T_m: Real
 def rr_m = vec x_m y_m
+def vv_m = vec vx_m vy_m
+// def aa_m = vec ax_m ay_m
 def FF_m = vec Fx_m Fy_m
 
-def b = Body m I rr_m FF_m th_m T_m n_1 n_3
-
-def x_h, y_h, Fx_h, Fy_h, th_h, T_h: Real
-def rr_h = vec x_h y_h
-def FF_h = vec Fx_h Fy_h
-
-def aa = RevoluteJoint rr_h FF_h th_h T_h n_1 n_2
-
-def g = -1.
-def x_g, y_g, Fx_g, Fy_g: Real
-def rr_g = vec x_g y_g
-def FF_g = vec Fx_g Fy_g
-def ff = vec 0. (g)
-
-def fa = ForceActuator ff rr_g FF_g n_1 n_3
+def b = Body m
+             I
+             rr_m
+             vv_m
+             // aa_m
+             FF_m
+             th_m
+             om_m
+             // al_m
+             T_m
+             n_1 n_3
 
 def l = 1.
-def x_r1, y_r1, Fx_r1, Fy_r1, th_r1, T_r1, th_r2, T_r2: Real
+def x_r1, y_r1: Real
+def vx_r1, vy_r1: Real
+// def ax_r1, ay_r1: Real
+def Fx_r1, Fy_r1: Real
+def th_r1, om_r1, al_r1, T_r1: Real
+def th_r2, om_r2, al_r2, T_r2: Real
 def rr_r1 = vec x_r1 y_r1
+def vv_r1 = vec vx_r1 vy_r1
+// def aa_r1 = vec ax_r1 ay_r1
 def FF_r1 = vec Fx_r1 Fy_r1
 
-def ra = RigidArm l rr_r1 FF_r1 th_r1 T_r1 th_r2 T_r2 n_1 n_2 n_3
+def ra = RigidArm l
+                  rr_r1
+                  vv_r1
+                  // aa_r1
+                  FF_r1
+                  th_r1
+                  om_r1
+                  // al_r1
+                  T_r1
+                  th_r2
+                  om_r2
+                  // al_r2
+                  T_r2
+                  n_1 n_2 n_3
 
-def m = b; aa; fa; ra;
-  x_m <- 1.;
-  T_m <- (-g)
+def x_h1, y_h1: Real
+def vx_h1, vy_h1: Real
+def Fx_h1, Fy_h1: Real
+def x_h2, y_h2: Real
+def vx_h2, vy_h2: Real
+def Fx_h2, Fy_h2: Real
+def th_h, om_h, al_h, T_h: Real
+def rr_h1 = vec x_h1 y_h1
+def vv_h1 = vec vx_h1 vy_h1
+def FF_h1 = vec Fx_h1 Fy_h1
+def rr_h2 = vec x_h2 y_h2
+def vv_h2 = vec vx_h2 vy_h2
+def FF_h2 = vec Fx_h2 Fy_h2
+
+def rj = RevoluteJoint rr_h1
+                       vv_h1
+                       FF_h1
+                       rr_h2
+                       vv_h2
+                       FF_h2
+                       th_h
+                       om_h
+                       T_h
+                       n_1 n_2
+
+def g = 9.81
+def x_g, y_g: Real
+def vx_g, vy_g: Real
+// def ax_g, ay_g: Real
+def Fx_g, Fy_g: Real
+def rr_g = vec x_g y_g
+def vv_g = vec vx_g vy_g
+// def aa_g = vec ax_g ay_g
+def FF_g = vec Fx_g Fy_g
+def ff = vec 0. (-g)
+
+def fa = ForceActuator ff
+                       rr_g
+                       vv_g
+                       // aa_g
+                       FF_g
+                       n_1 n_3
+
+def m = b; ra; rj; fa
+  ; x_m <- 0.
+  ; vx_m <- 0.
 
 def main = {
-  def lbls = [(x_m, "x"), (y_m, "y"), (th_m, "th"), (T_m, "T")];
-  def _ = dprintln (mkVec ());
-  def _ = dprintln (mkVec ());
-  ()
-  // simulate m (0., 5.) 0.01 lbls
+  exportDill2Modelica "Pendulum" m
+  // exportDill2Matlab m
 }

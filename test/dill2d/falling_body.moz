@@ -47,5 +47,6 @@ def fa = ForceActuator ff
 def m = b; fa; y_m <- 10.; vy_m <- 20.
 
 def main = {
-  exportDill2Modelica "Falling_Body" m
+  // exportDill2Modelica "Falling_Body" m
+  exportDill2Matlab m
 }

@@ -40,6 +40,8 @@ def vv_h = vec vx_h vy_h
 def FF_h = vec Fx_h Fy_h
 def f = t * t
 def dft = 2. * t
+// def f = t
+// def dft = 0.
 // def dftt = 2.
 
 def aa = AngularActuator f
@@ -82,9 +84,28 @@ def ra = RigidArm l
                   T_r2
                   n_1 n_2 n_3
 
+def g = 9.81
+def x_g, y_g: Real
+def vx_g, vy_g: Real
+def ax_g, ay_g: Real
+def Fx_g, Fy_g: Real
+def rr_g = vec x_g y_g
+def vv_g = vec vx_g vy_g
+// def aa_g = vec ax_g ay_g
+def FF_g = vec Fx_g Fy_g
+def ff = vec 0. (-g)
+
+def fa = ForceActuator ff
+                       rr_g
+                       vv_g
+                       // aa_g
+                       FF_g
+                       n_1 n_3
+
 def c = Clock t_0 t
-def m = b; aa; ra; c; x_m <- 1.; y_m <- 0.
+def m = b; aa; ra; c; fa; x_m <- 1.
 
 def main = {
   exportDill2Modelica "Rotating_Body_On_Arm" m
+ // exportDill2Matlab m
 }
