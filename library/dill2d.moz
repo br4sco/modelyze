@@ -380,28 +380,20 @@ def BodyInGravity(m: Real, I: Real,
 
 def AngularActuator(f: <Real>,
                     dft: <Real>,
-                    rr: Vector2,
-                    FF: Vector2,
                     th: <Real>,
                     om: <Real>,
                     T: <Real>,
                     n_1: Node, n_2: Node)  = {
 
   scalarEdge n_1 n_2 th T;
-  vector2Edge n_1 n_2 rr FF;
-  rr = v2zero;
   th = f;
   om = dft
 }
 
 def AAngularActuator(f: <Real>, dft: <Real>, n_1: Node, n_2: Node)  = {
   def x_ha, y_ha: Real;
-  def vx_ha, vy_ha: Real;
-  def Fx_ha, Fy_ha: Real;
   def th_ha, om_ha, T_ha: Real;
-  def rr_ha = vec x_ha y_ha;
-  def FF_ha = vec Fx_ha Fy_ha;
-  AngularActuator f dft rr_ha FF_ha th_ha om_ha T_ha n_1 n_2
+  AngularActuator f dft th_ha om_ha T_ha n_1 n_2
 }
 
 def RigidArm(l: Real,
@@ -451,3 +443,23 @@ def ARevoluteJoint(n_1: Node, n_2: Node)  = {
   def FF_hr = vec Fx_hr Fy_hr;
   RevoluteJoint rr_hr FF_hr th_hr T_hr n_1 n_2
 }
+
+def AngularDamper(D: Real, th: <Real>, T: <Real>, n_1: Node, n_2: Node)  = {
+  scalarEdge n_1 n_2 th T;
+  T = -D * th'
+}
+
+def AAngularDamper(D: Real, n_1: Node, n_2: Node)  = {
+  def th_d, T_d: Real;
+  AngularDamper D th_d T_d n_1 n_2
+}
+
+def ADampedRevoluteJoint(D: Real, n_1: Node, n_2: Node)  = {
+  def rj = ARevoluteJoint n_1 n_2;
+  def d = AAngularDamper D n_1 n_2;
+  rj; d
+}
+
+// def TranslationalActuator(f: <Real>, dft: <Real>, )  = {
+
+// }

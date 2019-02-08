@@ -3,9 +3,6 @@ include DILLSIM
 
 def n_1, n_2, n_3: Node
 
-def t: Real
-def t_0 = 0.
-
 def m = 1.
 def I = 1.
 def x_m, y_m: Real
@@ -26,22 +23,18 @@ def b = Body m
              T_m
              n_1 n_3
 
-def f = t * t
-def dft = 2. * t
-// def f = t
-// def dft = 0.
-// def dftt = 2.
-
-def aa = AAngularActuator f dft n_1 n_2
-def rj = ARevoluteJoint n_1 n_2
 def l = 1.
 def ra = ARigidArm l n_1 n_2 n_3
+def rj = ARevoluteJoint n_1 n_2
+def D = 1.
+def d = AAngularDamper D n_1 n_2
 def g = Gravity m n_1 n_3
-def c = Clock t_0 t
 
-def m = b; aa; rj; ra; c; g; x_m <- 1.
+def m = b; ra; rj; d; g
+  ; x_m <- l
 
 def main = {
-  // exportDill2Modelica "Rotating_Body_On_Arm" m
-  simulate m (0., 10.) 0.01
+  // exportDill2Modelica "Pendulum" m
+  simulate m (0., 30.) 0.01
+    [(x_m, "x"), (y_m, "y")]
 }
