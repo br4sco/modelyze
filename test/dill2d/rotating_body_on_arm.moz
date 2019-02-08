@@ -33,13 +33,11 @@ def dft = 2. * t
 // def dftt = 2.
 
 def aa = AAngularActuator f dft n_1 n_2
-
 def l = 1.
 def ra = ARigidArm l n_1 n_2 n_3
-
 def g = Gravity m n_1 n_3
-
 def c = Clock t_0 t
+
 def m = b; aa; ra; c; g; x_m <- 1.
 
 def main = {

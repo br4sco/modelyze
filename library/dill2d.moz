@@ -313,6 +313,14 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
+def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node)  = {
+  def t_x, t_y: Real;
+  def tt = vec t_x t_y;
+  vector2Edge n_1 n_2 aa tt;
+  tt = v2zero
+}
+
+
 def Body(m: Real, I: Real,
          rr: Vector2,
          vv: Vector2,
@@ -387,13 +395,13 @@ def AngularActuator(f: <Real>,
 }
 
 def AAngularActuator(f: <Real>, dft: <Real>, n_1: Node, n_2: Node)  = {
-  def x_h_a, y_h_a: Real;
-  def vx_h_a, vy_h_a: Real;
-  def Fx_h_a, Fy_h_a: Real;
-  def th_h_a, om_h_a, T_h_a: Real;
-  def rr_h_a = vec x_h_a y_h_a;
-  def FF_h_a = vec Fx_h_a Fy_h_a;
-  AngularActuator f dft rr_h_a FF_h_a th_h_a om_h_a T_h_a n_1 n_2
+  def x_ha, y_ha: Real;
+  def vx_ha, vy_ha: Real;
+  def Fx_ha, Fy_ha: Real;
+  def th_ha, om_ha, T_ha: Real;
+  def rr_ha = vec x_ha y_ha;
+  def FF_ha = vec Fx_ha Fy_ha;
+  AngularActuator f dft rr_ha FF_ha th_ha om_ha T_ha n_1 n_2
 }
 
 def RigidArm(l: Real,
@@ -436,10 +444,10 @@ def RevoluteJoint(rr: Vector2,
 }
 
 def ARevoluteJoint(n_1: Node, n_2: Node)  = {
-  def x_h__r, y_h__r: Real;
-  def Fx_h__r, Fy_h__r: Real;
-  def th_h__r, T_h__r: Real;
-  def rr_h__r = vec x_h__r y_h__r;
-  def FF_h__r = vec Fx_h__r Fy_h__r;
-  RevoluteJoint rr_h__r FF_h__r th_h__r T_h__r n_1 n_2
+  def x_hr, y_hr: Real;
+  def Fx_hr, Fy_hr: Real;
+  def th_hr, T_hr: Real;
+  def rr_hr = vec x_hr y_hr;
+  def FF_hr = vec Fx_hr Fy_hr;
+  RevoluteJoint rr_hr FF_hr th_hr T_hr n_1 n_2
 }
