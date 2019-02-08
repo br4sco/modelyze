@@ -349,11 +349,26 @@ def AForceActuator(ff: Vector2, n_1: Node, n_2: Node)  = {
   ForceActuator ff rr_f FF_f n_1 n_2
 }
 
-def Gravity(n_1: Node, n_2:Node)  = {
+def Gravity(m: Real, n_1: Node, n_2:Node)  = {
   def g = 9.81;
-  def ff = vec 0. (-g);
+  def ff = vec 0. (m * -g);
   AForceActuator ff n_1 n_2
 }
+
+def BodyInGravity(m: Real, I: Real,
+                  rr: Vector2,
+                  vv: Vector2,
+                  FF: Vector2,
+                  th: <Real>,
+                  om: <Real>,
+                  T: <Real>,
+                  n_1: Node, n_2: Node) = {
+
+  def b = Body m I rr vv FF th om T n_1 n_2;
+  def g = Gravity m n_1 n_2;
+  b; g
+}
+
 
 def AngularActuator(f: <Real>,
                     dft: <Real>,

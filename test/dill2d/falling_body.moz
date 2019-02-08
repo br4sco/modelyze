@@ -23,7 +23,7 @@ def b = Body m
              T_m
              n_1 n_2
 
-def g = Gravity n_1 n_2
+def g = Gravity m n_1 n_2
 
 def m = b; g; y_m <- 10.; vy_m <- 20.
 
