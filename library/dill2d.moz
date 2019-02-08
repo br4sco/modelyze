@@ -154,7 +154,6 @@ def getUknowns(m: Equations) -> [<Real>] = {
   map f (Map.toList (makeUkMap m))
 }
 
-
 def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
   def work(e: Equations, a: ([ScalarEdge], Equations)) -> ([ScalarEdge], Equations)  = {
     match e with
@@ -340,6 +339,22 @@ def ForceActuator(ff: Vector2,
   FF = ff
 }
 
+def AForceActuator(ff: Vector2, n_1: Node, n_2: Node)  = {
+  def x_f, y_f: Real;
+  def vx_f, vy_f: Real;
+  def Fx_f, Fy_f: Real;
+  def rr_f = vec x_f y_f;
+  def vv_f = vec vx_f vy_f;
+  def FF_f = vec Fx_f Fy_f;
+  ForceActuator ff rr_f FF_f n_1 n_2
+}
+
+def Gravity(n_1: Node, n_2:Node)  = {
+  def g = 9.81;
+  def ff = vec 0. (-g);
+  AForceActuator ff n_1 n_2
+}
+
 def AngularActuator(f: <Real>,
                     dft: <Real>,
                     rr: Vector2,
@@ -354,6 +369,16 @@ def AngularActuator(f: <Real>,
   rr = v2zero;
   th = f;
   om = dft
+}
+
+def AAngularActuator(f: <Real>, dft: <Real>, n_1: Node, n_2: Node)  = {
+  def x_h_a, y_h_a: Real;
+  def vx_h_a, vy_h_a: Real;
+  def Fx_h_a, Fy_h_a: Real;
+  def th_h_a, om_h_a, T_h_a: Real;
+  def rr_h_a = vec x_h_a y_h_a;
+  def FF_h_a = vec Fx_h_a Fy_h_a;
+  AngularActuator f dft rr_h_a FF_h_a th_h_a om_h_a T_h_a n_1 n_2
 }
 
 def RigidArm(l: Real,
@@ -373,6 +398,16 @@ def RigidArm(l: Real,
   T_2 = -l * vec (sin th_2) (-cos th_2) *. FF
 }
 
+def ARigidArm(l: Real, n_1: Node, n_2: Node, n_3: Node) = {
+  def x_r1, y_r1: Real;
+  def Fx_r1, Fy_r1: Real;
+  def th_r1, T_r1: Real;
+  def th_r2, T_r2: Real;
+  def rr_r1 = vec x_r1 y_r1;
+  def FF_r1 = vec Fx_r1 Fy_r1;
+  RigidArm l rr_r1 FF_r1 th_r1 T_r1 th_r2 T_r2 n_1 n_2 n_3
+}
+
 def RevoluteJoint(rr: Vector2,
                   FF: Vector2,
                   th: <Real>,
@@ -383,4 +418,13 @@ def RevoluteJoint(rr: Vector2,
   vector2Edge n_1 n_2 rr FF;
   rr = v2zero;
   T = 0.
+}
+
+def ARevoluteJoint(n_1: Node, n_2: Node)  = {
+  def x_h__r, y_h__r: Real;
+  def Fx_h__r, Fy_h__r: Real;
+  def th_h__r, T_h__r: Real;
+  def rr_h__r = vec x_h__r y_h__r;
+  def FF_h__r = vec Fx_h__r Fy_h__r;
+  RevoluteJoint rr_h__r FF_h__r th_h__r T_h__r n_1 n_2
 }

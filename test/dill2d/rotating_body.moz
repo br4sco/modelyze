@@ -26,22 +26,10 @@ def b = Body m
              T_m
              n_1 n_2
 
-def x_h, y_h: Real
-def Fx_h, Fy_h: Real
-def th_h, om_h, T_h: Real
-def rr_h = vec x_h y_h
-def FF_h = vec Fx_h Fy_h
 def f = t * t
 def dft = 2. * t
 
-def aa = AngularActuator f
-                         dft
-                         rr_h
-                         FF_h
-                         th_h
-                         om_h
-                         T_h
-                         n_1 n_2
+def aa = AAngularActuator f dft n_1 n_2
 
 def c = Clock t_0 t
 def m = b; aa; c

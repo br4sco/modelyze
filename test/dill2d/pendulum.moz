@@ -24,48 +24,11 @@ def b = Body m
              n_1 n_3
 
 def l = 1.
-def x_r1, y_r1: Real
-def Fx_r1, Fy_r1: Real
-def th_r1, T_r1: Real
-def th_r2, T_r2: Real
-def rr_r1 = vec x_r1 y_r1
-def FF_r1 = vec Fx_r1 Fy_r1
+def ra = ARigidArm l n_1 n_2 n_3
+def rj = ARevoluteJoint n_1 n_2
+def g = Gravity n_1 n_3
 
-def ra = RigidArm l
-                  rr_r1
-                  FF_r1
-                  th_r1
-                  T_r1
-                  th_r2
-                  T_r2
-                  n_1 n_2 n_3
-
-def x_h, y_h: Real
-def Fx_h, Fy_h: Real
-def th_h, T_h: Real
-def rr_h = vec x_h y_h
-def FF_h = vec Fx_h Fy_h
-
-def rj = RevoluteJoint rr_h
-                       FF_h
-                       th_h
-                       T_h
-                       n_1 n_2
-
-def g = 9.81
-def x_g, y_g: Real
-def vx_g, vy_g: Real
-def Fx_g, Fy_g: Real
-def rr_g = vec x_g y_g
-def FF_g = vec Fx_g Fy_g
-def ff = vec 0. (-g)
-
-def fa = ForceActuator ff
-                       rr_g
-                       FF_g
-                       n_1 n_3
-
-def m = b; ra; rj; fa
+def m = b; ra; rj; g
   ; x_m <- l
 
 def main = {
