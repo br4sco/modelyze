@@ -460,6 +460,34 @@ def ADampedRevoluteJoint(D: Real, n_1: Node, n_2: Node)  = {
   rj; d
 }
 
-// def TranslationalActuator(f: <Real>, dft: <Real>, )  = {
+def TranslationalActuator(f: Vector2,
+                          dft: Vector2,
+                          rr: Vector2,
+                          vv: Vector2,
+                          FF: Vector2,
+                          th: <Real>,
+                          T: <Real>,
+                          n_1: Node, n_2: Node) = {
 
-// }
+  vector2Edge n_1 n_2 rr FF;
+  scalarEdge n_1 n_2 th T;
+  rr = f;
+  vv = dft;
+  th = 0.
+}
+
+def Arm(l_1: Real, l_2: Real, m: Real, I: Real,
+        rr: Vector2,
+        vv: Vector2,
+        th: <Real>,
+        om: <Real>,
+        gn: Node, n_1: Node, n_2: Node)  = {
+
+  def Fx_ma, Fy_ma, T_ma: Real;
+  def FF = vec Fx_ma Fy_ma;
+  def cn: Node;
+  def fa_1 = ARigidArm l_1 gn n_1 cn;
+  def fa_2 = ARigidArm l_2 gn cn n_2;
+  def m = BodyInGravity m I rr vv FF th om T_ma gn cn;
+  fa_1; fa_2; m
+}
