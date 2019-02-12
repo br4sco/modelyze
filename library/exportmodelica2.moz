@@ -77,9 +77,12 @@ def exportModelica(name: String, e: Equations, ivm: InitValMap) -> String = {
     | _ -> error "Unmatched"
   };
 
+  def ppuks = pprintUnknowns e;
+  def ppeqs = pprintEqs e;
+
   "model " ++ name ++ "\n"
-  ++ pprintUnknowns e
+  ++ ppuks
   ++ "equation\n"
-  ++ pprintEqs e
+  ++ ppeqs
   ++ "end " ++ name ++ ";\n"
 }

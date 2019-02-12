@@ -164,3 +164,12 @@ def setIdIvs(e: Equations, s: (<Real> => Real)) -> (<Real> => Real) = {
 
   workxdx e (workxdxc e s)
 }
+
+def contToList(cont: ?) -> [?] = {
+  def work(cont: ?, acc: [?]) -> [?] = {
+    match cont with
+    | this; that -> work that (work this acc)
+    | last -> last::acc
+  };
+  work cont []
+}
