@@ -186,7 +186,7 @@ def mapi(f: (Int -> Dyn -> Dyn), l: [Dyn]) -> [Dyn] = {
 def hd(l: [Dyn]) -> Dyn = {
   match l with
   | e::es -> e
-  | _ -> error "There is no head of an empty list"
+  | _ -> { def _ = dprintln l;  error "There is no head of an empty list" }
 }
 
 def tl(l: [Dyn]) -> [Dyn] = {

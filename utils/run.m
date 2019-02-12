@@ -1,5 +1,6 @@
 model
 M = incidenceMatrix(eqns, vars)
+cols_with_all_zeros = find(all(M == 0))
 det(M)
 isLowIndexDAE(eqns, vars)
 [DAEs,DAEvars] = reduceDAEIndex(eqns,vars)

@@ -1,7 +1,7 @@
 include DILLEXPORT
 include DILLSIM
 
-def n_1, n_2, n_3, n_4, n_5, n_6, n_7: Node
+def n_1, n_2, n_3, n_4, n_5: Node
 
 def mkArm(l_1: Real, l_2: Real, m: Real, I: Real, rr: Vector2, gn: Node, n_1: Node, n_2: Node) = {
   def x_m, y_m: Real;

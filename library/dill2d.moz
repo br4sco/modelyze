@@ -302,8 +302,8 @@ def elaborate(e: Equations) -> Equations = {
   def (ses, e) = getScalarEdges e;
   def (ves, e) = getVector2Edges e;
   def (e, _) = getEquations e;
-  def e = mkTopolEquations mkScalarTopolEquations ses e;
-  def e = mkTopolEquations mkVector2TopolEquations ves e;
+  def e = (if isEmpty ses then e else mkTopolEquations mkScalarTopolEquations ses e);
+  def e = (if isEmpty ves then e else  mkTopolEquations mkVector2TopolEquations ves e);
   cleanupEquations e
 }
 
@@ -333,9 +333,9 @@ def Body(m: Real, I: Real,
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
   rr' = vv;
-  FF = -m * vv';
+  FF = m * vv';
   th' = om;
-  T = -I * om'
+  T = I * om'
 }
 
 def ForceActuator(ff: Vector2,
@@ -349,17 +349,15 @@ def ForceActuator(ff: Vector2,
 
 def AForceActuator(ff: Vector2, n_1: Node, n_2: Node)  = {
   def x_f, y_f: Real;
-  def vx_f, vy_f: Real;
   def Fx_f, Fy_f: Real;
   def rr_f = vec x_f y_f;
-  def vv_f = vec vx_f vy_f;
   def FF_f = vec Fx_f Fy_f;
   ForceActuator ff rr_f FF_f n_1 n_2
 }
 
 def Gravity(m: Real, n_1: Node, n_2:Node)  = {
   def g = 9.81;
-  def ff = vec 0. (m * -g);
+  def ff = vec 0. (m * g);
   AForceActuator ff n_1 n_2
 }
 
@@ -379,21 +377,24 @@ def BodyInGravity(m: Real, I: Real,
 
 
 def AngularActuator(f: <Real>,
-                    dft: <Real>,
+                    rr: Vector2,
+                    FF: Vector2,
                     th: <Real>,
-                    om: <Real>,
                     T: <Real>,
                     n_1: Node, n_2: Node)  = {
 
   scalarEdge n_1 n_2 th T;
+  vector2Edge n_1 n_2 rr FF;
+  rr = v2zero;
   th = f;
-  om = dft
 }
 
-def AAngularActuator(f: <Real>, dft: <Real>, n_1: Node, n_2: Node)  = {
-  def x_ha, y_ha: Real;
-  def th_ha, om_ha, T_ha: Real;
-  AngularActuator f dft th_ha om_ha T_ha n_1 n_2
+def AAngularActuator(f: <Real>, n_1: Node, n_2: Node)  = {
+  def x_ha, y_ha, Fx_ha, Fy_ha: Real;
+  def th_ha, T_ha: Real;
+  def rr = vec x_ha y_ha;
+  def FF = vec Fx_ha Fy_ha;
+  AngularActuator f rr FF th_ha T_ha n_1 n_2
 }
 
 def RigidArm(l: Real,
@@ -405,12 +406,16 @@ def RigidArm(l: Real,
              T_2: <Real>,
              n_1: Node, n_2: Node, n_3: Node) = {
 
+  def vy, vx: Real;
+  def vv = vec vx vy;
+
   scalarEdge n_3 n_2 th_1 T_1;
   scalarEdge n_1 n_3 th_2 T_2;
   vector2Edge n_3 n_2 rr FF;
   rr = -l * vec (cos th_2) (sin th_2);
+  // vv = l * th_2' * vec (-sin th_2) (cos th_2);
   th_1 = 0.;
-  T_2 = -l * vec (sin th_2) (-cos th_2) *. FF
+  T_2 = l * vec (-sin th_2) (cos th_2) *. FF
 }
 
 def ARigidArm(l: Real, n_1: Node, n_2: Node, n_3: Node) = {
@@ -461,9 +466,7 @@ def ADampedRevoluteJoint(D: Real, n_1: Node, n_2: Node)  = {
 }
 
 def TranslationalActuator(f: Vector2,
-                          dft: Vector2,
                           rr: Vector2,
-                          vv: Vector2,
                           FF: Vector2,
                           th: <Real>,
                           T: <Real>,
@@ -472,8 +475,14 @@ def TranslationalActuator(f: Vector2,
   vector2Edge n_1 n_2 rr FF;
   scalarEdge n_1 n_2 th T;
   rr = f;
-  vv = dft;
   th = 0.
+}
+
+def ATranslationalActuator(f: Vector2, n_1: Node, n_2: Node) = {
+  def x_t, y_t, Fx_t, Fy_t, th_t, T_t: Real;
+  def rr = vec x_t y_t;
+  def FF = vec Fx_t Fy_t;
+  TranslationalActuator f rr FF th_t T_t n_1 n_2
 }
 
 def Arm(l_1: Real, l_2: Real, m: Real, I: Real,

@@ -1,38 +1,61 @@
 include DILLEXPORT
 include DILLSIM
 
-def n_1, n_2, n_3: Node
+def n_1, n_2, n_3, n_4: Node
 
 def m = 1.
-def I = 1.
-def x_m, y_m: Real
-def vx_m, vy_m: Real
-def Fx_m, Fy_m: Real
-def th_m, om_m, T_m: Real
-def rr_m = vec x_m y_m
-def vv_m = vec vx_m vy_m
-def FF_m = vec Fx_m Fy_m
+def I = 0.
+def x_m1, y_m1: Real
+def vx_m1, vy_m1: Real
+def Fx_m1, Fy_m1: Real
+def th_m2, om_m2, T_m2: Real
+def rr_m = vec x_m1 y_m1
+def vv_m = vec vx_m1 vy_m1
+def FF_m = vec Fx_m1 Fy_m1
 
 def b = Body m
              I
              rr_m
              vv_m
              FF_m
-             th_m
-             om_m
-             T_m
+             th_m2
+             om_m2
+             T_m2
              n_1 n_3
 
 def l = 1.
-def ra = ARigidArm l n_1 n_2 n_3
-def rj = ARevoluteJoint n_1 n_2
-def g = Gravity m n_1 n_3
+def x_r1, y_r1: Real
+def Fx_r1, Fy_r1: Real
+def th_r2, T_r2: Real
+def th_r3, T_r3: Real
+def rr_r = vec x_r1 y_r1
+def FF_r = vec Fx_r1 Fy_r1
+def ra = RigidArm l rr_r FF_r th_r2 T_r2 th_r3 T_r3 n_1 n_2 n_3
 
-def m = b; ra; rj; g
-  ; x_m <- l
+def rj = ARevoluteJoint n_1 n_2
+
+def x_f, y_f: Real
+def vx_f, vy_f: Real
+def Fx_f, Fy_f: Real
+def rr_f = vec x_f y_f
+def FF_f = vec Fx_f Fy_f
+def g = ForceActuator (vec 0. (m * 9.81)) rr_f FF_f n_1 n_3
+
+def m = b; ra; rj
+  ; g
+  ; x_m1 <- l
+  // ; Fy_m1 <- -9.81
+  // ; vy_m1' <- -9.81
+  // ; Fy_f <- 9.81
+  // ; x_f <- 1.
+  // ; x_r1 <- -1.
+  // ; T_m2 <- -9.81
+  // ; om_m2' <- -9.81
+  // ; T_r3 <- 9.81
+  // ; Fy_r1 <- 9.81
 
 def main = {
-  // exportDill2Modelica "Pendulum" m
-  simulate m (0., 10.) 0.01
-    [(x_m, "x"), (y_m, "y"), (th_m, ("th"))]
+  exportDill2Modelica "Pendulum" m
+  // simulate m (0., 10.) 0.01
+    // [(x_m1, "x"), (y_m1, "y"), (Fx_m1, "Fx"), (Fy_m1, "Fy")]
 }

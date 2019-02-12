@@ -141,7 +141,6 @@ def simulate(m: Equations, I: Interval, h: Real, lbls: [Label]) -> () = {
   def si = init e ivm;
   def (_, ukm, yy, yp) = si;
 
-;
   solve si I h lbls
 }
 
