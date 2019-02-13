@@ -39,5 +39,5 @@ def m = rj_1; a_1; rj_2; a_2
 def main = {
   // exportDill2Modelica "Double_Pendulum" m
   simulate m (0., 30.) 0.01
-    [(x_m2, "x_m2"), (y_m2, "y_m2")]
+    [(x_m1, "x_m1"), (y_m1, "y_m2"), (x_m2, "x_m2"), (y_m2, "y_m2")]
 }

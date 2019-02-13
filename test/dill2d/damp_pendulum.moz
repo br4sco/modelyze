@@ -30,11 +30,19 @@ def D = 1.
 def d = AAngularDamper D n_1 n_2
 def g = Gravity m n_1 n_3
 
-def m = b; ra; rj; d; g
+def m = b;
+        ra;
+        rj;
+        d;
+        g
+
   ; x_m <- l
 
 def main = {
   // exportDill2Modelica "Pendulum" m
   simulate m (0., 30.) 0.01
-    [(x_m, "x"), (y_m, "y")]
+    [(x_m, "x"), (y_m, "y")
+    // ,(vx_m, "vx"), (vy_m, "vy")
+    // ,(Fx_m, "Fx"), (Fy_m, "Fy")
+    ]
 }

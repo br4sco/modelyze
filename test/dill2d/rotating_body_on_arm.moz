@@ -27,21 +27,20 @@ def b = Body m
              n_1 n_3
 
 def f = t * t
-def dft = 2. * t
 // def f = t
 // def dft = 0.
 // def dftt = 2.
 
-def aa = AAngularActuator f dft n_1 n_2
-def rj = ARevoluteJoint n_1 n_2
+def aa = AAngularActuator f n_1 n_2
+// def rj = ARevoluteJoint n_1 n_2
 def l = 1.
 def ra = ARigidArm l n_1 n_2 n_3
 def g = Gravity m n_1 n_3
 def c = Clock t_0 t
 
-def m = b; aa; rj; ra; c; g; x_m <- 1.
+def m = b; aa; ra; c; g; x_m <- 1.
 
 def main = {
-  // exportDill2Modelica "Rotating_Body_On_Arm" m
-  simulate m (0., 10.) 0.01
+  exportDill2Modelica "Rotating_Body_On_Arm" m
+  // simulate m (0., 10.) 0.01
 }

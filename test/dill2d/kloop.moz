@@ -8,51 +8,53 @@ def I = 1.
 def l = 1.
 def th_0 = 0.
 
-def mkArm(rr: Vector2, gn: Node, n_1: Node, n_2: Node) -> Equations = {
+def mkArm(rr: Vector2, th: <Real>, gn: Node, n_1: Node, n_2: Node) -> Equations = {
   def x_m, y_m: Real;
   def vx_m, vy_m: Real;
-  def th_m, om_m, T_m: Real;
+  def om_m, T_m: Real;
   def vv = vec vx_m vy_m;
-  Arm (l / 2.) (l / 2.) m I rr vv th_m om_m gn n_1 n_2
+  Arm (l / 2.) (l / 2.) m I rr vv th om_m gn n_1 n_2
 }
 
 def t: Real
 def c = Clock 0. t
 
-// def rj_1 = ARevoluteJoint gn n_1
-def rj_1 = AAngularActuator t gn n_1; c
+def rj_1 = ARevoluteJoint gn n_1
+// def rj_1 = AAngularActuator t gn n_1; c
 
-def x_m1, y_m1: Real
+def x_m1, y_m1, th_m1: Real
 def rr_1 = vec x_m1 y_m1
-def a_1 = mkArm rr_1 gn n_1 n_2
+def a_1 = mkArm rr_1 th_m1 gn n_1 n_2
 
 def rj_2 = ARevoluteJoint n_2 n_3
 
-def x_m2, y_m2: Real
+def x_m2, y_m2, th_m2: Real
 def rr_2 = vec x_m2 y_m2
-def a_2 = mkArm rr_2 gn n_3 n_4
+def a_2 = mkArm rr_2 th_m2 gn n_3 n_4
 
 def rj_3 = ARevoluteJoint n_4 n_5
 
-def x_m3, y_m3: Real
+def x_m3, y_m3, th_m3: Real
 def rr_3 = vec x_m3 y_m3
-def a_3 = mkArm rr_3 gn n_5 n_6
+def a_3 = mkArm rr_3 th_m3 gn n_5 n_6
 
 def rj_4 = ARevoluteJoint n_6 n_7
 
 def ta = ATranslationalActuator (vec l 0.) gn n_7
 
 def m = rj_1; a_1; rj_2; a_2; rj_3; a_3; rj_4; ta
-  // ; x_m1 <- (l / 2.) * cos th_0
-  // ; y_m1 <- (l / 2.) * sin th_0
+  ; th_m1 <- PI / 4.
+  ; th_m3 <- PI / 4.
+  // ; th_m2 <- 0.
+  // ; x_m1 <- l / 2.
+  // ; y_m1 <- 0.
   // ; x_m2 <- l / 2.
-  // ; y_m2 <- l
-  // ; x_m3 <- l
-  // ; y_m1 <- l / 2.
+  // ; y_m2 <- 0.
+  // ; x_m3 <- l / 2.
+  // ; y_m1 <- 0.
 
 def main = {
   exportDill2Modelica "Kinematic_Loooop" m
-  // exportDill2Matlab m
   // simulate m (0., 30.) 0.01
     // [(x_m2, "x_m2"), (y_m2, "y_m2")]
 }

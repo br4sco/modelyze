@@ -27,9 +27,8 @@ def b = Body m
              n_1 n_2
 
 def f = t * t
-def dft = 2. * t
 
-def aa = AAngularActuator f dft n_1 n_2
+def aa = AAngularActuator f n_1 n_2
 
 def c = Clock t_0 t
 def m = b; aa; c

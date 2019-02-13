@@ -4,7 +4,7 @@ include DILLSIM
 def n_1, n_2, n_3, n_4: Node
 
 def m = 1.
-def I = 0.
+def I = 2.
 def x_m1, y_m1: Real
 def vx_m1, vy_m1: Real
 def Fx_m1, Fy_m1: Real

@@ -1,0 +1,28 @@
+include DILLEXPORT
+include DILLSIM
+
+def n_1, n_2, n_3, n_4, n_5: Node
+
+def t: Real
+def c = Clock 0. t
+def aa_1 = AAngularActuator t n_1 n_2
+def ra_1 = ARigidArm 1. n_1 n_2 n_3
+def rj_2 = ARevoluteJoint n_3 n_4
+def ra_2 = ARigidArm 1. n_1 n_4 n_5
+
+def m = 1.
+def I = 0.
+def x_m, y_m, vx_m, vy_m, Fx_m, Fy_m, th_m, om_m, T_m: Real
+def rr = vec x_m y_m
+def vv = vec vx_m vy_m
+def FF = vec Fx_m Fy_m
+def b = BodyInGravity 1. 0. rr vv FF th_m om_m T_m n_1 n_5
+
+def m = aa_1; c; ra_1; rj_2; ra_2; b
+  ; th_m <- (- PI / 2.)
+
+def main = {
+  exportDill2Modelica "Double_Pendulum" m
+  // simulate m (0., 30.) 0.01
+    // [(x_m, "x"), (y_m, "y")]
+}
