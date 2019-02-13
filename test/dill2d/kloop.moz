@@ -46,12 +46,12 @@ def m = rj_1
         ; a_3
         ; rj_4
         ; a_4
-        // ; rj_5
+        ; rj_5
 
-        ; th_1 <- (PI / 2.)
-        // ; th_2 <- (PI / 2.)
-        // ; th_3 <- (-PI / 2.)
-        // ; th_4 <- (-PI / 2.)
+        ; th_1 <- (PI / 4.)
+        // ; th_2 <- (PI / 4.)
+        // ; th_3 <- (-PI / 4.)
+        // ; th_4 <- (-PI / 4.)
 
 def main = {
   exportDill2Modelica "Kinematic_Loooop" m
