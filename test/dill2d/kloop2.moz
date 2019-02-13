@@ -1,0 +1,58 @@
+include DILLEXPORT
+include DILLSIM
+
+def gn, n_1, n_2, n_3, n_4, n_5, n_6, n_7, n_8: Node
+
+def m = 1.
+def I = 1.
+def l = 1.
+
+def mkArm(th: <Real>, gn: Node, n_1: Node, n_2: Node) -> Equations = {
+  def x_m, y_m: Real;
+  def rr = vec x_m y_m;
+  def vx_m, vy_m: Real;
+  def om_m, T_m: Real;
+  def vv = vec vx_m vy_m;
+  Arm (l / 2.) (l / 2.) m I rr vv th om_m gn n_1 n_2
+}
+
+def rj_1 = ARevoluteJoint gn n_1
+
+def th_1: Real
+def a_1 = mkArm th_1 gn n_1 n_2
+
+def rj_2 = ARevoluteJoint n_2 n_3
+
+def th_2: Real
+def a_2 = mkArm th_2 gn n_3 n_4
+
+def rj_3 = ARevoluteJoint n_4 n_5
+
+def th_3: Real
+def a_3 = mkArm th_3 gn n_5 n_6
+
+def rj_4 = ARevoluteJoint n_6 n_7
+
+def ta = ATranslationalActuator (vec l 0.) gn n_7
+
+def m =
+        rj_1
+        ; a_1
+        ; rj_2
+        ; a_2
+        ; rj_3
+        ; a_3
+        ; rj_4
+        ; ta
+
+        ; th_1 <- (-PI / 4.)
+        // ; th_2 <- (PI / 4.)
+        // ; th_3 <- (PI / 4.)
+
+def main = {
+  exportDill2Modelica "Kinematic_Loooop" m
+  // simulate m (0., 30.) 0.01
+    // [
+      // (th_1, "th_1")
+    // ]
+}
