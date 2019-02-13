@@ -19,7 +19,7 @@ def m = a; rj
   ; x_m <- l
 
 def main = {
-  // exportDill2Modelica "Pendulum" m
+  // exportDill2Modelica "Pendulum_on_Arm" m
   simulate m (0., 10.) 0.01
     [(x_m, "x"), (y_m, "y"), (th_m, ("th"))]
 }

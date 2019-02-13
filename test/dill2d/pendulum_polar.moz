@@ -7,5 +7,5 @@ def m = th' = om; al = -g * cos th
   ; th <- 0.
 
 def main = {
-  exportDill2Modelica "Cartesian_Pendulum" m
+  exportDill2Modelica "Polar_Pendulum" m
 }
