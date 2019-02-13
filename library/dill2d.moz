@@ -406,14 +406,10 @@ def RigidArm(l: Real,
              T_2: <Real>,
              n_1: Node, n_2: Node, n_3: Node) = {
 
-  def vy, vx: Real;
-  def vv = vec vx vy;
-
   scalarEdge n_3 n_2 th_1 T_1;
   scalarEdge n_1 n_3 th_2 T_2;
   vector2Edge n_3 n_2 rr FF;
   rr = -l * vec (cos th_2) (sin th_2);
-  // vv = l * th_2' * vec (-sin th_2) (cos th_2);
   th_1 = 0.;
   T_2 = l * vec (-sin th_2) (cos th_2) *. FF
 }
