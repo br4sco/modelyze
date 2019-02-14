@@ -71,6 +71,7 @@ def (^) : Real -> Real -> Real = @@exponentiation
 def substr : String -> Int -> Int -> String = @@string_substr
 def strlen : String -> Int = @@string_strlen
 def (++) : String -> String -> String = @@string_concat
+def writeFile: String -> String -> () = @@write_file
 
 def INFINITE = 1./0.
 def NEG_INFINITE = -1./0.

@@ -125,6 +125,7 @@ and primitive =
   | PrimStringConcat
   | PrimStringStrlen
   | PrimStringSubstr
+  | PrimWriteFile
 
 (** Constants. Models e.g. integers, strings, built-in
     functions and model relations *)
@@ -320,6 +321,7 @@ let pprint_primitive p =
   | PrimStringConcat -> us"string_concat"
   | PrimStringStrlen -> us"string_strlen"
   | PrimStringSubstr -> us"string_substr"
+  | PrimWriteFile -> us"write_file"
 
 let pprint_const c l =
   match c with
@@ -689,7 +691,10 @@ let delta c1 c2 =
     ConstPrim(PrimStringSubstr,pos::ls)
   | (ConstPrim(PrimStringSubstr,[ConstInt(pos);ConstString(s)]),
      ConstInt(len)) ->
-    ConstString(try Ustring.sub s pos len with Invalid_argument _ -> us"")
+     ConstString(try Ustring.sub s pos len with Invalid_argument _ -> us"")
+  | (ConstPrim(PrimWriteFile,[]),s) -> ConstPrim(PrimWriteFile,[s])
+  | (ConstPrim(PrimWriteFile,[ConstString(f)]),ConstString(c)) ->
+    (let f' = Ustring.to_latin1 f in Ustring.write_file f' c; ConstUnit)
   | _ ->
     raise (Mkl_runtime_error (Message.RUNTIME_TYPE_ERROR,Message.ERROR, NoInfo,
                               [pprint (TmConst(NoInfo,0,c1));
@@ -798,6 +803,8 @@ let deltatype fi c1 l  =
   | ConstPrim(PrimStringSubstr,[]) -> tyfun4 tystring tyint tyint tystring
   | ConstPrim(PrimStringSubstr,[_]) -> tyfun3 tyint tyint tystring
   | ConstPrim(PrimStringSubstr,[_;_]) -> tyfun2 tyint tystring
+  | ConstPrim(PrimWriteFile,[]) -> tyfun3 tystring tystring tyunit
+  | ConstPrim(PrimWriteFile,[_]) -> tyfun2 tystring tyunit
   | _ -> assert false
 
 let primitive_arity p =
@@ -859,6 +866,7 @@ let primitive_arity p =
   | PrimStringConcat -> 2
   | PrimStringStrlen -> 1
   | PrimStringSubstr -> 3
+  | PrimWriteFile -> 2
 
 let rec tm_info t =
   match t with

@@ -1,0 +1,11 @@
+include Base
+
+def f(w: (String -> String -> ())) -> (String -> ()) = {
+  w "test.txt"
+}
+
+def ff(w: (String -> ())) -> () = {
+  w "test2"
+}
+
+def _ = dprint(ff (f writeFile))

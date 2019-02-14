@@ -17,25 +17,25 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 
 open Evalast
 open Ustring.Op
-open Debugprint 
+open Debugprint
 
-exception UnsupportedCode 
+exception UnsupportedCode
 
 type bytecode =
   | ConstBool     (* param1 = boolvalue as int *)
   | ConstInt      (* param1 = intvalue *)
   | ConstReal     (* param1 = int index value to float list *)
-  | ConstString   
+  | ConstString
   | ArgIndex      (* param1 = pointer to argvalue. 0=last argument *)
   | ListStart     (* param1 = number of elements in list *)
   | ListElem      (* pop list elem, push new list *)
-  | ArrayOpGet    (* param1 = pointer to argvalue. 
+  | ArrayOpGet    (* param1 = pointer to argvalue.
                      param2 = index in array. 0=first element *)
-  
 
 
-let coding c = 
-  match c with 
+
+let coding c =
+  match c with
     | ConstBool           ->  1
     | ConstInt            ->  2
     | ConstReal           ->  3
@@ -44,12 +44,12 @@ let coding c =
     | ListStart           ->  11
     | ListElem            ->  12
     | ArrayOpGet          ->  20
-        
 
 
-let prim2code p = 
+
+let prim2code p =
   match p with
-    | Ast.PrimIntMod         -> 101 
+    | Ast.PrimIntMod         -> 101
     | Ast.PrimIntAdd         -> 102
     | Ast.PrimIntSub         -> 103
     | Ast.PrimIntMul         -> 104
@@ -106,6 +106,7 @@ let prim2code p =
     | Ast.PrimStringConcat   -> 155
     | Ast.PrimStringStrlen   -> 156
     | Ast.PrimStringSubstr   -> 157
+    | Ast.PrimWriteFile      -> 158
 
 
 let prims = [
@@ -165,29 +166,30 @@ let prims = [
   Ast.PrimExponentiation;
   Ast.PrimStringConcat;
   Ast.PrimStringStrlen;
-  Ast.PrimStringSubstr]
-        
-let (mapc2p : (int,Ast.primitive) Hashtbl.t) = Hashtbl.create 256 
-  
+  Ast.PrimStringSubstr;
+  Ast.PrimWriteFile]
+
+let (mapc2p : (int,Ast.primitive) Hashtbl.t) = Hashtbl.create 256
+
 let addPrims = List.iter (fun x -> Hashtbl.add mapc2p (prim2code x) x) prims
-  
-let isPrim c p = 
-  try 
+
+let isPrim c p =
+  try
     let p1 = Hashtbl.find mapc2p c in
     p = p1
   with Not_found -> false
 
-let code2prim c = Hashtbl.find mapc2p c  
+let code2prim c = Hashtbl.find mapc2p c
 
-type index = int 
+type index = int
 
 let rec countcons t a =
   match t with
     | TmCons(t1,t2) -> countcons t2 (a+1)
     | _ -> a
 
-let generate id tm = 
-  let rec gen tm aCode aConst argc lcons = 
+let generate id tm =
+  let rec gen tm aCode aConst argc lcons =
     match tm with
       | TmClos(t,e,id) -> gen t aCode aConst (argc+1) lcons
       | TmLam(t) -> gen t aCode aConst (argc+1) lcons
@@ -203,32 +205,32 @@ let generate id tm =
           let (aCode1,aConst1,argc1) = gen t1 aCode aConst argc lcons in
           let (aCode2,aConst2,argc2) = gen t2 aCode1 aConst1 argc1 lcons in
           ((prim2code primop)::aCode2,aConst2,argc2)
-      | TmConst(Ast.ConstReal(realconst)) -> 
+      | TmConst(Ast.ConstReal(realconst)) ->
           let cId = (List.length aConst) in
           (cId::(coding ConstReal)::aCode,realconst::aConst,argc)
       | TmVar(idx) -> (idx::(coding ArgIndex)::aCode,aConst,argc)
-      | TmCons(t1,t2) -> 
-          if not lcons then 
+      | TmCons(t1,t2) ->
+          if not lcons then
             let size = countcons t2 1 in
             gen tm (size::(coding ListStart)::aCode) aConst argc true
-          else  
+          else
             let (aCode1,aConst1,argc1) = gen t1 aCode aConst argc lcons in
             gen t2 ((coding ListElem)::aCode1) aConst1 argc1 lcons
-      | TmNil -> 
+      | TmNil ->
           if lcons then (aCode,aConst,argc)
           else (0::(coding ListStart)::aCode,aConst,argc)
-      | TmArrayOp(Ast.ArrayOpGet,[TmVar(idx);TmConst(Ast.ConstInt(arrid))]) ->          
+      | TmArrayOp(Ast.ArrayOpGet,[TmVar(idx);TmConst(Ast.ConstInt(arrid))]) ->
           print_endline "*** ArrayOp";
           (arrid::idx::(coding ArrayOpGet)::aCode,aConst,argc)
       | _ ->
           let _ = uprint_endline (us"No bytecode: " ^. (Debugprint.pprint tm)) in
-          raise UnsupportedCode 
+          raise UnsupportedCode
   in
     try
       let (aCode,aConst,argc) = gen tm [] [] 0 false in
-       TmByteCode((List.rev aCode,List.rev aConst,argc),ref 0,Symtbl.empty,[]) 
+       TmByteCode((List.rev aCode,List.rev aConst,argc),ref 0,Symtbl.empty,[])
     with UnsupportedCode -> tm
-          
+
 type codestack =
   | OpCode of int
   | OpArray of float array * index
@@ -236,9 +238,9 @@ type codestack =
 let makeTmList elemArray =
   Array.fold_right (fun x a -> TmCons(TmConst(Ast.ConstReal(x)),a)) elemArray TmNil
 
-let cc = ref 0 
+let cc = ref 0
 
-let run bcode args = 
+let run bcode args =
   let _ = cc := !cc + 1 in
   let _ = print_endline ("** BYTECODE ** " ^ (string_of_int !cc)) in
   let (code,rconsts,argc) = bcode in
@@ -246,7 +248,7 @@ let run bcode args =
   let retArrayIdx = ref 0 in
   let rec rr code stack =
     match (code,stack) with
-      | (c::i::cs,_) when c == (coding ConstReal) -> 
+      | (c::i::cs,_) when c == (coding ConstReal) ->
           let realval = List.nth rconsts i in
           rr cs (realval::stack)
       | (c::i::cs,_) when c == (coding ArgIndex) ->
@@ -268,7 +270,7 @@ let run bcode args =
       | (c::cs,s1::ss) when isPrim c Ast.PrimLog10 -> rr cs ((log10 s1)::ss)
       | (c::cs,s1::ss) when isPrim c Ast.PrimSqrt  -> rr cs ((sqrt s1)::ss)
       | (c::cs,s1::ss) when isPrim c Ast.PrimExp   -> rr cs ((exp s1)::ss)
-      | (c::size::cs,ss) when c = coding ListStart -> 
+      | (c::size::cs,ss) when c = coding ListStart ->
            retArray := Some(Array.make size 0.);
            retArrayIdx := 0;
            rr cs ss
@@ -282,23 +284,19 @@ let run bcode args =
           rr cs ((s1 ** s2)::ss)
       | (c::refarr::idx::cs,ss) when c = coding ArrayOpGet ->
           (match List.nth args refarr with
-             | TmArray(ar) ->  
+             | TmArray(ar) ->
                  (match ar.(idx) with
-                    | TmConst(Ast.ConstReal(x)) -> rr cs (x::ss) 
+                    | TmConst(Ast.ConstReal(x)) -> rr cs (x::ss)
                     | _ -> failwith "Not a float array.")
-             | _ -> failwith "invalid argument")          
-      | ([], [x]) -> TmConst(Ast.ConstReal(x)) 
-      | ([], []) -> 
+             | _ -> failwith "invalid argument")
+      | ([], [x]) -> TmConst(Ast.ConstReal(x))
+      | ([], []) ->
           (match !retArray with
              | None -> failwith "No return value"
-             | Some a -> 
-                 let _ = uprint_endline (us"Array size:" ^. 
+             | Some a ->
+                 let _ = uprint_endline (us"Array size:" ^.
                                            ustring_of_int (Array.length a)) in
                  makeTmList a)
       | _ -> failwith "unknown byte code"
   in
-    rr code [] 
-
-
-
-
+    rr code []

@@ -27,49 +27,49 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 
 let reserved_strings = [
   (* Keywords *)
-  ("fun",           fun(i,l) -> Parser.FUN{i=i;l=l;v=()}); 
-  ("def",           fun(i,l) -> Parser.DEF{i=i;l=l;v=()}); 
-  ("in",            fun(i,l) -> Parser.IN{i=i;l=l;v=()}); 
-  ("if",            fun(i,l) -> Parser.IF{i=i;l=l;v=()}); 
-  ("then",          fun(i,l) -> Parser.THEN{i=i;l=l;v=()}); 
-  ("else",          fun(i,l) -> Parser.ELSE{i=i;l=l;v=()}); 
-  ("true",          fun(i,l) -> Parser.TRUE{i=i;l=l;v=()}); 
-  ("false",         fun(i,l) -> Parser.FALSE{i=i;l=l;v=()}); 
-  ("Int",           fun(i,l) -> Parser.INT{i=i;l=l;v=()}); 
-  ("Real",          fun(i,l) -> Parser.REAL{i=i;l=l;v=()}); 
-  ("Bool",          fun(i,l) -> Parser.BOOL{i=i;l=l;v=()}); 
-  ("String",        fun(i,l) -> Parser.TYSTRING{i=i;l=l;v=()}); 
-  ("dprint",        fun(i,l) -> Parser.DPRINT{i=i;l=l;v=()}); 
-  ("dprinttype",    fun(i,l) -> Parser.DPRINTTYPE{i=i;l=l;v=()}); 
-  ("symstr",        fun(i,l) -> Parser.SYMSTR{i=i;l=l;v=()}); 
-  ("lcase",         fun(i,l) -> Parser.LCASE{i=i;l=l;v=()}); 
-  ("of",            fun(i,l) -> Parser.OF{i=i;l=l;v=()}); 
-  ("decon",         fun(i,l) -> Parser.DECON{i=i;l=l;v=()}); 
-  ("with",          fun(i,l) -> Parser.WITH{i=i;l=l;v=()}); 
-  ("sym",           fun(i,l) -> Parser.SYM{i=i;l=l;v=()}); 
-  ("lift",          fun(i,l) -> Parser.LIFT{i=i;l=l;v=()}); 
-  ("sval",          fun(i,l) -> Parser.LIFT{i=i;l=l;v=()}); 
-  ("proj",          fun(i,l) -> Parser.PROJ{i=i;l=l;v=()}); 
-  ("fst",           fun(i,l) -> Parser.FST{i=i;l=l;v=()});   
-  ("snd",           fun(i,l) -> Parser.SND{i=i;l=l;v=()});  
-  ("ifguard",       fun(i,l) -> Parser.IFGUARD{i=i;l=l;v=()}); 
-  ("ifthen",        fun(i,l) -> Parser.IFTHEN{i=i;l=l;v=()}); 
-  ("ifelse",        fun(i,l) -> Parser.IFELSE{i=i;l=l;v=()}); 
-  ("error",         fun(i,l) -> Parser.ERROR{i=i;l=l;v=()}); 
-  ("match",         fun(i,l) -> Parser.MATCH{i=i;l=l;v=()}); 
-  ("from",          fun(i,l) -> Parser.FROM{i=i;l=l;v=()}); 
-  ("type",          fun(i,l) -> Parser.TYPE{i=i;l=l;v=()}); 
-  ("Array",         fun(i,l) -> Parser.ARRAY{i=i;l=l;v=()}); 
-  ("Map",           fun(i,l) -> Parser.MAP{i=i;l=l;v=()}); 
-  ("List",          fun(i,l) -> Parser.LIST{i=i;l=l;v=()}); 
-  ("Set",           fun(i,l) -> Parser.SET{i=i;l=l;v=()}); 
-  ("DAESolver",     fun(i,l) -> Parser.DAESOLVER{i=i;l=l;v=()}); 
+  ("fun",           fun(i,l) -> Parser.FUN{i=i;l=l;v=()});
+  ("def",           fun(i,l) -> Parser.DEF{i=i;l=l;v=()});
+  ("in",            fun(i,l) -> Parser.IN{i=i;l=l;v=()});
+  ("if",            fun(i,l) -> Parser.IF{i=i;l=l;v=()});
+  ("then",          fun(i,l) -> Parser.THEN{i=i;l=l;v=()});
+  ("else",          fun(i,l) -> Parser.ELSE{i=i;l=l;v=()});
+  ("true",          fun(i,l) -> Parser.TRUE{i=i;l=l;v=()});
+  ("false",         fun(i,l) -> Parser.FALSE{i=i;l=l;v=()});
+  ("Int",           fun(i,l) -> Parser.INT{i=i;l=l;v=()});
+  ("Real",          fun(i,l) -> Parser.REAL{i=i;l=l;v=()});
+  ("Bool",          fun(i,l) -> Parser.BOOL{i=i;l=l;v=()});
+  ("String",        fun(i,l) -> Parser.TYSTRING{i=i;l=l;v=()});
+  ("dprint",        fun(i,l) -> Parser.DPRINT{i=i;l=l;v=()});
+  ("dprinttype",    fun(i,l) -> Parser.DPRINTTYPE{i=i;l=l;v=()});
+  ("symstr",        fun(i,l) -> Parser.SYMSTR{i=i;l=l;v=()});
+  ("lcase",         fun(i,l) -> Parser.LCASE{i=i;l=l;v=()});
+  ("of",            fun(i,l) -> Parser.OF{i=i;l=l;v=()});
+  ("decon",         fun(i,l) -> Parser.DECON{i=i;l=l;v=()});
+  ("with",          fun(i,l) -> Parser.WITH{i=i;l=l;v=()});
+  ("sym",           fun(i,l) -> Parser.SYM{i=i;l=l;v=()});
+  ("lift",          fun(i,l) -> Parser.LIFT{i=i;l=l;v=()});
+  ("sval",          fun(i,l) -> Parser.LIFT{i=i;l=l;v=()});
+  ("proj",          fun(i,l) -> Parser.PROJ{i=i;l=l;v=()});
+  ("fst",           fun(i,l) -> Parser.FST{i=i;l=l;v=()});
+  ("snd",           fun(i,l) -> Parser.SND{i=i;l=l;v=()});
+  ("ifguard",       fun(i,l) -> Parser.IFGUARD{i=i;l=l;v=()});
+  ("ifthen",        fun(i,l) -> Parser.IFTHEN{i=i;l=l;v=()});
+  ("ifelse",        fun(i,l) -> Parser.IFELSE{i=i;l=l;v=()});
+  ("error",         fun(i,l) -> Parser.ERROR{i=i;l=l;v=()});
+  ("match",         fun(i,l) -> Parser.MATCH{i=i;l=l;v=()});
+  ("from",          fun(i,l) -> Parser.FROM{i=i;l=l;v=()});
+  ("type",          fun(i,l) -> Parser.TYPE{i=i;l=l;v=()});
+  ("Array",         fun(i,l) -> Parser.ARRAY{i=i;l=l;v=()});
+  ("Map",           fun(i,l) -> Parser.MAP{i=i;l=l;v=()});
+  ("List",          fun(i,l) -> Parser.LIST{i=i;l=l;v=()});
+  ("Set",           fun(i,l) -> Parser.SET{i=i;l=l;v=()});
+  ("DAESolver",     fun(i,l) -> Parser.DAESOLVER{i=i;l=l;v=()});
   ("NLEQSolver",    fun(i,l) -> Parser.NLEQSOLVER{i=i;l=l;v=()});
-  ("include",       fun(i,l) -> Parser.INCLUDE{i=i;l=l;v=()}); 
-  ("begin",         fun(i,l) -> Parser.BEGIN{i=i;l=l;v=()}); 
-  ("end",           fun(i,l) -> Parser.END{i=i;l=l;v=()}); 
-  ("specialize",    fun(i,l) -> Parser.SPECIALIZE{i=i;l=l;v=()}); 
-  ("peval",         fun(i,l) -> Parser.PEVAL{i=i;l=l;v=()}); 
+  ("include",       fun(i,l) -> Parser.INCLUDE{i=i;l=l;v=()});
+  ("begin",         fun(i,l) -> Parser.BEGIN{i=i;l=l;v=()});
+  ("end",           fun(i,l) -> Parser.END{i=i;l=l;v=()});
+  ("specialize",    fun(i,l) -> Parser.SPECIALIZE{i=i;l=l;v=()});
+  ("peval",         fun(i,l) -> Parser.PEVAL{i=i;l=l;v=()});
 
   (* v *)
   ("=",             fun(i,l) -> Parser.EQ{i=i;l=l;v=()});
@@ -188,6 +188,7 @@ let str2primitive fi s =
   | "@@string_concat" -> PrimStringConcat
   | "@@string_strlen" -> PrimStringStrlen
   | "@@string_substr" -> PrimStringSubstr
+  | "@@write_file" -> PrimWriteFile
   | _ -> raise (Mkl_lex_error (LEX_UNKOWN_PRIMITIVE,ERROR, fi, [us s]))
 
 
