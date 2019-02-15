@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 
 written by Oscar Eriksson oerikss@kth.se
-
 */
 
 include Matrix
@@ -320,7 +319,6 @@ def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node)  = {
   tt = v2zero
 }
 
-
 def Body(m: Real, I: Real,
          rr: Vector2,
          vv: Vector2,
@@ -374,7 +372,6 @@ def BodyInGravity(m: Real, I: Real,
   def g = Gravity m n_1 n_2;
   b; g
 }
-
 
 def AngularActuator(f: <Real>,
                     rr: Vector2,
