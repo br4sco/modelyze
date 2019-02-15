@@ -18,7 +18,11 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
+include DILLEXPORT
 include Dill2D
+
+def MODEL_FILENAME = "/tmp/model.mo"
+def SCENE_FILENAME = "/tmp/scene.json"
 
 type Geometry2D
 def rectangle: Real -> Real -> Geometry2D
@@ -49,7 +53,7 @@ def geometryToJSON(g: Geometry2D) -> String = {
                                     "width: " ++ real2string w ++
                                     " }"
 
-  | elipse (sval h: Real) (sval w: Real) x y th -> "{ " ++
+  | elipse (sval h: Real) (sval w: Real) -> "{ " ++
                                     "type: \"Elipse\", " ++
                                     "height: " ++ real2string h ++ ", " ++
                                     "width: " ++ real2string w ++
@@ -71,7 +75,36 @@ def materialToJSON(m: Material) -> String = {
   | _ -> error "Unmatched Material"
 }
 
-def getEquations(o: Object2D) -> Equations = {
+def visualObj2DToJSON(o: Object2D) -> String = {
+  def work(o: Object2D) -> String = {
+    match o with
+    | noObj; o -> work o
+    // | o; NoObj -> work o
+    | o_1; o_2 -> work o_1 ++ ", " ++ work o_2
+    | visualObj2D (vec x y) th g m -> {
+                                      "{" ++
+                                      "x: " ++ symstr(x) ++ ", " ++
+                                      "y: " ++ symstr(y) ++ ", " ++
+                                      "th: " ++ symstr(th) ++ ", " ++
+                                      "geometry: " ++ geometryToJSON g ++ ", " ++
+                                      "material: " ++ materialToJSON m ++
+                                      "}"}
+    | _ -> error "Expected only visualObj2D"
+  };
+  "{ scene: [ " ++ work o ++ " ]}"
+}
+
+def getVisualObjects(o: Object2D) -> Object2D = {
+  def work(o: Object2D, a: Object2D) -> Object2D = {
+    match o with
+    | o_1; o_2 -> work o_2 (work o_1 a)
+    | visualObj2D _ _ _ _ -> a; o
+    | _ -> a
+  };
+  work o NoObj
+}
+
+def getModel(o: Object2D) -> Equations = {
   def work(o: Object2D, a: Equations) -> Equations = {
     match o with
     | o_1; o_2 -> (work o_2 (work o_1 a))
@@ -79,4 +112,11 @@ def getEquations(o: Object2D) -> Equations = {
     | _ -> a
   };
   work o NoEqn
+}
+
+def elaborateToFile(o: Object2D) -> () = {
+  def m = getModel o;
+  def vo = getVisualObjects o;
+  def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
+  writeFile SCENE_FILENAME (visualObj2DToJSON vo ++ "\n")
 }

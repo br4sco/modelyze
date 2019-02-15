@@ -5,9 +5,6 @@ def x, y, th: Real
 def vx, vy, om: Real
 def Fx, Fy, T: Real
 
-def _ = println (geometryToJSON (rectangle 1. 2.))
-def _ = println (materialToJSON (stdMaterial RED 1.))
-
 def rr = vec x y
 def vv = vec vx vy
 def FF = vec Fx Fy
@@ -15,6 +12,8 @@ def m = 1.
 def I = 1.
 def big = (BodyInGravity m I rr vv FF th om T n_1 n_2); y <- 10.
 
-def m = visualObj2D rr th (circle 1.) (stdMaterial BLUE 0.7); modelObj2D big
+def o = visualObj2D rr th (circle 1.) (stdMaterial BLUE 0.7); modelObj2D big
 
-def _ = dprintln (getEquations m)
+def main = {
+  elaborateToFile o
+}

@@ -1,5 +1,5 @@
 echo(false);
-loadFile("/tmp/A.mo");
+loadFile("/tmp/model.mo");
 cs := getClassNames();
 c := cs[1];
 echo(true);

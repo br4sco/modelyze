@@ -23,14 +23,14 @@ include ExportModelica2
 include ExportMatlab
 include DILL2D
 
-def exportDill2Modelica(name: String, m: Equations) -> () = {
+def exportDill2Modelica(name: String, m: Equations) -> String = {
   def (ivs, m) = getInits m;
   def e = elaborate m;
-  println (exportModelica name e (listToMap ivs))
+  exportModelica name e (listToMap ivs)
 }
 
-def exportDill2Matlab(m: Equations) -> () = {
+def exportDill2Matlab(m: Equations) -> String = {
   def (ivs, m) = getInits m;
   def e = elaborate m;
-  println (exportMatlab e)
+  exportMatlab e
 }
