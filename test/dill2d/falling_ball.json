@@ -1,1 +1,0 @@
-{ scene: [ {x: x_1, y: y_1, th: th_1, geometry: { type: "Elipse", height: 1., width: 1. }, material: { type: "Standard", color: "#0000ff", opacity: 0.7 }} ]}

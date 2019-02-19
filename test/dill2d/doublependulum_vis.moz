@@ -1,0 +1,45 @@
+include DILL2DV
+
+def n_1, n_2, n_3, n_4, n_5: Node
+
+def mkArm(l_1: Real, l_2: Real, m: Real, I: Real, rr: Vector2, th_m: <Real>, gn: Node, n_1: Node, n_2: Node) = {
+  def x_m, y_m: Real;
+  def vx_m, vy_m: Real;
+  def om_m, T_m: Real;
+  def vv = vec vx_m vy_m;
+  Arm l_1 l_2 m I rr vv th_m om_m gn n_1 n_2
+}
+
+def rj_1 = ARevoluteJoint n_1 n_2
+
+def m_1 = 1.
+def I_1 = 1.
+def l_1_1 = 1.
+def l_1_2 = 1.
+def x_m1, y_m1, th_m1: Real
+def rr_1 = vec x_m1 y_m1
+def a_1 = mkArm l_1_1 l_1_2 m_1 I_1 rr_1 th_m1 n_1 n_2 n_3
+
+def rj_2 = ARevoluteJoint n_3 n_4
+
+def m_2 = 1.
+def I_2 = 1.
+def l_2 = 2.
+def l_2_1 = 1.
+def l_2_2 = 1.
+def x_m2, y_m2, th_m2: Real
+def rr_2 = vec x_m2 y_m2
+def a_2 = mkArm l_2_1 l_2_2 m_2 I_2 rr_2 th_m2 n_1 n_4 n_5
+
+def m = rj_1; a_1; rj_2; a_2
+  ; x_m1 <- l_1_1
+  ; x_m2 <- l_1_1 + l_1_2 + l_2_1
+
+
+def p = visualObj2D rr_1 th_m1 (rectangle 0.2 2.1) (stdMaterial BLUE 0.7)
+        ; visualObj2D rr_2 th_m2 (rectangle 0.2 2.1) (stdMaterial BLUE 0.7)
+        ; modelObj2D m
+
+def main = {
+  elaborateToFile p
+}

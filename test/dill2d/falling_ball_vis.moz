@@ -1,4 +1,4 @@
-include dill2dv
+include DILL2DV
 
 def n_1, n_2: Node
 def x, y, th: Real
@@ -12,7 +12,7 @@ def m = 1.
 def I = 1.
 def big = (BodyInGravity m I rr vv FF th om T n_1 n_2); y <- 10.
 
-def o = visualObj2D rr th (circle 1.) (stdMaterial BLUE 0.7); modelObj2D big
+def o = visualObj2D rr th (circle 1.1) (stdMaterial BLUE 0.7); modelObj2D big
 
 def main = {
   elaborateToFile o

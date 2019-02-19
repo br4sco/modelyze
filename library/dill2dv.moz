@@ -26,7 +26,7 @@ def SCENE_FILENAME = "/tmp/scene.json"
 
 type Geometry2D
 def rectangle: Real -> Real -> Geometry2D
-def elipse: Real -> Real -> Geometry2D
+def circle: Real -> Geometry2D
 
 type Material
 def stdMaterial: String -> Real -> Material
@@ -43,21 +43,18 @@ def BLUE = "#0000ff"
 def GREEN = "#00ff00"
 def BLACK = "#000000"
 
-def circle(r: Real) -> Geometry2D = { elipse r r }
-
 def geometryToJSON(g: Geometry2D) -> String = {
   match g with
   | rectangle (sval h: Real) (sval w: Real) -> "{ " ++
-                                    "type: \"Rectangle\", " ++
-                                    "height: " ++ real2string h ++ ", " ++
-                                    "width: " ++ real2string w ++
+                                    "\"type\": \"Rectangle\", " ++
+                                    "\"height\": " ++ real2string h ++ ", " ++
+                                    "\"width\": " ++ real2string w ++
                                     " }"
 
-  | elipse (sval h: Real) (sval w: Real) -> "{ " ++
-                                    "type: \"Elipse\", " ++
-                                    "height: " ++ real2string h ++ ", " ++
-                                    "width: " ++ real2string w ++
-                                    " }"
+  | circle (sval r: Real) -> "{ " ++
+                             "\"type\": \"Circle\", " ++
+                             "\"radius\": " ++ real2string r ++
+                             " }"
   | _ -> error "Unmatched Geometry2D"
 }
 
@@ -66,9 +63,9 @@ def materialToJSON(m: Material) -> String = {
   | stdMaterial (sval s: String) (sval o: Real) -> {
       if o >= 0. && o <= 1. then {
         "{ " ++
-        "type: \"Standard\", " ++
-        "color: \"" ++ s ++ "\", " ++
-        "opacity: " ++ real2string o ++
+        "\"type\": \"Standard\", " ++
+        "\"color\": \"" ++ s ++ "\", " ++
+        "\"opacity\": " ++ real2string o ++
         " }"
       } else error INVALID_ARGUMENT
     }
@@ -78,20 +75,18 @@ def materialToJSON(m: Material) -> String = {
 def visualObj2DToJSON(o: Object2D) -> String = {
   def work(o: Object2D) -> String = {
     match o with
-    | noObj; o -> work o
-    // | o; NoObj -> work o
     | o_1; o_2 -> work o_1 ++ ", " ++ work o_2
     | visualObj2D (vec x y) th g m -> {
                                       "{" ++
-                                      "x: " ++ symstr(x) ++ ", " ++
-                                      "y: " ++ symstr(y) ++ ", " ++
-                                      "th: " ++ symstr(th) ++ ", " ++
-                                      "geometry: " ++ geometryToJSON g ++ ", " ++
-                                      "material: " ++ materialToJSON m ++
+                                      "\"x\": \"" ++ symstr(x) ++ "\", " ++
+                                      "\"y\": \"" ++ symstr(y) ++ "\", " ++
+                                      "\"th\": \"" ++ symstr(th) ++ "\", " ++
+                                      "\"geometry\": " ++ geometryToJSON g ++ ", " ++
+                                      "\"material\": " ++ materialToJSON m ++
                                       "}"}
     | _ -> error "Expected only visualObj2D"
   };
-  "{ scene: [ " ++ work o ++ " ]}"
+  "{ \"scene\": [ " ++ work o ++ " ]}"
 }
 
 def getVisualObjects(o: Object2D) -> Object2D = {
@@ -102,6 +97,19 @@ def getVisualObjects(o: Object2D) -> Object2D = {
     | _ -> a
   };
   work o NoObj
+}
+
+def cleanup2DObjects(o: Object2D) -> Object2D = {
+    match o with
+    | o_1; o_2 ->
+       {
+          match (cleanup2DObjects o_1, cleanup2DObjects o_2) with
+          | (NoObj, NoObj) -> NoObj
+          | (NoObj, o) -> o
+          | (o, NoObj) -> o
+          | (o_1b,o_2b) -> o_1b; o_2b
+       }
+    | _ -> o
 }
 
 def getModel(o: Object2D) -> Equations = {
@@ -117,6 +125,7 @@ def getModel(o: Object2D) -> Equations = {
 def elaborateToFile(o: Object2D) -> () = {
   def m = getModel o;
   def vo = getVisualObjects o;
+  def vo = cleanup2DObjects vo;
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
   writeFile SCENE_FILENAME (visualObj2DToJSON vo ++ "\n")
 }
