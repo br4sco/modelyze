@@ -42,39 +42,42 @@ def exportModelica(name: String, e: Equations, ivm: InitValMap) -> String = {
     foldLeft f "" us
   };
 
+  def pprintExpr(e: <Real>) -> String = {
+    def work(e: <>) -> String = {
+        match e with
+        | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
+        | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
+        | e1 * e2 -> work e1 ++ " * " ++ work e2
+        | e1 / e2 -> work e1 ++ " / " ++ work e2
+        | -e -> "(-" ++ work e ++ ")"
+        | e1^e2 -> work e1 ++ " ^ " ++ "(" ++ work e2 ++ ")"
+        | der e -> "der(" ++ work e ++ ")"
+        | ~sin e -> "sin(" ++ work e ++ ")"
+        | ~cos e -> "cos(" ++ work e ++ ")"
+        | ~tan e -> "tan(" ++ work e ++ ")"
+        | ~asin e -> "asin(" ++ work e ++ ")"
+        | ~acos e -> "acos(" ++ work e ++ ")"
+        | ~atan e -> "atan(" ++ work e ++ ")"
+        | ~sinh e -> "sinh(" ++ work e ++ ")"
+        | ~cosh e -> "cosh(" ++ work e ++ ")"
+        | ~tanh e -> "tanh(" ++ work e ++ ")"
+        | ~sqrt e -> "sqrt(" ++ work e ++ ")"
+        | ~exp e -> "exp(" ++ work e ++ ")"
+        | ~log e -> "log(" ++ work e ++ ")"
+        | ~log10 e -> "log10(" ++ work e ++ ")"
+        | sym: Real -> symstr(e)
+        | sval r: Real -> r2mr r
+        | _ -> error "Unmatched"
+    };
 
-  def pprintExpr(e: <>) -> String = {
-      match e with
-      | e1 + e2 -> "(" ++ pprintExpr e1 ++ " + " ++ pprintExpr e2 ++ ")"
-      | e1 - e2 -> "(" ++ pprintExpr e1 ++ " - " ++ pprintExpr e2 ++ ")"
-      | e1 * e2 -> pprintExpr e1 ++ " * " ++ pprintExpr e2
-      | e1 / e2 -> pprintExpr e1 ++ " / " ++ pprintExpr e2
-      | -e -> "(-" ++ pprintExpr e ++ ")"
-      | e1^e2 -> pprintExpr e1 ++ " ^ " ++ "(" ++ pprintExpr e2 ++ ")"
-      | der e -> "der(" ++ pprintExpr e ++ ")"
-      | ~sin e -> "sin(" ++ pprintExpr e ++ ")"
-      | ~cos e -> "cos(" ++ pprintExpr e ++ ")"
-      | ~tan e -> "tan(" ++ pprintExpr e ++ ")"
-      | ~asin e -> "asin(" ++ pprintExpr e ++ ")"
-      | ~acos e -> "acos(" ++ pprintExpr e ++ ")"
-      | ~atan e -> "atan(" ++ pprintExpr e ++ ")"
-      | ~sinh e -> "sinh(" ++ pprintExpr e ++ ")"
-      | ~cosh e -> "cosh(" ++ pprintExpr e ++ ")"
-      | ~tanh e -> "tanh(" ++ pprintExpr e ++ ")"
-      | ~sqrt e -> "sqrt(" ++ pprintExpr e ++ ")"
-      | ~exp e -> "exp(" ++ pprintExpr e ++ ")"
-      | ~log e -> "log(" ++ pprintExpr e ++ ")"
-      | ~log10 e -> "log10(" ++ pprintExpr e ++ ")"
-      | sym: Real -> symstr(e)
-      | sval r: Real -> r2mr r
-      | _ -> error "Unmatched"
+    work e
   };
 
   def pprintEqs(e: Equations) -> String  = {
     match e with
     | e_1; e_2 -> pprintEqs e_1 ++ pprintEqs e_2
     | e_1 = e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
-    | _ -> error "Unmatched"
+    | _ -> { def _ = dprintln e; error "Unmatched" }
   };
 
   def ppuks = pprintUnknowns e;

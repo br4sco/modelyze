@@ -43,17 +43,22 @@ def BLUE = "#0000ff"
 def GREEN = "#00ff00"
 def BLACK = "#000000"
 
+def real2JSONstring(r: Real) -> String = {
+  if int2real (real2int r) == r then real2string r ++ "0"
+  else real2string r
+}
+
 def geometryToJSON(g: Geometry2D) -> String = {
   match g with
   | rectangle (sval h: Real) (sval w: Real) -> "{ " ++
                                     "\"type\": \"Rectangle\", " ++
-                                    "\"height\": " ++ real2string h ++ ", " ++
-                                    "\"width\": " ++ real2string w ++
+                                    "\"height\": " ++ real2JSONstring h ++ ", " ++
+                                    "\"width\": " ++ real2JSONstring w ++
                                     " }"
 
   | circle (sval r: Real) -> "{ " ++
                              "\"type\": \"Circle\", " ++
-                             "\"radius\": " ++ real2string r ++
+                             "\"radius\": " ++ real2JSONstring r ++
                              " }"
   | _ -> error "Unmatched Geometry2D"
 }
@@ -65,7 +70,7 @@ def materialToJSON(m: Material) -> String = {
         "{ " ++
         "\"type\": \"Standard\", " ++
         "\"color\": \"" ++ s ++ "\", " ++
-        "\"opacity\": " ++ real2string o ++
+        "\"opacity\": " ++ real2JSONstring o ++
         " }"
       } else error INVALID_ARGUMENT
     }

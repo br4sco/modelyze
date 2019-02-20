@@ -1,33 +1,17 @@
 include DILLEXPORT
-include DILLSIM
+include DILL2DV
 
 def n_1, n_2: Node
+def x, y, th: Real
 
+def rr = vec x y
 def m = 1.
 def I = 1.
-def x_m, y_m: Real
-def vx_m, vy_m: Real
-def Fx_m, Fy_m: Real
-def th_m, om_m, T_m: Real
-def rr_m = vec x_m y_m
-def vv_m = vec vx_m vy_m
-def FF_m = vec Fx_m Fy_m
+def big = mkComponent (BodyInGravity m I) rr th n_1 n_2; y <- 10.
 
-def b = Body m
-             I
-             rr_m
-             vv_m
-             FF_m
-             th_m
-             om_m
-             T_m
-             n_1 n_2
-
-def g = Gravity m n_1 n_2
-
-def m = b; g; y_m <- 10.; vy_m <- 20.
+def o = visualObj2D rr th (circle 1.1) (stdMaterial BLUE 0.7); modelObj2D big
 
 def main = {
-  // exportDill2Modelica "Falling_Body" m
-  simulate m (0., 10.) 0.01
+  elaborateToFile o
+  // println (exportDill2Modelica "Falling_Body" (getModel o))
 }

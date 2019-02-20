@@ -1,0 +1,51 @@
+include DILL2DV
+include DILLEXPORT
+
+def gn, n_1, n_2, n_3, n_4, n_5, n_6, n_7, n_8: Node
+
+def th_0 = 0.
+def m = 1.
+def I = 1.
+def l = 2.
+def l_1 = 1. * l
+def w = l / 15.
+
+def mkArm(l: Real, th: <Real>, n_1: Node, n_2: Node) -> Object2D = {
+  def x_m, y_m: Real;
+  def rr = vec x_m y_m;
+  modelObj2D (SolidArmP l m I rr th gn n_1 n_2)
+  ; visualObj2D rr th (rectangle w l) (stdMaterial GREEN 1.)
+}
+
+def mkArm(th: <Real>, n_1: Node, n_2: Node) -> Object2D = {
+  mkArm l th n_1 n_2
+}
+
+def mkJoint(n_1: Node, n_2: Node) -> Object2D = {
+  def x_rj, y_rj, th_rj: Real;
+  def rr = vec x_rj y_rj;
+  modelObj2D (mkComponent RevoluteJoint n_1 n_2)
+              ; modelObj2D (mkComponent AcrossSensor rr th_rj gn n_2)
+              ; visualObj2D rr th_rj (circle w) (stdMaterial RED 1.)
+}
+
+def th_1, th_2, th_3: Real
+
+def j_1 = mkJoint gn n_1
+def a_1 = mkArm l_1 th_1 n_1 n_2
+def j_2 = mkJoint n_2 n_3
+def a_2 = mkArm th_2 n_3 n_4
+def j_3 = mkJoint n_4 n_5
+def a_3 = mkArm th_3 n_5 n_6
+def j_4 = mkJoint n_6 n_7
+def tl = modelObj2D (mkComponent (TranslationalActuator (vec l 0.)) gn n_7)
+
+def p = j_1; a_1; j_2; a_2; j_3; a_3
+        ; j_4
+        ; tl
+        ; modelObj2D (th_1 <- PI / 2.1)
+
+def main = {
+  elaborateToFile p
+  // println (exportDill2Modelica "Kinematic_loop" (getModel p))
+}
