@@ -9,7 +9,7 @@ def m = 1.
 def I = 1.
 def big = mkComponent (BodyInGravity m I) rr th n_1 n_2; y <- 10.
 
-def o = visualObj2D rr th (circle 1.1) (stdMaterial BLUE 0.7); modelObj2D big
+def o = visualObj2D rr th (circle 1.1) (stdMaterial BLUE 0.7) ++ modelObj2D big
 
 def main = {
   elaborateToFile o

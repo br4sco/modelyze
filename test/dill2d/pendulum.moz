@@ -16,12 +16,12 @@ def x_rj, y_rj, th_rj: Real
 def rr_rj = vec x_rj y_rj
 
 def arm = modelObj2D (SolidArmP l m I rr_m th_m gn n_1 n_2)
-          ; visualObj2D rr_m th_m (rectangle w l) (stdMaterial GREEN 1.)
+          ++ visualObj2D rr_m th_m (rectangle w l) (stdMaterial GREEN 1.)
 
 def joint = modelObj2D (mkComponent RevoluteJoint rr_rj th_rj gn n_1)
-            ; visualObj2D rr_rj th_rj (circle w) (stdMaterial RED 1.)
+            ++ visualObj2D rr_rj th_rj (circle w) (stdMaterial RED 1.)
 
-def p = arm; joint
+def p = arm ++ joint
 
 def main = {
   elaborateToFile p

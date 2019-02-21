@@ -32,7 +32,7 @@ type Material
 def stdMaterial: String -> Real -> Material
 
 type Object2D
-def (;) : Object2D -> Object2D -> Object2D
+def (++) : Object2D -> Object2D -> Object2D
 def visualObj2D: Vector2 -> <Real> -> Geometry2D -> Material -> Object2D
 def modelObj2D: Equations -> Object2D
 def NoObj: Object2D
@@ -80,7 +80,7 @@ def materialToJSON(m: Material) -> String = {
 def visualObj2DToJSON(o: Object2D) -> String = {
   def work(o: Object2D) -> String = {
     match o with
-    | o_1; o_2 -> work o_1 ++ ", " ++ work o_2
+    | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
     | visualObj2D (vec x y) th g m -> {
                                       "{" ++
                                       "\"x\": \"" ++ symstr(x) ++ "\", " ++
@@ -97,8 +97,8 @@ def visualObj2DToJSON(o: Object2D) -> String = {
 def getVisualObjects(o: Object2D) -> Object2D = {
   def work(o: Object2D, a: Object2D) -> Object2D = {
     match o with
-    | o_1; o_2 -> work o_2 (work o_1 a)
-    | visualObj2D _ _ _ _ -> a; o
+    | o_1 ++ o_2 -> work o_2 (work o_1 a)
+    | visualObj2D _ _ _ _ -> a ++ o
     | _ -> a
   };
   work o NoObj
@@ -106,13 +106,13 @@ def getVisualObjects(o: Object2D) -> Object2D = {
 
 def cleanup2DObjects(o: Object2D) -> Object2D = {
     match o with
-    | o_1; o_2 ->
+    | o_1 ++ o_2 ->
        {
           match (cleanup2DObjects o_1, cleanup2DObjects o_2) with
           | (NoObj, NoObj) -> NoObj
           | (NoObj, o) -> o
           | (o, NoObj) -> o
-          | (o_1b,o_2b) -> o_1b; o_2b
+          | (o_1b,o_2b) -> o_1b ++ o_2b
        }
     | _ -> o
 }
@@ -120,7 +120,7 @@ def cleanup2DObjects(o: Object2D) -> Object2D = {
 def getModel(o: Object2D) -> Equations = {
   def work(o: Object2D, a: Equations) -> Equations = {
     match o with
-    | o_1; o_2 -> (work o_2 (work o_1 a))
+    | o_1 ++ o_2 -> (work o_2 (work o_1 a))
     | modelObj2D e -> a; e
     | _ -> a
   };

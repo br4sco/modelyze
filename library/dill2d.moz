@@ -36,6 +36,9 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
   mapi f l
 }
 
+def initGuess: <Real> -> Real -> Equations
+def (<~) = initGuess
+
 type Vector2
 def vec: Real -> Real -> Vector2
 def v2zero = vec 0. 0.
@@ -183,9 +186,14 @@ def getInits(e: Equations) -> ([InitVal], Equations) = {
   def work(e: Equations, a: ([InitVal], Equations)) -> ([InitVal], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | init v v_0 -> {
+    | v <- v_0 -> {
         match (v, v_0) with
         | (v, lift v_0: Real) -> ((v, (v_0, true))::(fst a), snd a)
+        | _ -> error "Invalid init"
+      }
+    | v <~ v_0 -> {
+        match (v, v_0) with
+        | (v, lift v_0: Real) -> ((v, (v_0, false))::(fst a), snd a)
         | _ -> error "Invalid init"
       }
     | _ -> (fst a, (snd a); e)
