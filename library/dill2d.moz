@@ -214,42 +214,45 @@ def getEquations(e: Equations) -> (Equations, Equations) = {
 def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
 
   def G = mkGraph mes;
-  def IM = mkIncidenceMatrix G;
-  def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
-  def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
-
-  def vs = listToArray (mkVarsList mes);
-
-  def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
-    if i > rdim a then a
-    else {
-      def j_max = snd (argfind (fun v: Int -> v != 0)
-                    (sub (i, 1) (i, cdim a) a));
-      if i == j_max then work (i + 1) a
-      else {
-        def _ = sw vs (i - 1) (j_max - 1);
-        work (i + 1) (swcols i j_max a)
-      }
-    }
-  };
-
-  def IMrr = rowreduce IM;
-  def _ = logg 2 "IMrr" (fun t: () -> def _ = dp IMrr; ());
-
-  def IMrrt = trimrows IMrr;
-  def _ = logg 2 "IMrrt" (fun t: () -> def _ = dp IMrrt; ());
-
-if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+  if hasSelfLoop G then error "Model graph contains self loop"
   else {
-    def IA = work 1 (real2int IMrrt);
-    def _ = logg 2 "IA" (fun t: () -> def _ = dp IA; ());
+    def IM = mkIncidenceMatrix G;
+    def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
+    def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
 
-    def (I, A) = vsplit (rdim IA) IA;
-    def T = (if dim A < (1, 1) then arrayToList vs
-             else arrayToList (sub vs 0 (rdim A)));
-    def C = (if dim A < (1, 1) then []
-             else arrayToList (sub vs (rdim A) (Array.length vs)));
-    (A, (T, C))
+    def vs = listToArray (mkVarsList mes);
+
+    def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
+      if i > rdim a then a
+      else {
+        def j_max = snd (argfind (fun v: Int -> v != 0)
+                      (sub (i, 1) (i, cdim a) a));
+        if i == j_max then work (i + 1) a
+        else {
+          def _ = sw vs (i - 1) (j_max - 1);
+          work (i + 1) (swcols i j_max a)
+        }
+      }
+    };
+
+    def IMrr = rowreduce IM;
+    def _ = logg 2 "IMrr" (fun t: () -> def _ = dp IMrr; ());
+
+    def IMrrt = trimrows IMrr;
+    def _ = logg 2 "IMrrt" (fun t: () -> def _ = dp IMrrt; ());
+
+    if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+    else {
+      def IA = work 1 (real2int IMrrt);
+      def _ = logg 2 "IA" (fun t: () -> def _ = dp IA; ());
+
+      def (I, A) = vsplit (rdim IA) IA;
+      def T = (if dim A < (1, 1) then arrayToList vs
+               else arrayToList (sub vs 0 (rdim A)));
+      def C = (if dim A < (1, 1) then []
+               else arrayToList (sub vs (rdim A) (Array.length vs)));
+      (A, (T, C))
+    }
   }
 }
 

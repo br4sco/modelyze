@@ -67,6 +67,10 @@ def edgeList2AdjList(G: [Edge]) -> AdjList = {
   foldLeft f (Map.empty) G
 }
 
+def hasSelfLoop(G: [Edge]) -> Bool = {
+  exists (fun e: Edge -> seq (fst e) (snd e)) G
+}
+
 def IN_EDGE = -1.
 def OUT_EDGE = 1.
 def NO_EDGE = 0.
