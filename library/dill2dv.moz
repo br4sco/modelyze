@@ -31,11 +31,11 @@ def circle: Real -> Geometry2D
 type Material
 def stdMaterial: String -> Real -> Material
 
-type Object2D
-def (++) : Object2D -> Object2D -> Object2D
-def visualObj2D: Vector2 -> <Real> -> Geometry2D -> Material -> Object2D
-def modelObj2D: Equations -> Object2D
-def NoObj: Object2D
+type Component2D
+def (++) : Component2D -> Component2D -> Component2D
+def visualCpnt: Vector2 -> <Real> -> Geometry2D -> Material -> Component2D
+def modelCpnt: Equations -> Component2D
+def NoCpnt: Component2D
 
 def WHITE = "#ffffff"
 def RED = "#ff0000"
@@ -77,11 +77,11 @@ def materialToJSON(m: Material) -> String = {
   | _ -> error "Unmatched Material"
 }
 
-def visualObj2DToJSON(o: Object2D) -> String = {
-  def work(o: Object2D) -> String = {
+def visualCpntToJSON(o: Component2D) -> String = {
+  def work(o: Component2D) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
-    | visualObj2D (vec x y) th g m -> {
+    | visualCpnt (vec x y) th g m -> {
                                       "{" ++
                                       "\"x\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"y\": \"" ++ symstr(y) ++ "\", " ++
@@ -89,48 +89,48 @@ def visualObj2DToJSON(o: Object2D) -> String = {
                                       "\"geometry\": " ++ geometryToJSON g ++ ", " ++
                                       "\"material\": " ++ materialToJSON m ++
                                       "}"}
-    | _ -> error "Expected only visualObj2D"
+    | _ -> error "Expected only visualCpnt"
   };
   "{ \"scene\": [ " ++ work o ++ " ]}"
 }
 
-def getVisualObjects(o: Object2D) -> Object2D = {
-  def work(o: Object2D, a: Object2D) -> Object2D = {
+def getVisualObjects(o: Component2D) -> Component2D = {
+  def work(o: Component2D, a: Component2D) -> Component2D = {
     match o with
     | o_1 ++ o_2 -> work o_2 (work o_1 a)
-    | visualObj2D _ _ _ _ -> a ++ o
+    | visualCpnt _ _ _ _ -> a ++ o
     | _ -> a
   };
-  work o NoObj
+  work o NoCpnt
 }
 
-def cleanup2DObjects(o: Object2D) -> Object2D = {
+def cleanup2DObjects(o: Component2D) -> Component2D = {
     match o with
     | o_1 ++ o_2 ->
        {
           match (cleanup2DObjects o_1, cleanup2DObjects o_2) with
-          | (NoObj, NoObj) -> NoObj
-          | (NoObj, o) -> o
-          | (o, NoObj) -> o
+          | (NoCpnt, NoCpnt) -> NoCpnt
+          | (NoCpnt, o) -> o
+          | (o, NoCpnt) -> o
           | (o_1b,o_2b) -> o_1b ++ o_2b
        }
     | _ -> o
 }
 
-def getModel(o: Object2D) -> Equations = {
-  def work(o: Object2D, a: Equations) -> Equations = {
+def getModel(o: Component2D) -> Equations = {
+  def work(o: Component2D, a: Equations) -> Equations = {
     match o with
     | o_1 ++ o_2 -> (work o_2 (work o_1 a))
-    | modelObj2D e -> a; e
+    | modelCpnt e -> a; e
     | _ -> a
   };
   work o NoEqn
 }
 
-def elaborateToFile(o: Object2D) -> () = {
+def elaborateToFile(o: Component2D) -> () = {
   def m = getModel o;
   def vo = getVisualObjects o;
   def vo = cleanup2DObjects vo;
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
-  writeFile SCENE_FILENAME (visualObj2DToJSON vo ++ "\n")
+  writeFile SCENE_FILENAME (visualCpntToJSON vo ++ "\n")
 }

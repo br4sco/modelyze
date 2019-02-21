@@ -212,7 +212,6 @@ def getEquations(e: Equations) -> (Equations, Equations) = {
 }
 
 def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
-
   def G = mkGraph mes;
   if hasSelfLoop G then error "Model graph contains self loop"
   else {
@@ -379,7 +378,6 @@ def mkArmComponent(c: ArmComponent1Order, n_1: Node, n_2: Node, n_3: Node) -> Eq
   def rr = vec x y;
   mkArmComponent c rr th n_1 n_2 n_3
 }
-
 
 def Body(m: Real, I: Real,
          rr: Vector2,
