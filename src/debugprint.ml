@@ -119,6 +119,7 @@ let opMap str =
     | "(=)"   -> (InfixSpace,us"=",5)
     | "(~=)"  -> (InfixSpace,us"~=",5)
     | "(<-)"  -> (InfixSpace,us"<-",5)
+    | "(<~)"  -> (InfixSpace,us"<~",5)
     | "(mod)" -> (InfixSpace,us"mod",10)
     | "(+)"   -> (InfixSpace,us"+",8)
     | "(-)"   -> (InfixSpace,us"-",8)

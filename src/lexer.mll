@@ -75,6 +75,7 @@ let reserved_strings = [
   ("=",             fun(i,l) -> Parser.EQ{i=i;l=l;v=()});
   ("~=",            fun(i,l) -> Parser.APXEQ{i=i;l=l;v=()});
   ("<-",            fun(i,l) -> Parser.LEFTARROW{i=i;l=l;v=()});
+  ("<~",            fun(i,l) -> Parser.APXLEFTARROW{i=i;l=l;v=()});
   ("mod",           fun(i,l) -> Parser.MOD{i=i;l=l;v=()});
   ("+",             fun(i,l) -> Parser.ADD{i=i;l=l;v=()});
   ("-",             fun(i,l) -> Parser.SUB{i=i;l=l;v=()});
@@ -293,7 +294,7 @@ let operator = "="  | "~="  | "<-"  | "mod" |
                "+." | "-."  | "*."  | "/."  |
                "<." | "<=." | ">."  | ">=." | "==." | "!=." |
                "!"  | "&&"  | "||"  | ";"   | "++"  |
-	      "--"  | "--." | "^"   | "^."  | "'" | "-->"
+	      "--"  | "--." | "^"   | "^."  | "'" | "-->" | "<~"
 
 let symtok  =  "(" | ")" | "["  | "]" | "{"  | "}" | "::" | ":" |
                 "," | "." | "|" | "->" |  "=>" | "~" | "<==>" | "_" |
