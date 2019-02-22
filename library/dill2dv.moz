@@ -24,12 +24,12 @@ include Dill2D
 def MODEL_FILENAME = "/tmp/model.mo"
 def SCENE_FILENAME = "/tmp/scene.json"
 
+type Material
+def stdMaterial: String -> Real -> Material
+
 type Geometry2D
 def rectangle: Real -> Real -> Geometry2D
 def circle: Real -> Geometry2D
-
-type Material
-def stdMaterial: String -> Real -> Material
 
 type Component2D
 def (++) : Component2D -> Component2D -> Component2D

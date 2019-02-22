@@ -1,0 +1,14 @@
+include DILLEXPORT
+include DILL2D
+
+def n_1, n_2: Node
+def x, y, vx, vy, Fx, Fy, th, om, T: Real
+def rr = vec x y
+def vv = vec vx vy
+def FF = vec Fx Fy
+
+def m = (mkComponent Test1) rr th n_1 n_2
+
+def main = {
+  println (exportDill2Modelica "Test" m)
+}

@@ -20,11 +20,12 @@ written by Oscar Eriksson oerikss@kth.se
 
 include DILL2DV
 
+
+type Viusal2D
+def NoVisObj2D: Visual2D
+def visObj2D: Geometry2D -> Material -> Visual2D
+
 type Object2D
+def obj2D: Object2D
+
 type Joint2D = Object2D -> Object2D -> Object2D
-
-def NoObj: Object2D
-def obj: Component2D -> Object2D -> Node -> Object2D
-
-def datum: Node
-def world = obj NoCpnt datum

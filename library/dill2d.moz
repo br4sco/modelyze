@@ -76,7 +76,7 @@ def jOf(v: Vector2) -> <Real> = {
   | _ -> error "Invalid Operand"
 }
 
-def mkVec = (fun t: () -> {def x, y: Real; vec x y})
+def mkVec = (fun t: () -> {def i, j: Real; vec i j})
 
 def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
   match lhs with
@@ -333,15 +333,6 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-def AcrossSensor(aa: Vector2, tt: Vector2, a: <Real>, t: <Real>, n_1: Node, n_2: Node) -> Equations = {
-  // def t_x, t_y, t_z: Real;
-  // def tt = vec t_x t_y;
-  vector2Edge n_1 n_2 aa tt;
-  scalarEdge n_1 n_2 a t;
-  tt = v2zero;
-  t = 0.
-}
-
 def mkComponent(c: Component2Order, rr: Vector2, th: <Real>, n_1: Node, n_2: Node) -> Equations  = {
   def vx, vy, om, Fx, Fy, T: Real;
   def vv = vec vx vy;
@@ -377,6 +368,15 @@ def mkArmComponent(c: ArmComponent1Order, n_1: Node, n_2: Node, n_3: Node) -> Eq
   def x, y, th: Real;
   def rr = vec x y;
   mkArmComponent c rr th n_1 n_2 n_3
+}
+
+def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
+  def t_x, t_y: Real;
+  def tt = vec t_x t_y;
+  vector2Edge n_1 n_2 aa tt;
+  scalarEdge n_1 n_2 a t;
+  tt = v2zero;
+  t = 0.
 }
 
 def Body(m: Real, I: Real,
@@ -468,10 +468,10 @@ def RevoluteJoint(rr: Vector2,
                   T: <Real>,
                   n_1: Node, n_2: Node) -> Equations = {
 
-  scalarEdge n_1 n_2 th T;
+  // scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  rr = v2zero;
-  T = 0.
+  rr = v2zero
+  // T = 0.
 }
 
 def AngularDamper(D: Real, th: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
@@ -521,4 +521,19 @@ def SolidArmP(l: Real, m: Real, I: Real,
 def Stationary(rr: Vector2, th: <Real>) -> Equations = {
   rr' = v2zero;
   th' = 0.
+}
+
+def Test1(rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
+        vector2Edge n_1 n_2 rr FF
+        // ; scalarEdge n_1 n_2 th T
+        ; rr = v2zero
+        // ; T = 0.
+}
+
+def Test2(rr: Vector2, vv: Vector2, FF: Vector2, th: <Real>, om: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
+        vector2Edge n_1 n_2 rr FF
+        ; scalarEdge n_1 n_2 th T
+        ; rr = v2zero
+        ; rr' = vv
+        ; th' = om
 }
