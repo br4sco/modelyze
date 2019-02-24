@@ -134,3 +134,29 @@ def elaborateToFile(o: Component2D) -> () = {
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
   writeFile SCENE_FILENAME (visualCpntToJSON vo ++ "\n")
 }
+
+def DATUM: Node
+
+def Body(m: Real, I: Real, gm: Geometry2D, mt: Material,
+         rr: Vector2,
+         vv: Vector2,
+         th: <Real>,
+         om: <Real>,
+         n_1: Node, n_2: Node) -> Component2D = {
+
+  def n: Node;
+  def rr_m = mkVec ();
+  def th_m = mkScalar ();
+  def b = Body m I rr_m (mkVec ()) (mkVec ()) th_m (mkScalar ()) (mkScalar ())
+    DATUM n_2;
+  def ts = AcrossSensor rr vv n_1 n_2;
+  def rs = AcrossSensor th om n_1 n_2;
+  visualCpnt rr_m th_m gm mt ++ modelCpnt (b; ts; rs)
+}
+
+def Body(m: Real, I: Real, gm: Geometry2D, mt: Material,
+         rr: Vector2,
+         th: <Real>,
+         n_1: Node, n_2: Node) -> Component2D = {
+  Body m I gm mt rr (mkVec ()) th (mkScalar ()) n_1 n_2
+}

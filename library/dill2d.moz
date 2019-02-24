@@ -76,9 +76,10 @@ def jOf(v: Vector2) -> <Real> = {
   | _ -> error "Invalid Operand"
 }
 
-def mkVec = (fun t: () -> {def i, j: Real; vec i j})
+def mkVec = (fun t: () -> { def i, j: Real; vec i j })
+def mkScalar = (fun t: () -> { def s: Real; s })
 
-def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
+def v2eq(lhs: Vector2, rhs: Vector2) -> Equations = {
   match lhs with
   | vec lx ly -> {
       match rhs with
@@ -87,7 +88,7 @@ def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
     }
   | _ -> error "Invalid LHS"
 }
-// def (=): Vector2 -> Vector2 -> Equations = v2Eq
+// def (=): Vector2 -> Vector2 -> Equations = v2eq
 
 // def v2init(v: Vector2, v_0: Vector2) -> Equations = {
 //   match v with
@@ -298,7 +299,7 @@ def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: 
   def work(rs: [Vector2], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; v2Eq r v2zero)
+    | r::rs -> work rs (a; v2eq r v2zero)
     | _ -> error "Unmatched"
   };
 
@@ -333,56 +334,33 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-def mkComponent(c: Component2Order, rr: Vector2, th: <Real>, n_1: Node, n_2: Node) -> Equations  = {
-  def vx, vy, om, Fx, Fy, T: Real;
-  def vv = vec vx vy;
-  def FF = vec Fx Fy;
-  c rr vv FF th om T n_1 n_2
-}
-
-def mkComponent(c: Component2Order, n_1: Node, n_2: Node) -> Equations = {
-  def x, y, th: Real;
-  def rr = vec x y;
-  mkComponent c rr th n_1 n_2
-}
-
-def mkComponent(c: Component1Order, rr: Vector2, th: <Real>, n_1: Node, n_2: Node) -> Equations  = {
-  def Fx, Fy, T: Real;
-  def FF = vec Fx Fy;
-  c rr FF th T n_1 n_2
-}
-
-def mkComponent(c: Component1Order, n_1: Node, n_2: Node) -> Equations  = {
-  def x, y, th: Real;
-  def rr = vec x y;
-  mkComponent c rr th n_1 n_2
-}
-
-def mkArmComponent(c: ArmComponent1Order, rr: Vector2, th: <Real>, n_1: Node, n_2: Node, n_3: Node) -> Equations = {
-  def Fx, Fy, T_1, T_2, th_1: Real;
-  def FF = vec Fx Fy;
-  c rr FF th_1 T_1 th T_2 n_1 n_2 n_3
-}
-
-def mkArmComponent(c: ArmComponent1Order, n_1: Node, n_2: Node, n_3: Node) -> Equations = {
-  def x, y, th: Real;
-  def rr = vec x y;
-  mkArmComponent c rr th n_1 n_2 n_3
-}
-
-def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
+def AcrossSensor(aa: Vector2, daa: Vector2, n_1: Node, n_2: Node) -> Equations = {
   def t_x, t_y: Real;
   def tt = vec t_x t_y;
   vector2Edge n_1 n_2 aa tt;
-  v2Eq tt v2zero
+  v2eq (v2der aa) daa;
+  v2eq tt v2zero
 }
 
-def AcrossSensor(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
+def AcrossSensor(a: <Real>, da: <Real>, n_1: Node, n_2: Node) -> Equations = {
   def t: Real;
   scalarEdge n_1 n_2 a t;
+  a' = da;
   t = 0.
 }
 
+// def ThroughSensor(tt: Vector2, n_1: Node, n_2: Node) -> Equations = {
+//   def a_x, a_y: Real;
+//   def aa = vec a_x a_y;
+//   vector2Edge n_1 n_2 aa tt;
+//   v2eq aa v2zero
+// }
+
+// def ThroughSensor(t: <Real>, n_1: Node, n_2: Node) -> Equations = {
+//   def a: Real;
+//   scalarEdge n_1 n_2 a t;
+//   a = 0.
+// }
 
 def Body(m: Real, I: Real,
          rr: Vector2,
@@ -395,8 +373,8 @@ def Body(m: Real, I: Real,
 
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  v2Eq (v2der rr) vv;
-  v2Eq FF (v2prod m (v2der vv));
+  v2eq (v2der rr) vv;
+  v2eq FF (v2prod m (v2der vv));
   th' = om;
   T = I * om'
 }
@@ -407,47 +385,35 @@ def ForceActuator(ff: Vector2,
                   n_1: Node, n_2: Node) -> Equations = {
 
   vector2Edge n_1 n_2 rr FF;
-  v2Eq FF ff
+  v2eq FF ff
 }
 
-def ForceActuator(ff: Vector2, n_1: Node, n_2: Node) -> Equations = {
-  def x_f, y_f, Fx_f, Fy_f: Real;
-  def rr = vec x_f y_f;
-  def FF = vec Fx_f Fy_f;
-  ForceActuator ff rr FF n_1 n_2
+def TranslationalActuator(f: Vector2,
+                          rr: Vector2,
+                          FF: Vector2,
+                          n_1: Node, n_2: Node) -> Equations = {
+
+  vector2Edge n_1 n_2 rr FF;
+  v2eq rr f;
 }
 
-def Gravity(m: Real, n_1: Node, n_2:Node)  = {
-  def g = 9.81;
-  def ff = vec 0. (m * g);
-  ForceActuator ff n_1 n_2
+def TorqueActuator(f: <Real>,
+                   th: <Real>,
+                   T: <Real>,
+                   n_1: Node, n_2: Node) -> Equations = {
+
+  scalarEdge n_1 n_2 th T;
+  T = f
 }
 
-def BodyInGravity(m: Real, I: Real,
-                  rr: Vector2,
-                  vv: Vector2,
-                  FF: Vector2,
-                  th: <Real>,
-                  om: <Real>,
-                  T: <Real>,
-                  n_1: Node, n_2: Node) -> Equations = {
-
-  def b = Body m I rr vv FF th om T n_1 n_2;
-  def g = Gravity m n_1 n_2;
-  b; g
-}
 
 def AngularActuator(f: <Real>,
-                    rr: Vector2,
-                    FF: Vector2,
                     th: <Real>,
                     T: <Real>,
                     n_1: Node, n_2: Node)  = {
 
   scalarEdge n_1 n_2 th T;
-  vector2Edge n_1 n_2 rr FF;
-  v2Eq rr v2zero;
-  th = f;
+  th = f
 }
 
 def RigidArm(l: Real,
@@ -462,83 +428,15 @@ def RigidArm(l: Real,
   scalarEdge n_3 n_2 th_1 T_1;
   scalarEdge n_1 n_3 th_2 T_2;
   vector2Edge n_3 n_2 rr FF;
-  v2Eq rr (v2prod (-l) (vec (cos th_2) (sin th_2)));
+  v2eq rr (v2prod (-l) (vec (cos th_2) (sin th_2)));
   th_1 = 0.;
   T_2 = v2dot (v2prod l (vec (-sin th_2) (cos th_2))) FF
 }
 
 def RevoluteJoint(rr: Vector2,
                   FF: Vector2,
-                  th: <Real>,
-                  T: <Real>,
                   n_1: Node, n_2: Node) -> Equations = {
 
-  // scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  v2Eq rr v2zero
-  // T = 0.
-}
-
-def AngularDamper(D: Real, th: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
-  scalarEdge n_1 n_2 th T;
-  T = D * th'
-}
-
-def TranslationalActuator(f: Vector2,
-                          rr: Vector2,
-                          FF: Vector2,
-                          th: <Real>,
-                          T: <Real>,
-                          n_1: Node, n_2: Node) -> Equations = {
-
-  vector2Edge n_1 n_2 rr FF;
-  scalarEdge n_1 n_2 th T;
-  v2Eq rr f;
-  th = 0.
-}
-
-def SolidArm(l: Real, m: Real, I: Real,
-             rr: Vector2,
-             vv: Vector2,
-             th: <Real>,
-             om: <Real>,
-             gn: Node, n_1: Node, n_2: Node) -> Equations = {
-
-  def Fx_ma, Fy_ma, T_ma: Real;
-  def FF = vec Fx_ma Fy_ma;
-  def cn: Node;
-  def fa_1 = mkArmComponent (RigidArm (l / 2.)) gn n_1 cn;
-  def fa_2 = mkArmComponent (RigidArm (l / 2.)) gn cn n_2;
-  def m = BodyInGravity m I rr vv FF th om T_ma gn cn;
-  fa_1; fa_2; m
-}
-
-def SolidArmP(l: Real, m: Real, I: Real,
-              rr: Vector2,
-              th: <Real>,
-              gn: Node, n_1: Node, n_2: Node) -> Equations = {
-
-  def vx_m, vy_m, om_m: Real;
-  def vv = vec vx_m vy_m;
-  SolidArm l m I rr vv th om_m gn n_1 n_2
-}
-
-def Stationary(rr: Vector2, th: <Real>) -> Equations = {
-  v2Eq (v2der rr) v2zero;
-  th' = 0.
-}
-
-def Test1(rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
-        vector2Edge n_1 n_2 rr FF
-        // ; scalarEdge n_1 n_2 th T
-        ; v2Eq rr v2zero
-        // ; T = 0.
-}
-
-def Test2(rr: Vector2, vv: Vector2, FF: Vector2, th: <Real>, om: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
-        vector2Edge n_1 n_2 rr FF
-        ; scalarEdge n_1 n_2 th T
-        ; v2Eq rr v2zero
-        ; v2Eq (v2der rr) vv
-        ; th' = om
+  v2eq rr v2zero
 }
