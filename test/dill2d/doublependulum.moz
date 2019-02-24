@@ -28,7 +28,7 @@ def arm_1 = modelCpnt (SolidArmP l m I rr_m1 th_m1 gn n_1 n_2)
             ++ visualCpnt rr_m1 th_m1 (rectangle w l) (stdMaterial GREEN 1.)
 
 def joint_2 = modelCpnt (mkComponent RevoluteJoint n_2 n_3)
-              ++ modelCpnt (mkComponent AcrossSensor rr_rj2 th_rj2 gn n_2)
+              ++ modelCpnt (AcrossSensor rr_rj2 gn n_2; AcrossSensor th_rj2 gn n_2)
               ++ visualCpnt rr_rj2 th_rj2 (circle w) (stdMaterial RED 1.)
 
 def arm_2 = modelCpnt (SolidArmP l m I rr_m2 th_m2 gn n_3 n_4)

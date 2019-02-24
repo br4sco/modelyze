@@ -25,7 +25,7 @@ def mkJoint(n_1: Node, n_2: Node) -> Component2D = {
   def x_rj, y_rj, th_rj: Real;
   def rr = vec x_rj y_rj;
   modelCpnt (mkComponent RevoluteJoint n_1 n_2)
-              ++ modelCpnt (mkComponent AcrossSensor rr th_rj gn n_2)
+              ++ modelCpnt (AcrossSensor rr gn n_2; AcrossSensor th_rj gn n_2)
               ++ visualCpnt rr th_rj (circle w) (stdMaterial RED 1.)
 }
 

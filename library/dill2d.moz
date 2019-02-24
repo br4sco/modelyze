@@ -87,7 +87,7 @@ def v2Eq(lhs: Vector2, rhs: Vector2) -> Equations = {
     }
   | _ -> error "Invalid LHS"
 }
-def (=): Vector2 -> Vector2 -> Equations = v2Eq
+// def (=): Vector2 -> Vector2 -> Equations = v2Eq
 
 // def v2init(v: Vector2, v_0: Vector2) -> Equations = {
 //   match v with
@@ -109,7 +109,7 @@ def v2add(lhs: Vector2, rhs: Vector2) -> Vector2 = {
     }
   | _ -> error "Invalid LHS"
 }
-def (+): Vector2 -> Vector2 -> Vector2 = v2add
+// def (+): Vector2 -> Vector2 -> Vector2 = v2add
 
 def v2sub(lhs: Vector2, rhs: Vector2) -> Vector2 = {
   match lhs with
@@ -120,7 +120,7 @@ def v2sub(lhs: Vector2, rhs: Vector2) -> Vector2 = {
     }
   | _ -> error "Invalid LHS"
 }
-def (-): Vector2 -> Vector2 -> Vector2 = v2sub
+// def (-): Vector2 -> Vector2 -> Vector2 = v2sub
 
 def v2chsgn(v: Vector2) -> Vector2 = {
   match v with
@@ -134,7 +134,7 @@ def v2prod(s: <Real>, v: Vector2) -> Vector2 = {
   | vec x y -> vec (s * x) (s * y)
   | _ -> error "Invalid Operand"
 }
-def (*): <Real> -> Vector2 -> Vector2 = v2prod
+// def (*): <Real> -> Vector2 -> Vector2 = v2prod
 
 def v2dot(lhs: Vector2, rhs: Vector2) -> <Real> = {
   def f(e: Dyn) -> <Real> = { e };
@@ -146,14 +146,14 @@ def v2dot(lhs: Vector2, rhs: Vector2) -> <Real> = {
     }
   | _ -> error "Invalid LHS"
 }
-def (*.): Vector2 -> Vector2 -> <Real> = v2dot
+// def (*.): Vector2 -> Vector2 -> <Real> = v2dot
 
 def v2der(v: Vector2) -> Vector2 = {
   match v with
   | vec x y -> vec (der x) (der y)
   | _ -> error "Invalid Operand"
 }
-def ('): Vector2 -> Vector2 = v2der
+// def ('): Vector2 -> Vector2 = v2der
 
 def getUknowns(m: Equations) -> [<Real>] = {
   def f(e: (<Real>, (Int, Bool))) -> <Real> = { fst e };
@@ -292,13 +292,13 @@ def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equ
 
 def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: Equations)
   -> Equations = {
-  def bop(c: Int, l: Vector2, r: Vector2) -> Vector2 = { l + (int2real c) * r };
+  def bop(c: Int, l: Vector2, r: Vector2) -> Vector2 = { v2add l (v2prod (int2real c) r) };
   def rs = mkTopolRes bop C pvs svs;
 
   def work(rs: [Vector2], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; r = v2zero)
+    | r::rs -> work rs (a; v2Eq r v2zero)
     | _ -> error "Unmatched"
   };
 
@@ -374,10 +374,15 @@ def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
   def t_x, t_y: Real;
   def tt = vec t_x t_y;
   vector2Edge n_1 n_2 aa tt;
+  v2Eq tt v2zero
+}
+
+def AcrossSensor(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
+  def t: Real;
   scalarEdge n_1 n_2 a t;
-  tt = v2zero;
   t = 0.
 }
+
 
 def Body(m: Real, I: Real,
          rr: Vector2,
@@ -390,8 +395,8 @@ def Body(m: Real, I: Real,
 
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  rr' = vv;
-  FF = m * vv';
+  v2Eq (v2der rr) vv;
+  v2Eq FF (v2prod m (v2der vv));
   th' = om;
   T = I * om'
 }
@@ -402,7 +407,7 @@ def ForceActuator(ff: Vector2,
                   n_1: Node, n_2: Node) -> Equations = {
 
   vector2Edge n_1 n_2 rr FF;
-  FF = ff
+  v2Eq FF ff
 }
 
 def ForceActuator(ff: Vector2, n_1: Node, n_2: Node) -> Equations = {
@@ -441,7 +446,7 @@ def AngularActuator(f: <Real>,
 
   scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  rr = v2zero;
+  v2Eq rr v2zero;
   th = f;
 }
 
@@ -457,9 +462,9 @@ def RigidArm(l: Real,
   scalarEdge n_3 n_2 th_1 T_1;
   scalarEdge n_1 n_3 th_2 T_2;
   vector2Edge n_3 n_2 rr FF;
-  rr = -l * vec (cos th_2) (sin th_2);
+  v2Eq rr (v2prod (-l) (vec (cos th_2) (sin th_2)));
   th_1 = 0.;
-  T_2 = l * vec (-sin th_2) (cos th_2) *. FF
+  T_2 = v2dot (v2prod l (vec (-sin th_2) (cos th_2))) FF
 }
 
 def RevoluteJoint(rr: Vector2,
@@ -470,7 +475,7 @@ def RevoluteJoint(rr: Vector2,
 
   // scalarEdge n_1 n_2 th T;
   vector2Edge n_1 n_2 rr FF;
-  rr = v2zero
+  v2Eq rr v2zero
   // T = 0.
 }
 
@@ -488,7 +493,7 @@ def TranslationalActuator(f: Vector2,
 
   vector2Edge n_1 n_2 rr FF;
   scalarEdge n_1 n_2 th T;
-  rr = f;
+  v2Eq rr f;
   th = 0.
 }
 
@@ -519,21 +524,21 @@ def SolidArmP(l: Real, m: Real, I: Real,
 }
 
 def Stationary(rr: Vector2, th: <Real>) -> Equations = {
-  rr' = v2zero;
+  v2Eq (v2der rr) v2zero;
   th' = 0.
 }
 
 def Test1(rr: Vector2, FF: Vector2, th: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
         vector2Edge n_1 n_2 rr FF
         // ; scalarEdge n_1 n_2 th T
-        ; rr = v2zero
+        ; v2Eq rr v2zero
         // ; T = 0.
 }
 
 def Test2(rr: Vector2, vv: Vector2, FF: Vector2, th: <Real>, om: <Real>, T: <Real>, n_1: Node, n_2: Node) -> Equations = {
         vector2Edge n_1 n_2 rr FF
         ; scalarEdge n_1 n_2 th T
-        ; rr = v2zero
-        ; rr' = vv
+        ; v2Eq rr v2zero
+        ; v2Eq (v2der rr) vv
         ; th' = om
 }
