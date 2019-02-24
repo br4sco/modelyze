@@ -334,18 +334,16 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-def AcrossSensor(aa: Vector2, daa: Vector2, n_1: Node, n_2: Node) -> Equations = {
+def AcrossSensor(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
   def t_x, t_y: Real;
   def tt = vec t_x t_y;
   vector2Edge n_1 n_2 aa tt;
-  v2eq (v2der aa) daa;
   v2eq tt v2zero
 }
 
-def AcrossSensor(a: <Real>, da: <Real>, n_1: Node, n_2: Node) -> Equations = {
+def AcrossSensor(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
   def t: Real;
   scalarEdge n_1 n_2 a t;
-  a' = da;
   t = 0.
 }
 
@@ -439,4 +437,30 @@ def RevoluteJoint(rr: Vector2,
 
   vector2Edge n_1 n_2 rr FF;
   v2eq rr v2zero
+}
+
+def DATUM: Node
+
+def Body(m: Real, I: Real,
+         rr: Vector2,
+         vv: Vector2,
+         th: <Real>,
+         om: <Real>,
+         n_1: Node, n_2: Node) -> Equations = {
+
+  def rr_m = mkVec ();
+  def th_m = mkScalar ();
+  v2eq (v2der rr) vv;
+  th' = om;
+  Body m I rr_m (mkVec ()) (mkVec ()) th_m (mkScalar ()) (mkScalar ())
+    DATUM n_2;
+  AcrossSensor rr n_1 n_2;
+  AcrossSensor th n_1 n_2
+}
+
+def Body(m: Real, I: Real,
+         rr: Vector2,
+         th: <Real>,
+         n_1: Node, n_2: Node) -> Equations = {
+  Body m I rr (mkVec ()) th (mkScalar ()) n_1 n_2
 }

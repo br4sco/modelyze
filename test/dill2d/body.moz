@@ -12,7 +12,9 @@ def vv = vec vx vy
 def m = 1.
 def I = 1.
 
-def b = Body m I (rectangle 1. 1.) (stdMaterial BLUE 0.7) rr vv th om DATUM n_2 ++ modelCpnt (om <- 1.)
+def b = visualize (visualSolid (rectangle 1. 1.) (stdMaterial BLUE 0.7)) n_1
+        ++ modelCpnt (Body m I  rr vv th om DATUM n_1)
+        ++ modelCpnt (om <- 0.; vy <- 0.1)
 
 def main = {
   elaborateToFile b

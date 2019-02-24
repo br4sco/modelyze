@@ -31,9 +31,13 @@ type Geometry2D
 def rectangle: Real -> Real -> Geometry2D
 def circle: Real -> Geometry2D
 
+type VisualData
+def visualSolid: Geometry2D -> Material -> VisualData
+def visualAxes: Real -> VisualData
+
 type Component2D
 def (++) : Component2D -> Component2D -> Component2D
-def visualCpnt: Vector2 -> <Real> -> Geometry2D -> Material -> Component2D
+def visualCpnt: Vector2 -> <Real> -> VisualData -> Component2D
 def modelCpnt: Equations -> Component2D
 def NoCpnt: Component2D
 
@@ -48,7 +52,7 @@ def real2JSONstring(r: Real) -> String = {
   else real2string r
 }
 
-def geometryToJSON(g: Geometry2D) -> String = {
+def geometry2JSON(g: Geometry2D) -> String = {
   match g with
   | rectangle (sval h: Real) (sval w: Real) -> "{ " ++
                                     "\"type\": \"Rectangle\", " ++
@@ -63,7 +67,11 @@ def geometryToJSON(g: Geometry2D) -> String = {
   | _ -> error "Unmatched Geometry2D"
 }
 
-def materialToJSON(m: Material) -> String = {
+// def frameToJSON(rr: Vector2, th: <Real>, u: Real) -> String = {
+//   "{ \"type\": Frame, \"units\": "   "}"
+// }
+
+def material2JSON(m: Material) -> String = {
   match m with
   | stdMaterial (sval s: String) (sval o: Real) -> {
       if o >= 0. && o <= 1. then {
@@ -77,28 +85,40 @@ def materialToJSON(m: Material) -> String = {
   | _ -> error "Unmatched Material"
 }
 
+def visualData2JSON(d: VisualData) -> String = {
+  match d with
+  | visualSolid g m -> "{ \"type\": \"Solid\"," ++
+                       "\"geometry\": " ++ geometry2JSON g ++ ", " ++
+                       "\"material\": " ++ material2JSON m ++
+                       " }"
+  | visualAxes (sval s: Real) -> "{ \"type\": \"Axes\", " ++
+                                 "\"size\": " ++ real2JSONstring s ++
+                                 " }"
+  | _ -> error "Unmatched visual data"
+}
+
+
 def visualCpntToJSON(o: Component2D) -> String = {
   def work(o: Component2D) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
-    | visualCpnt (vec x y) th g m -> {
-                                      "{" ++
+    | visualCpnt (vec x y) th vo -> {
+                                      "{ " ++
                                       "\"x\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"y\": \"" ++ symstr(y) ++ "\", " ++
                                       "\"th\": \"" ++ symstr(th) ++ "\", " ++
-                                      "\"geometry\": " ++ geometryToJSON g ++ ", " ++
-                                      "\"material\": " ++ materialToJSON m ++
-                                      "}"}
-    | _ -> error "Expected only visualCpnt"
+                                      "\"data\": " ++ visualData2JSON vo ++
+                                      " }"}
+    | _ -> error "Expected only VisualCpnt"
   };
-  "{ \"scene\": [ " ++ work o ++ " ]}"
+  "{ \"scene\": [ " ++ work o ++ " ] }"
 }
 
 def getVisualObjects(o: Component2D) -> Component2D = {
   def work(o: Component2D, a: Component2D) -> Component2D = {
     match o with
     | o_1 ++ o_2 -> work o_2 (work o_1 a)
-    | visualCpnt _ _ _ _ -> a ++ o
+    | visualCpnt _ _ _ -> a ++ o
     | _ -> a
   };
   work o NoCpnt
@@ -135,28 +155,9 @@ def elaborateToFile(o: Component2D) -> () = {
   writeFile SCENE_FILENAME (visualCpntToJSON vo ++ "\n")
 }
 
-def DATUM: Node
-
-def Body(m: Real, I: Real, gm: Geometry2D, mt: Material,
-         rr: Vector2,
-         vv: Vector2,
-         th: <Real>,
-         om: <Real>,
-         n_1: Node, n_2: Node) -> Component2D = {
-
-  def n: Node;
-  def rr_m = mkVec ();
-  def th_m = mkScalar ();
-  def b = Body m I rr_m (mkVec ()) (mkVec ()) th_m (mkScalar ()) (mkScalar ())
-    DATUM n_2;
-  def ts = AcrossSensor rr vv n_1 n_2;
-  def rs = AcrossSensor th om n_1 n_2;
-  visualCpnt rr_m th_m gm mt ++ modelCpnt (b; ts; rs)
-}
-
-def Body(m: Real, I: Real, gm: Geometry2D, mt: Material,
-         rr: Vector2,
-         th: <Real>,
-         n_1: Node, n_2: Node) -> Component2D = {
-  Body m I gm mt rr (mkVec ()) th (mkScalar ()) n_1 n_2
+def visualize(d: VisualData, n: Node) -> Component2D = {
+  def rr = mkVec ();
+  def th = mkScalar ();
+  visualCpnt rr th d ++ modelCpnt (AcrossSensor rr DATUM n;
+                                   AcrossSensor th DATUM n)
 }
