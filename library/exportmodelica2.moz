@@ -19,7 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-include Equation
+include DILL2D
 
 type InitValMap = (<Real> => (Real, Bool))
 
@@ -83,7 +83,7 @@ def exportModelica(name: String, e: Equations, ivm: InitValMap) -> String = {
   def pprintInitEqs(e: Equations) -> String = {
     match e with
     | e_1; e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
-    | initEq (e_1 = e_2) -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+    | initEq e_1 e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
     | _ -> ""
   };
 

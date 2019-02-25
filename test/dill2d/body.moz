@@ -1,22 +1,24 @@
 include DILLEXPORT
 include DILL2DV
 
-def n_1, n_2: Node
-
-def x, y, th: Real
-def rr = vec x y
-
-def vx, vy, om: Real
-def vv = vec vx vy
-
 def m = 1.
 def I = 1.
 
-def b = visualize (visualSolid (rectangle 1. 1.) (stdMaterial BLUE 0.7)) n_1
-        ++ modelCpnt (Body m I  rr vv th om DATUM n_1)
-        ++ modelCpnt (om <- 0.; vy <- 0.1)
+def square(c: Color) = visualSolid (rectangle 1. 1.) (stdMaterial c 0.7)
+
+def f_1, f_2: Frame
+def x_m1, y_m1, th_m1: Real
+def rr_m1 = vec x_m1 y_m1
+def x_m2, y_m2, th_m2: Real
+def rr_m2 = vec x_m2 y_m2
+
+def model = visualCpnt rr_m1 th_m1 (square BLUE) ++
+            visualCpnt rr_m2 th_m2 (square GREEN) ++
+            modelCpnt (Body(m, I, rr_m1, th_m1, f_1)) ++
+            modelCpnt (Body(m, I, rr_m2, th_m2, f_2); x_m2 <- 1.)
 
 def main = {
-  elaborateToFile b
-  // println (exportDill2Modelica "Falling_Body" (getModel o))
+  elaborateToFile model
+  // println (exportDill2Modelica "Falling_Body" (getModel model))
 }
+

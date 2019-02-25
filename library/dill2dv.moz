@@ -156,9 +156,48 @@ def elaborateToFile(o: Component2D) -> () = {
   writeFile SCENE_FILENAME (visualCpntToJSON vo ++ "\n")
 }
 
-def visualize(d: VisualData, n: Node) -> Component2D = {
-  def rr = mkVec ();
-  def th = mkScalar ();
-  visualCpnt rr th d ++ modelCpnt (AcrossSensor rr DATUM n;
-                                   AcrossSensor th DATUM n)
-}
+// type OOObject2D = (Node, Vector2, Vector2, <Real>, <Real>, Component2D)
+// def getNode(o: OOObject2D) -> Node = { def (n, _, _, _, _, _) = o; n }
+// def getRr(o: OOObject2D) -> Vector2 = { def (_, rr, _, _, _, _) = o; rr }
+// def getTh(o: OOObject2D) -> <Real> = { def (_, _, _, th, _, _) = o; th }
+// def getVv(o: OOObject2D) -> Vector2 = { def (_, _, vv, _, _, _) = o; vv }
+// def getOm(o: OOObject2D) -> <Real> = { def (_, _, _, _, om, _) = o; om }
+// def getData(o: OOObject2D) -> Component2D = { def (_, _, _, _, _, d) = o; d }
+
+// def DATUM: Node
+// def z: <Real> = 0.
+// def world = (DATUM, vec 0. 0., vec 0. 0., z, z, NoCpnt)
+
+// def OOBody(p: OOObject2D, m: Real, I: Real,
+//            rr_r0: (Real, Real),
+//            vv_r0: (Real, Real),
+//            th_r0: Real,
+//            om_r0: Real,
+//            vd: VisualData)
+//            -> OOObject2D
+//            = {
+
+//   def rr_r0 = mkVec rr_r0;
+//   def vv_r0 = mkVec vv_r0;
+//   def n: Node;
+//   def x_m, y_m, vx_m, vy_m, ax_m, ay_m, Fx_m, Fy_m, th_m, om_m, al_m, T_m: Real;
+//   def rr_m = vec x_m y_m;
+//   def vv_m = vec vx_m vy_m;
+//   def aa_m = vec ax_m ay_m;
+//   def FF_m = vec Fx_m Fy_m;
+//   def rr_o = getRr p;
+//   def th_o = getTh p;
+//   def vv_o = getVv p;
+//   def om_o = getOm p;
+
+//   def eqs = (initEq (v2eq rr_m (v2add rr_o rr_r0));
+//              initEq (th_m = th_o + th_r0);
+//              // th_m <- th_r0;
+//              initEq (v2eq vv_m (v2add vv_r0 (v2add vv_o (v2prod om_o (vec (-jOf rr_r0) (iOf rr_r0))))));
+//              // initEq (om_m = om_o + om_r0);
+//              om_m <- om_r0;
+//              Body m I rr_m vv_m FF_m th_m om_m T_m DATUM n);
+
+//   def m = visualCpnt rr_m th_m vd ++ modelCpnt eqs;
+//   (n, rr_m, vv_m, th_m, om_m, m)
+// }
