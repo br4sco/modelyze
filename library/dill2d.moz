@@ -42,6 +42,8 @@ def initGuess: <Real> -> Real -> Equations
 def (<~) = initGuess
 
 def initEq: <Real> -> <Real> -> Equations
+def (~=) = initEq
+// def initEq: Equations -> Equations
 
 type Vector2
 def vec: Real -> Real -> Vector2
@@ -49,8 +51,8 @@ def v2zero = vec 0. 0.
 
 def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def vector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
-def initScalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
-def initVector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
+// def initScalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
+// def initVector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
 
 type ModelEdge = (Edge, (Dyn, Dyn))
 type ScalarEdge = (Edge, (<Real>, <Real>))
@@ -206,9 +208,19 @@ def getInits(e: Equations) -> ([InitVal], Equations) = {
         | (v, lift v_0: Real) -> ((v, (v_0, false))::(fst a), snd a)
         | _ -> error "Invalid init"
       }
-    | initEq l r -> (fst a, snd a; l = r)
-    | initScalarEdge n_1 n_2 x y -> (fst a, snd a; scalarEdge n_1 n_2 x y)
-    | initVector2Edge n_1 n_2 x y -> (fst a, snd a; vector2Edge n_1 n_2 x y)
+    | l ~= r -> (fst a, snd a; l = r)
+    // | initScalarEdge n_1 n_2 x y -> (fst a, snd a; scalarEdge n_1 n_2 x y)
+    // | initVector2Edge n_1 n_2 x y -> (fst a, snd a; vector2Edge n_1 n_2 x y)
+    // | initEq e -> {
+    //     def work(e: Equations, a: Equations) -> Equations = {
+    //       match e with
+    //       | e_1; e_2 -> work e_2 (work e_1 a)
+    //       | initEq e -> work e a
+    //       | _ -> a; e
+    //     };
+
+    //     (fst a , work e (snd a))
+    //   }
     | _ -> a
   };
 
@@ -484,10 +496,10 @@ def RigidArm(l: Real,
   scalarEdge f_2 f_1 th_r1 T_1;
   scalarEdge DATUM f_2 th_2 T_2;
   vector2Edge f_2 f_1 rr FF;
-  i_ rr = -l * cos th_2;
-  j_ rr = -l * sin th_2;
+  i_ rr = l * cos th_2;
+  j_ rr = l * sin th_2;
   th_r1 = th;
-  T_2 = l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
+  T_2 = -l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
 }
 
 def RigidArm(l: Real,

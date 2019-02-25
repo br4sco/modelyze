@@ -18,7 +18,7 @@ def model = visualCpnt rr_m1 th_m1 (square BLUE) ++
             visualCpnt rr_m2 th_m2 (square GREEN) ++
             modelCpnt (Body(m, I, rr_m1, vv_m1, th_m1, om_m1, f_1); j_ vv_m1 <- 1.) ++
             modelCpnt (Body(m, I, rr_m2, th_m2, f_2)) ++
-            modelCpnt (RigidArm(l, 0., f_2, f_1))
+            modelCpnt (RigidArm(l, 0., f_1, f_2))
 
 def main = {
   elaborateToFile model
