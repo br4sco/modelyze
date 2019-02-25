@@ -66,13 +66,13 @@ def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
 
 type InitVal = (<Real>, (Real, Bool))
 
-def iOf(v: Vector2) -> <Real> = {
+def i_(v: Vector2) -> <Real> = {
   match v with
   | vec x _ -> x
   | _ -> error "Invalid Operand"
 }
 
-def jOf(v: Vector2) -> <Real> = {
+def j_(v: Vector2) -> <Real> = {
   match v with
   | vec _ y -> y
   | _ -> error "Invalid Operand"
@@ -384,8 +384,10 @@ def Body(m: Real, I: Real,
 
   scalarEdge f_1 f_2 th T;
   vector2Edge f_1 f_2 rr FF;
-  v2eq (v2der rr) vv;
-  v2eq FF (v2prod m (v2der vv));
+  (i_ rr)' = i_ vv;
+  (j_ rr)' = j_ vv;
+  i_ FF = m * (i_ vv)';
+  j_ FF = m * (j_ vv)';
   th' = om;
   T = I * om'
 }
@@ -470,20 +472,51 @@ def AngularActuator(f: <Real>,
 }
 
 def RigidArm(l: Real,
+             th: Real,
              rr: Vector2,
              FF: Vector2,
-             th_1: <Real>,
              T_1: <Real>,
              th_2: <Real>,
              T_2: <Real>,
-             f_1: Frame, f_2: Frame, n_3: Frame) -> Equations = {
+             DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
 
-  scalarEdge n_3 f_2 th_1 T_1;
-  scalarEdge f_1 n_3 th_2 T_2;
-  vector2Edge n_3 f_2 rr FF;
-  v2eq rr (v2prod (-l) (vec (cos th_2) (sin th_2)));
-  th_1 = 0.;
-  T_2 = v2dot (v2prod l (vec (-sin th_2) (cos th_2))) FF
+  def th_r1: Real;
+  scalarEdge f_2 f_1 th_r1 T_1;
+  scalarEdge DATUM f_2 th_2 T_2;
+  vector2Edge f_2 f_1 rr FF;
+  i_ rr = -l * cos th_2;
+  j_ rr = -l * sin th_2;
+  th_r1 = th;
+  T_2 = l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
+}
+
+def RigidArm(l: Real,
+             th: Real,
+             rr: Vector2,
+             FF: Vector2,
+             T_1: <Real>,
+             th_2: <Real>,
+             T_2: <Real>,
+             f_1: Frame, f_2: Frame) -> Equations = {
+
+  RigidArm l th rr FF T_1 th_2 T_2 DATUM f_1 f_2
+}
+
+def RigidArm(l: Real,
+             th: Real,
+             DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+
+  def x_r1, y_r1, Fx_r1, Fy_r1, T_r1, th_r2, T_r2: Real;
+  def rr = vec x_r1 y_r1;
+  def FF = vec Fx_r1 Fy_r1;
+  RigidArm l th rr FF T_r1 th_r2 T_r2 DATUM f_1 f_2
+}
+
+def RigidArm(l: Real,
+             th: Real,
+             f_1: Frame, f_2: Frame) -> Equations = {
+
+  RigidArm l th DATUM f_1 f_2
 }
 
 def RevoluteJoint(rr: Vector2,
@@ -492,4 +525,6 @@ def RevoluteJoint(rr: Vector2,
 
   vector2Edge f_1 f_2 rr FF;
   v2eq rr v2zero
+  // i_ rr = 0.;
+  // j_ rr = 0.
 }

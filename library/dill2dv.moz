@@ -193,7 +193,7 @@ def elaborateToFile(o: Component2D) -> () = {
 //   def eqs = (initEq (v2eq rr_m (v2add rr_o rr_r0));
 //              initEq (th_m = th_o + th_r0);
 //              // th_m <- th_r0;
-//              initEq (v2eq vv_m (v2add vv_r0 (v2add vv_o (v2prod om_o (vec (-jOf rr_r0) (iOf rr_r0))))));
+//              initEq (v2eq vv_m (v2add vv_r0 (v2add vv_o (v2prod om_o (vec (-j_ rr_r0) (i_ rr_r0))))));
 //              // initEq (om_m = om_o + om_r0);
 //              om_m <- om_r0;
 //              Body m I rr_m vv_m FF_m th_m om_m T_m DATUM n);
