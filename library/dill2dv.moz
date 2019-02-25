@@ -24,8 +24,10 @@ include Dill2D
 def MODEL_FILENAME = "/tmp/model.mo"
 def SCENE_FILENAME = "/tmp/scene.json"
 
+type Color = String
+
 type Material
-def stdMaterial: String -> Real -> Material
+def stdMaterial: Color -> Real -> Material
 
 type Geometry2D
 def rectangle: Real -> Real -> Geometry2D
@@ -96,7 +98,6 @@ def visualData2JSON(d: VisualData) -> String = {
                                  " }"
   | _ -> error "Unmatched visual data"
 }
-
 
 def visualCpntToJSON(o: Component2D) -> String = {
   def work(o: Component2D) -> String = {

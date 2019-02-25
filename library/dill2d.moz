@@ -39,6 +39,8 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
 def initGuess: <Real> -> Real -> Equations
 def (<~) = initGuess
 
+def initEq: Equations -> Equations
+
 type Vector2
 def vec: Real -> Real -> Vector2
 def v2zero = vec 0. 0.
@@ -155,6 +157,13 @@ def v2der(v: Vector2) -> Vector2 = {
   | _ -> error "Invalid Operand"
 }
 // def ('): Vector2 -> Vector2 = v2der
+
+def v2norm(v: Vector2) -> <Real> = {
+  match v with
+  | vec x y -> sqrt (x^(2.) + y^(2.))
+  | _ -> error "Invalid Operand"
+}
+
 
 def getUknowns(m: Equations) -> [<Real>] = {
   def f(e: (<Real>, (Int, Bool))) -> <Real> = { fst e };
@@ -450,6 +459,8 @@ def Body(m: Real, I: Real,
 
   def rr_m = mkVec ();
   def th_m = mkScalar ();
+  def x, y: Real;
+  initEq (x = y);
   v2eq (v2der rr) vv;
   th' = om;
   Body m I rr_m (mkVec ()) (mkVec ()) th_m (mkScalar ()) (mkScalar ())
