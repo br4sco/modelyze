@@ -21,18 +21,18 @@ def rr_m2 = vec x_m2 y_m2
 def x_rj2, y_rj2, th_rj2: Real
 def rr_rj2 = vec x_rj2 y_rj2
 
-def joint_1 = modelCpnt (mkComponent RevoluteJoint rr_rj1 th_rj1 gn n_1)
-              ++ visualCpnt rr_rj1 th_rj1 (circle w) (stdMaterial RED 1.)
+def joint_1 = modelObj (mkComponent RevoluteJoint rr_rj1 th_rj1 gn n_1)
+              ++ visObj rr_rj1 th_rj1 (circle w) (stdMaterial RED 1.)
 
-def arm_1 = modelCpnt (SolidArmP l m I rr_m1 th_m1 gn n_1 n_2)
-            ++ visualCpnt rr_m1 th_m1 (rectangle w l) (stdMaterial GREEN 1.)
+def arm_1 = modelObj (SolidArmP l m I rr_m1 th_m1 gn n_1 n_2)
+            ++ visObj rr_m1 th_m1 (rectangle w l) (stdMaterial GREEN 1.)
 
-def joint_2 = modelCpnt (mkComponent RevoluteJoint n_2 n_3)
-              ++ modelCpnt (AcrossSensor rr_rj2 gn n_2; AcrossSensor th_rj2 gn n_2)
-              ++ visualCpnt rr_rj2 th_rj2 (circle w) (stdMaterial RED 1.)
+def joint_2 = modelObj (mkComponent RevoluteJoint n_2 n_3)
+              ++ modelObj (AcrossSensor rr_rj2 gn n_2; AcrossSensor th_rj2 gn n_2)
+              ++ visObj rr_rj2 th_rj2 (circle w) (stdMaterial RED 1.)
 
-def arm_2 = modelCpnt (SolidArmP l m I rr_m2 th_m2 gn n_3 n_4)
-            ++ visualCpnt rr_m2 th_m2 (rectangle w l) (stdMaterial GREEN 1.)
+def arm_2 = modelObj (SolidArmP l m I rr_m2 th_m2 gn n_3 n_4)
+            ++ visObj rr_m2 th_m2 (rectangle w l) (stdMaterial GREEN 1.)
 
 def p = joint_1 ++ arm_1 ++ joint_2 ++ arm_2
 

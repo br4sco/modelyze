@@ -1,28 +1,15 @@
 include DILL2DV
 include DILLEXPORT
 
-def gn, n_1, n_2, n_m: Node
+def f_1: Frame
 
-def th_0 = 0.
-def m = 1.
-def I = 1.
-def l = 2.
-def w = l / 15.
+def Bar(l: Real, th_0: Real) -> Object2D = {
+  def f_m: Frame;
+  def rr_m = mkVec ();
+  def th_m: Real;
 
-def x_m, y_m, th_m: Real
-def rr_m = vec x_m y_m
-
-def x_rj, y_rj, th_rj: Real
-def rr_rj = vec x_rj y_rj
-
-def arm = modelCpnt (SolidArmP l m I rr_m th_m gn n_1 n_2)
-          ++ visualCpnt rr_m th_m (rectangle w l) (stdMaterial GREEN 1.)
-
-def joint = modelCpnt (RevoluteJoint rr_rj gn n_1)
-            ++ visualCpnt rr_rj th_rj (circle w) (stdMaterial RED 1.)
-
-def p = arm ++ joint
+}
 
 def main = {
-  elaborateToFile p
+  elaborateToFile model
 }

@@ -5,22 +5,18 @@ def m = 1.
 def I = 1.
 def l = 2.
 
-def square(c: Color) = visualSolid (rectangle 1. 1.) (stdMaterial c 0.7)
+def sqr(c: Color, h: Real) = visSolid (rectangle h 1.) (stdMaterial c 0.7)
+def circ(c: Color, r: Real) = visSolid (circle r) (stdMaterial c 0.7)
 
-def f_1, f_2: Frame
-def th_m1, om_m1: Real
-def rr_m1 = mkVec ()
-def vv_m1 = mkVec ()
-def x_m2, y_m2, th_m2: Real
-def rr_m2 = vec x_m2 y_m2
+def DATUM, f_1, f_2, f_3: Frame
 
-def model = visualCpnt rr_m1 th_m1 (square BLUE) ++
-            visualCpnt rr_m2 th_m2 (square GREEN) ++
-            modelCpnt (Body(m, I, rr_m1, vv_m1, th_m1, om_m1, f_1); j_ vv_m1 <- 1.) ++
-            modelCpnt (Body(m, I, rr_m2, th_m2, f_2)) ++
-            modelCpnt (RigidArm(l, 0., f_1, f_2))
+def mes = Union [
+                   vis (bodyFun 1. 1.) (sqr BLUE 1.) DATUM f_1 f_2,
+                   rigidArmFun 2. 0. DATUM f_2 f_3,
+                   vis (bodyFun 1. 1.) (sqr GREEN 1.) DATUM f_1 f_3
+                 ]
 
 def main = {
-  elaborateToFile model
-  // println (exportDill2Modelica "Falling_Body" (getModel model))
+  // dprintln (filterVisElements (Set.toList mes))
+  elaborateToFile (Set.toList mes)
 }
