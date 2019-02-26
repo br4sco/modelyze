@@ -438,6 +438,11 @@ def Union(l: [(Dyn => Dyn)]) -> (Dyn => Dyn) = {
   foldLeft f (Map.empty) l
 }
 
+def Union(l: [Set(Dyn)]) -> Set(Dyn) = {
+  def f(a: Set(Dyn), e: Set(Dyn)) -> Set(Dyn) = { union e a };
+  foldLeft f (Set.empty) l
+}
+
 def seq(l: Dyn, r: Dyn) -> Bool = { Set.mem l (Set.add r (Set.empty)) }
 
 def s(r: Real) -> <Real> = { r }
