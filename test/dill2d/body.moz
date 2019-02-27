@@ -7,16 +7,35 @@ def l = 2.
 
 def sqr(c: Color, h: Real) = visSolid (rectangle h 1.) (stdMaterial c 0.7)
 def circ(c: Color, r: Real) = visSolid (circle r) (stdMaterial c 0.7)
+def ax = visAxes 1.
 
-def DATUM, f_1, f_2, f_3: Frame
+def DATUM, f_1, f_2, f_3, f_4: Frame
+
+// def x_t, y_t: Real
+def x_m1, y_m1, th_m1: Real
+def x_m2, y_m2, th_m2: Real
+
+// def mes = Union [
+//                    vis (bodyFun 1. 1.) (sqr BLUE 1.) DATUM DATUM f_1
+//                    , rigidArmFun 2. (PI / 4.) DATUM f_1 f_2
+//                    , vis (bodyFun 1. 1.) (sqr GREEN 1.) DATUM DATUM f_2
+//                  ]
 
 def mes = Union [
-                   vis (bodyFun 1. 1.) (sqr BLUE 1.) DATUM f_1 f_2,
-                   rigidArmFun 2. 0. DATUM f_2 f_3,
-                   vis (bodyFun 1. 1.) (sqr GREEN 1.) DATUM f_1 f_3
-                 ]
+                  vis2 (sqr BLUE 1.) f_2 f_1
+                  , vis2 (ax) f_2 f_1
+                  , bodyFun2 1. 1. DATUM f_1
+                  // , vis2 (sqr GREEN 1.) DATUM f_2
+                  // , vis2 (ax) DATUM f_2
+                  , bodyFun2 1. 1. DATUM f_2
+                  , rigidArmFun2 (-2.) (-0. / 3.) DATUM f_1 f_2
+                  , tf2 th_m1 DATUM f_1
+                  , tf2 th_m2 DATUM f_2
+                  , tf2 (vec x_m1 y_m1) (x_m1 <- -1.; y_m1' ~= 1.) DATUM f_1
+                  , tf2 (vec x_m2 y_m2) (y_m2' ~= -1.) DATUM f_2
+                ]
 
 def main = {
-  // dprintln (filterVisElements (Set.toList mes))
   elaborateToFile (Set.toList mes)
+  // println (exportDill2Modelica "Body" (getModel (Set.toList mes)))
 }
