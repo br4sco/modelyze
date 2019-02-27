@@ -351,37 +351,75 @@ def elaborate(e: Equations) -> Equations = {
   cleanupEquations e
 }
 
+def GRAVITATIONAL_CONSTANT = 9.81
+
 def Clock(t_0: Real, t: <Real>) = {
   t <- t_0;
   t' <- 1.;
   t' = 1.
 }
 
-def AcrossController(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
+def ThroughActuator(ff: Vector2, aa: Vector2, n_1: Node, n_2: Node)
+  -> Equations = {
+
   def t_x, t_y: Real;
   def tt = vec t_x t_y;
   vector2Edge n_1 n_2 aa tt;
-  v2eq tt v2zero
+  i_ tt = i_ ff;
+  j_ tt = j_ ff
+}
+
+def ThroughActuator(ff: Vector2, n_1: Node, n_2: Node) -> Equations = {
+  def x_a, y_a: Real;
+  ThroughActuator ff (vec x_a y_a) n_1 n_2
+}
+
+def ThroughActuator(f: <Real>, a: <Real>, n_1: Node, n_2: Node)
+  -> Equations = {
+
+  def t: Real;
+  scalarEdge n_1 n_2 a t;
+  t = f
+}
+
+def AcrossActuator(ff: Vector2, tt: Vector2, n_1: Node, n_2: Node)
+  -> Equations = {
+
+  def a_x, a_y: Real;
+  def aa = vec a_x a_y;
+  vector2Edge n_1 n_2 aa tt;
+  i_ aa = i_ ff;
+  j_ aa = j_ ff
+}
+
+def AcrossActuator(ff: Vector2, n_1: Node, n_2: Node)
+  -> Equations = {
+
+  def t_x, t_y: Real;
+  def tt = vec t_x t_y;
+  AcrossActuator ff tt n_1 n_2
+}
+
+def AcrossActuator(f: <Real>, t: <Real>, n_1: Node, n_2: Node)
+  -> Equations = {
+
+  def a: Real;
+  scalarEdge n_1 n_2 a t;
+  a = f
+}
+
+def AcrossActuator(f: <Real>, n_1: Node, n_2: Node) -> Equations = {
+  def t: Real;
+  AcrossActuator f t n_1 n_2
+}
+
+def AcrossController(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
+  ThroughActuator (vec 0. 0.) aa n_1 n_2
 }
 
 def AcrossController(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
-  def t: Real;
-  scalarEdge n_1 n_2 a t;
-  t = 0.
+  ThroughActuator 0. a n_1 n_2
 }
-
-// def ThroughSensor(tt: Vector2, n_1: Node, n_2: Node) -> Equations = {
-//   def a_x, a_y: Real;
-//   def aa = vec a_x a_y;
-//   vector2Edge n_1 n_2 aa tt;
-//   v2eq aa v2zero
-// }
-
-// def ThroughSensor(t: <Real>, n_1: Node, n_2: Node) -> Equations = {
-//   def a: Real;
-//   scalarEdge n_1 n_2 a t;
-//   a = 0.
-// }
 
 def Body(m: Real, I: Real,
          rr: Vector2,
@@ -390,10 +428,10 @@ def Body(m: Real, I: Real,
          th: <Real>,
          om: <Real>,
          T: <Real>,
-         f_1: Frame, f_2: Frame) -> Equations = {
+         inf: Frame, f: Frame) -> Equations = {
 
-  scalarEdge f_1 f_2 th T;
-  vector2Edge f_1 f_2 rr FF;
+  scalarEdge inf f th T;
+  vector2Edge inf f rr FF;
   (i_ rr)' = i_ vv;
   (j_ rr)' = j_ vv;
   i_ FF = m * (i_ vv)';
@@ -402,139 +440,54 @@ def Body(m: Real, I: Real,
   T = I * om'
 }
 
-// def Body(m: Real, I: Real,
-//          rr: Vector2,
-//          vv: Vector2,
-//          FF: Vector2,
-//          th: <Real>,
-//          om: <Real>,
-//          T: <Real>,
-//          f: Frame) -> Equations = { Body m I rr vv FF th om T DATUM f }
+def Body(m: Real, I: Real, inf: Frame, f: Frame) -> Equations = {
+  def x_m, y_m, vx_m, vy_m, Fx_m, Fy_m, th_m, om_m, T_m: Real;
+  Body m I (vec x_m y_m) (vec vx_m vy_m) (vec Fx_m Fy_m) th_m om_m T_m inf f
+}
 
-// def Body(m: Real, I: Real,
-//          rr: Vector2,
-//          vv: Vector2,
-//          th: <Real>,
-//          om: <Real>,
-//          f_1: Frame, f_2: Frame) -> Equations = {
-
-//   def Fx_m, Fy_m, T_m: Real;
-//   def FF = vec Fx_m Fy_m;
-//   Body m I rr vv FF th om T_m f_1 f_2
-// }
-
-// def Body(m: Real, I: Real,
-//          rr: Vector2,
-//          vv: Vector2,
-//          th: <Real>,
-//          om: <Real>,
-//          f: Frame) -> Equations = { Body m I rr vv th om DATUM f }
-
-// def Body(m: Real, I: Real,
-//          rr: Vector2,
-//          th: <Real>,
-//          f_1: Frame, f_2: Frame) -> Equations = {
-
-//   def vx_m, vy_m, om_m: Real;
-//   def vv = vec vx_m vy_m;
-//   Body m I rr vv th om_m f_1 f_2
-// }
-
-// def Body(m: Real, I: Real,
-//          rr: Vector2,
-//          th: <Real>,
-//          f: Frame) -> Equations = { Body m I rr th DATUM f }
-
-// def ForceActuator(ff: Vector2,
-//                   rr: Vector2,
-//                   FF: Vector2,
-//                   f_1: Frame, f_2: Frame) -> Equations = {
-
-//   vector2Edge f_1 f_2 rr FF;
-//   v2eq FF ff
-// }
-
-// def TranslationalActuator(f: Vector2,
-//                           rr: Vector2,
-//                           FF: Vector2,
-//                           f_1: Frame, f_2: Frame) -> Equations = {
-
-//   vector2Edge f_1 f_2 rr FF;
-//   v2eq rr f;
-// }
-
-// def TorqueActuator(f: <Real>,
-//                    th: <Real>,
-//                    T: <Real>,
-//                    f_1: Frame, f_2: Frame) -> Equations = {
-
-//   scalarEdge f_1 f_2 th T;
-//   T = f
-// }
-
-// def AngularActuator(f: <Real>,
-//                     th: <Real>,
-//                     T: <Real>,
-//                     f_1: Frame, f_2: Frame)  = {
-
-//   scalarEdge f_1 f_2 th T;
-//   th = f
-// }
+def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
+  ThroughActuator (vec 0. (GRAVITATIONAL_CONSTANT * m)) DATUM f
+}
 
 def RigidArm(l: Real,
-             th: Real,
              rr: Vector2,
              FF: Vector2,
+             th_1: <Real>,
              T_1: <Real>,
              th_2: <Real>,
              T_2: <Real>,
              DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
 
-  def th_r1: Real;
-  scalarEdge f_2 f_1 th_r1 T_1;
+  scalarEdge f_2 f_1 th_1 T_1;
   scalarEdge DATUM f_2 th_2 T_2;
   vector2Edge f_2 f_1 rr FF;
-  i_ rr = l * cos th_2;
-  j_ rr = l * sin th_2;
-  th_r1 = th;
-  T_2 = -l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
+  i_ rr = -l * cos th_2;
+  j_ rr = -l * sin th_2;
+  th_1 = 0.;
+  T_2 = l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
 }
 
-// def RigidArm(l: Real,
-//              th: Real,
-//              rr: Vector2,
-//              FF: Vector2,
-//              T_1: <Real>,
-//              th_2: <Real>,
-//              T_2: <Real>,
-//              f_1: Frame, f_2: Frame) -> Equations = {
+def RigidArm(l: Real, f_1: Frame, f_2: Frame, f_3: Frame) -> Equations = {
+  def x_r1, y_r1, Fx_r1, Fy_r1, th_r1, T_r1, th_r2, T_r2: Real;
+  RigidArm l (vec x_r1 y_r1) (vec Fx_r1 Fy_r1) th_r1 T_r1 th_r2 T_r2 f_1 f_2 f_3
+}
 
-//   RigidArm l th rr FF T_1 th_2 T_2 DATUM f_1 f_2
-// }
+def NoAcceleration(rr: Vector2, vv: Vector2, f_1: Frame, f_2: Frame) -> Equations = {
+  def Fx_i, Fy_i, th_i, T_i: Real;
+  vector2Edge f_1 f_2 rr (vec Fx_i Fy_i);
+  scalarEdge f_1 f_2 th_i T_i;
+  (i_ rr)' = i_ vv;
+  (j_ rr)' = j_ vv;
+  (i_ vv)' = 0.;
+  (j_ vv)' = 0.;
+  th_i = 0.
+}
 
-// def RigidArm(l: Real,
-//              th: Real,
-//              DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
+  def x_i, y_i, vx_i, vy_i: Real;
+  NoAcceleration (vec x_i y_i) (vec vx_i vy_i) f_1 f_2
+}
 
-//   def x_r1, y_r1, Fx_r1, Fy_r1, T_r1, th_r2, T_r2: Real;
-//   def rr = vec x_r1 y_r1;
-//   def FF = vec Fx_r1 Fy_r1;
-//   RigidArm l th rr FF T_r1 th_r2 T_r2 DATUM f_1 f_2
-// }
-
-// def RigidArm(l: Real,
-//              th: Real,
-//              f_1: Frame, f_2: Frame) -> Equations = {
-
-//   RigidArm l th DATUM f_1 f_2
-// }
-
-// def RevoluteJoint(rr: Vector2,
-//                   FF: Vector2,
-//                   f_1: Frame, f_2: Frame) -> Equations = {
-
-//   vector2Edge f_1 f_2 rr FF;
-//   v2eq rr v2zero
-//   // i_ rr = 0.;
-//   // j_ rr = 0.
-// }
+def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
+  AcrossActuator (vec 0. 0.) f_1 f_2
+}

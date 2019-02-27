@@ -131,6 +131,8 @@ def getModel(es: [ModelElement]) -> Equations = {
   foldLeft work NoEqn es
 }
 
+def getModel(es: Set(ModelElement)) -> Equations = { getModel (Set.toList es) }
+
 def elaborateToFile(es: [ModelElement]) -> () = {
   def m = getModel es;
   def ves = filterVisElements es;
@@ -138,97 +140,44 @@ def elaborateToFile(es: [ModelElement]) -> () = {
   writeFile SCENE_FILENAME (modelScene2Json ves ++ "\n")
 }
 
-type ModelElementFun = Frame -> Frame -> Frame -> Set(ModelElement)
+def elaborateToFile(es: Set(ModelElement)) ->  () = { elaborateToFile (Set.toList es) }
 
-def vis2(vd: VisualData, DATUM: Frame, f: Frame) -> Set(ModelElement) = {
+def mdl(e: Equations) -> Set(ModelElement) = { Set.add (eqsElement e) (Set.empty) }
+
+def vis(vd: VisualData, fr: Frame, to: Frame) -> Set(ModelElement) = {
   def x_v, y_v, th_v: Real;
   def rr_v = vec x_v y_v;
-  listToSet [eqsElement (AcrossController rr_v DATUM f; AcrossController th_v DATUM f),
+  listToSet [eqsElement (AcrossController rr_v fr to; AcrossController th_v fr to),
              visElement rr_v th_v vd]
 }
 
-// def vis(mef: ModelElementFun, vd: VisualData) -> ModelElementFun = {
-//   fun DATUM: Frame ->
-//   fun f_p: Frame ->
-//   fun f: Frame -> {
-//     union (vis2 vd DATUM f) (mef DATUM f_p f)
-//   }
-// }
+type FieldFun = Frame -> Frame -> Equations
+type BodyFun = Frame -> Frame -> Equations
+// type ArmFun = Frame -> Frame -> Frame -> Equations
+// type ArmEndFun = Frame -> Equations
 
-def tf2(rr: Vector2, ie: Equations, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-    Set.add (eqsElement (AcrossController rr f_1 f_2; ie)) (Set.empty)
+def inField(body: BodyFun, field: FieldFun, DATUM: Frame, inf: Frame, f: Frame) -> Equations = {
+  field DATUM f; body inf f
 }
 
-def tf2(rr: Vector2, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-    Set.add (eqsElement (AcrossController rr f_1 f_2)) (Set.empty)
+def Bar1(DATUM: Frame, fr: Frame, l: Real, h: Real, m: Real, we: Frame, ea: Frame) -> Set(ModelElement) = {
+  def c: Frame;
+  def g = 9.81;
+  def I = l * h ^ 3. / 12.;
+  def vd = visSolid (rectangle h l) (stdMaterial GREEN 0.5);
+  def b = inField (Body m I) (Gravity m) DATUM DATUM c;
+  def model = mdl (RigidArm (l / 2.) DATUM we c
+                  ; RigidArm (l / 2.) DATUM c ea
+                  ; b);
+  union model (vis vd fr c)
 }
 
-// def tf(mef: ModelElementFun, rr: Vector2, ie: Equations) -> ModelElementFun = {
-//   fun DATUM: Frame ->
-//   fun f_p: Frame ->
-//   fun f: Frame -> {
-//     union (tf2 rr ie f_p f) (mef DATUM f_p f)
-//   }
-// }
-
-def tf2(th: <Real>, ie: Equations, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-    Set.add (eqsElement (AcrossController th f_1 f_2; ie)) (Set.empty)
+def RevoluteJoint1(fr: Frame, r: Real, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
+  def vd = visSolid (circle r) (stdMaterial RED 0.5);
+  // union
+  (mdl (RevoluteJoint f_1 f_2))
+  // (vis vd fr f_2)
 }
 
-def tf2(th: <Real>, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-    Set.add (eqsElement (AcrossController th f_1 f_2)) (Set.empty)
-}
-
-// def tf(mef: ModelElementFun, th: <Real>, ie: Equations) -> ModelElementFun = {
-//   fun DATUM: Frame ->
-//   fun f_p: Frame ->
-//   fun f: Frame -> {
-//     union (tf2 th ie f_p f) (mef DATUM f_p f)
-//   }
-// }
-
-def tf(mef: ModelElementFun, rr: Vector2, ie: Equations) -> ModelElementFun = {
-  fun DATUM: Frame ->
-  fun f_p: Frame ->
-  fun f: Frame -> {
-    def tf = (Set.add (AcrossController rr f_p f; ie) (Set.empty));
-    union tf (mef DATUM f_p f)
-  }
-}
-
-def bodyFun2(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> Set(ModelElement) = {
-  def vx_m, vy_m, Fx_m, Fy_m, om_m, T_m: Real;
-  def b = Body m I rr (vec vx_m vy_m) (vec Fx_m Fy_m)
-               th om_m T_m DATUM f;
-
-  Set.add (eqsElement b) (Set.empty)
-}
-
-def bodyFun2(m: Real, I: Real, DATUM: Frame, f: Frame) -> Set(ModelElement) = {
-  def x_m, y_m, th_m: Real;
-  bodyFun2(m, I, vec x_m y_m, th_m, DATUM, f);
-}
-
-// def bodyFun(m: Real, I: Real) -> ModelElementFun = {
-//   fun DATUM: Frame ->
-//   fun f_p: Frame ->
-//   fun f: Frame -> {
-//     bodyFun2(m, I, DATUM, f)
-//   }
-// }
-
-def rigidArmFun2(l: Real, th: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-  def x_r1, y_r1, Fx_r1, Fy_r1, T_r1, th_r2, T_r2: Real;
-  def a = RigidArm l th (vec x_r1 y_r1) (vec Fx_r1 Fy_r1)
-                   T_r1 th_r2 T_r2 DATUM f_1 f_2;
-
-  Set.add (eqsElement a) (Set.empty)
-}
-
-// def rigidArmFun(l: Real, th: Real) -> ModelElementFun = {
-//   fun DATUM: Frame ->
-//   fun f_p: Frame ->
-//   fun f: Frame -> {
-//     rigidArmFun2 l th DATUM f_p f
-//   }
-// }
+// type InertialFrame
+// def inertialFrame
