@@ -231,8 +231,7 @@ def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
 }
 def (-) = inSeries
 
-def inSeries(l: ModelFun1, r: ModelFun2, f_1: Frame) -> ModelElement = {
-  def f: Frame;
-  l f ++ r f f_1
+def inSeries(l: ModelFun1, f_1: Frame, r: ModelFun2, f_2: Frame) -> ModelElement = {
+  l f_1 ++ r f_1 f_2
 }
 def (-) = inSeries
