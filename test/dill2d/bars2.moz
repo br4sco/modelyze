@@ -1,0 +1,28 @@
+include DILL2DV
+include DILLEXPORT
+def DATUM, we_1, c_1, ea_1, we_2, c_2, ea_2, we_3, c_3, ea_3, fp_1: Frame
+
+def myRJoint = RevoluteJoint1 0.3 DATUM
+
+def myBar(ea: Frame, c: Frame, we: Frame) = {
+  Bar1 1. 0.2 3. DATUM ea c we
+}
+
+def x_1, y_1, th_1, x_2, y_2, th_2, x_3, y_3, th_3: Real
+
+def model = myRJoint DATUM we_1
+            ++ myBar we_1 c_1 ea_1
+            ++ myRJoint ea_1 we_2
+            ++ myBar we_2 c_2 ea_2
+            ++ myRJoint ea_2 we_3
+            ++ myBar we_3 c_3 ea_3
+            ++ myRJoint ea_3 fp_1
+            ++ Translation1 3. 0. DATUM fp_1
+
+            ++ TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) DATUM c_1
+            // ++ TranslationController1 (vec x_2 y_2) (y_2 <~ 3.) DATUM c_2
+            ++ TranslationController1 (vec x_3 y_3) (x_3 <- 0.8) fp_1 c_3
+
+def main = {
+  elaborateToFile model
+}

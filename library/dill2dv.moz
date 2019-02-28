@@ -34,12 +34,14 @@ def rectangle: Real -> Real -> Geometry2D
 def circle: Real -> Geometry2D
 
 type VisualData
-def visSolid: Geometry2D -> Material -> VisualData
-def visAxes: Real -> VisualData
+def visualSolid: Geometry2D -> Material -> VisualData
+def visualAxes: Real -> VisualData
 
 type ModelElement
-def visElement: Vector2 -> <Real> -> VisualData -> ModelElement
-def eqsElement: Equations -> ModelElement
+def (++) : ModelElement -> ModelElement -> ModelElement
+def visualElement: Vector2 -> <Real> -> VisualData -> ModelElement
+def equationsElement: Equations -> ModelElement
+def NoElement: ModelElement
 
 def WHITE = "#ffffff"
 def RED = "#ff0000"
@@ -67,6 +69,10 @@ def geometry2JSON(g: Geometry2D) -> String = {
   | _ -> error "Unmatched Geometry2D"
 }
 
+// def frameToJSON(rr: Vector2, th: <Real>, u: Real) -> String = {
+//   "{ \"type\": Frame, \"units\": "   "}"
+// }
+
 def material2JSON(m: Material) -> String = {
   match m with
   | stdMaterial (sval s: String) (sval o: Real) -> {
@@ -81,103 +87,123 @@ def material2JSON(m: Material) -> String = {
   | _ -> error "Unmatched Material"
 }
 
-def visualData2JSON(d: VisualData) -> String = {
+def visualData2Json(d: VisualData) -> String = {
   match d with
-  | visSolid g m -> "{ \"type\": \"Solid\"," ++
+  | visualSolid g m -> "{ \"type\": \"Solid\"," ++
                        "\"geometry\": " ++ geometry2JSON g ++ ", " ++
                        "\"material\": " ++ material2JSON m ++
                        " }"
-  | visAxes (sval s: Real) -> "{ \"type\": \"Axes\", " ++
+  | visualAxes (sval s: Real) -> "{ \"type\": \"Axes\", " ++
                                  "\"size\": " ++ real2JSONstring s ++
                                  " }"
   | _ -> error "Unmatched visual data"
 }
 
-def modelScene2Json(es: [ModelElement]) -> String = {
-
-  def e2string(x: <Real>, y: <Real>, th: <Real>, vd: VisualData) -> String = {
+def visualElement2Json(o: ModelElement) -> String = {
+  def work(o: ModelElement) -> String = {
+    match o with
+    | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
+    | visualElement (vec x y) th vo -> {
                                       "{ " ++
-                                      "\"type\": \"Object\", " ++
                                       "\"x\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"y\": \"" ++ symstr(y) ++ "\", " ++
                                       "\"th\": \"" ++ symstr(th) ++ "\", " ++
-                                      "\"data\": " ++ visualData2JSON vd ++
-                                      " }"
+                                      "\"data\": " ++ visualData2Json vo ++
+                                      " }"}
+    | _ -> error "Expected only visualElement"
   };
-
-  def work(es: [ModelElement]) -> String = {
-    match es with
-    | (visElement (vec x y) th vd)::(o::es_1) -> e2string x y th vd ++ ", " ++ work (tl es)
-    | (visElement (vec x y) th vd)::[] -> e2string x y th vd
-    | _ -> ""
-  };
-
-  "{ \"scene\": [ " ++ work es ++ " ] }"
+  "{ \"scene\": [ " ++ work o ++ " ] }"
 }
 
-def filterVisElements(es: [ModelElement]) -> [ModelElement] = {
-  filter (fun e: ModelElement -> match e with
-                                 | visElement _ _ _ -> true
-                                 | _ -> false) es
-}
-
-
-def getModel(es: [ModelElement]) -> Equations = {
-  def work(a: Equations, o: ModelElement) -> Equations = {
+def getVisualElements(o: ModelElement) -> ModelElement = {
+  def work(o: ModelElement, a: ModelElement) -> ModelElement = {
     match o with
-    | eqsElement e -> a; e
+    | o_1 ++ o_2 -> work o_2 (work o_1 a)
+    | visualElement _ _ _ -> a ++ o
     | _ -> a
   };
-  foldLeft work NoEqn es
+  work o NoElement
 }
 
-def getModel(es: Set(ModelElement)) -> Equations = { getModel (Set.toList es) }
+def cleanupModelElements(o: ModelElement) -> ModelElement = {
+    match o with
+    | o_1 ++ o_2 ->
+       {
+          match (cleanupModelElements o_1, cleanupModelElements o_2) with
+          | (NoElement, NoElement) -> NoElement
+          | (NoElement, o) -> o
+          | (o, NoElement) -> o
+          | (o_1b,o_2b) -> o_1b ++ o_2b
+       }
+    | _ -> o
+}
 
-def elaborateToFile(es: [ModelElement]) -> () = {
-  def m = getModel es;
-  def ves = filterVisElements es;
+def getModel(o: ModelElement) -> Equations = {
+  def work(o: ModelElement, a: Equations) -> Equations = {
+    match o with
+    | o_1 ++ o_2 -> (work o_2 (work o_1 a))
+    | equationsElement e -> a; e
+    | _ -> a
+  };
+  work o NoEqn
+}
+
+def elaborateToFile(o: ModelElement) -> () = {
+  def m = getModel o;
+  def vo = getVisualElements o;
+  def vo = cleanupModelElements vo;
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
-  writeFile SCENE_FILENAME (modelScene2Json ves ++ "\n")
+  writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
-def elaborateToFile(es: Set(ModelElement)) ->  () = { elaborateToFile (Set.toList es) }
-
-def mdl(e: Equations) -> Set(ModelElement) = { Set.add (eqsElement e) (Set.empty) }
-
-def vis(vd: VisualData, fr: Frame, to: Frame) -> Set(ModelElement) = {
-  def x_v, y_v, th_v: Real;
-  def rr_v = vec x_v y_v;
-  listToSet [eqsElement (AcrossController rr_v fr to; AcrossController th_v fr to),
-             visElement rr_v th_v vd]
+def Bar1(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
+  equationsElement (Bar m h l rr th DATUM we ea) ++
+  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
 }
 
-type FieldFun = Frame -> Frame -> Equations
-type BodyFun = Frame -> Frame -> Equations
-// type ArmFun = Frame -> Frame -> Frame -> Equations
-// type ArmEndFun = Frame -> Equations
-
-def inField(body: BodyFun, field: FieldFun, DATUM: Frame, inf: Frame, f: Frame) -> Equations = {
-  field DATUM f; body inf f
+def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
+  def x_m, y_m, th_m: Real;
+  Bar1 m h l (vec x_m y_m) th_m DATUM we ea
 }
 
-def Bar1(DATUM: Frame, fr: Frame, l: Real, h: Real, m: Real, we: Frame, ea: Frame) -> Set(ModelElement) = {
-  def c: Frame;
-  def g = 9.81;
-  def I = l * h ^ 3. / 12.;
-  def vd = visSolid (rectangle h l) (stdMaterial GREEN 0.5);
-  def b = inField (Body m I) (Gravity m) DATUM DATUM c;
-  def model = mdl (RigidArm (l / 2.) DATUM we c
-                  ; RigidArm (l / 2.) DATUM c ea
-                  ; b);
-  union model (vis vd fr c)
+def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> ModelElement = {
+  def x, y, th: Real;
+  def rr = vec x y;
+  equationsElement (Bar m h l DATUM we c ea) ++
+  equationsElement (AcrossController rr DATUM c; AcrossController th DATUM c) ++
+  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
 }
 
-def RevoluteJoint1(fr: Frame, r: Real, f_1: Frame, f_2: Frame) -> Set(ModelElement) = {
-  def vd = visSolid (circle r) (stdMaterial RED 0.5);
-  // union
-  (mdl (RevoluteJoint f_1 f_2))
-  // (vis vd fr f_2)
+def RevoluteJoint1(r: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+  def x_rs, y_rs, th_rs: Real;
+  def rr = vec x_rs y_rs;
+  def fs = (if seq DATUM f_1 then f_2 else f_1);
+  equationsElement (RevoluteJoint f_1 f_2
+                    ; AcrossController rr DATUM fs
+                    ; AcrossController th_rs DATUM fs) ++
+  visualElement rr th_rs (visualSolid (circle r) (stdMaterial RED 0.5))
 }
 
-// type InertialFrame
-// def inertialFrame
+def Translation1(x: Real, y: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (Translation x y f_1 f_2)
+}
+
+def TranslationController1(rr: Vector2, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (ie; AcrossController rr f_1 f_2)
+}
+
+def TranslationController1(rr: Vector2, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (AcrossController rr f_1 f_2)
+}
+
+def RotationController1(th: <Real>, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (ie; AcrossController th f_1 f_2)
+}
+
+def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (Translation 0. 0. f_1 f_2)
+}
+
+def RotationController1(th: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (AcrossController th f_1 f_2)
+}

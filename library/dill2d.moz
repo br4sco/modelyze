@@ -428,10 +428,10 @@ def Body(m: Real, I: Real,
          th: <Real>,
          om: <Real>,
          T: <Real>,
-         inf: Frame, f: Frame) -> Equations = {
+         DATUM: Frame, f: Frame) -> Equations = {
 
-  scalarEdge inf f th T;
-  vector2Edge inf f rr FF;
+  scalarEdge DATUM f th T;
+  vector2Edge DATUM f rr FF;
   (i_ rr)' = i_ vv;
   (j_ rr)' = j_ vv;
   i_ FF = m * (i_ vv)';
@@ -440,9 +440,14 @@ def Body(m: Real, I: Real,
   T = I * om'
 }
 
-def Body(m: Real, I: Real, inf: Frame, f: Frame) -> Equations = {
-  def x_m, y_m, vx_m, vy_m, Fx_m, Fy_m, th_m, om_m, T_m: Real;
-  Body m I (vec x_m y_m) (vec vx_m vy_m) (vec Fx_m Fy_m) th_m om_m T_m inf f
+def Body(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> Equations = {
+  def vx_m, vy_m, Fx_m, Fy_m, om_m, T_m: Real;
+  Body m I rr (vec vx_m vy_m) (vec Fx_m Fy_m) th om_m T_m DATUM f
+}
+
+def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
+  def x_m, y_m, th_m: Real;
+  Body m I (vec x_m y_m) th_m DATUM f
 }
 
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
@@ -490,4 +495,31 @@ def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
 
 def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
   AcrossActuator (vec 0. 0.) f_1 f_2
+}
+
+def Bar(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> Equations = {
+  def I = h * l * (h^2. + l^2.) / 12.;
+  RigidArm (l / 2.) DATUM we c;
+  RigidArm (l / 2.) DATUM c ea;
+  Body m I DATUM c;
+  Gravity m DATUM c
+}
+
+def Bar(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> Equations = {
+  def c: Frame;
+  def I = h * l * (h^2. + l^2.) / 12.;
+  RigidArm (l / 2.) DATUM we c;
+  RigidArm (l / 2.) DATUM c ea;
+  Body m I rr th DATUM c;
+  Gravity m DATUM c
+}
+
+def Translation(x: Real, y: Real, f_1: Frame, f_2: Frame) -> Equations = {
+  AcrossActuator (vec x y) f_1 f_2
+  // ; AcrossActuator 0. f_1 f_2
+}
+
+def Rotation(th: Real, f_1: Frame, f_2: Frame) -> Equations = {
+  AcrossActuator th f_1 f_2
+  // ; AcrossActuator (vec 0. 0.) f_1 f_2
 }

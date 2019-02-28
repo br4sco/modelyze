@@ -1,0 +1,39 @@
+include DILL2DV
+include DILLEXPORT
+
+def DATUM, f_1, f_2, f_3, f_4, f_5, f_6: Frame
+
+def myRJoint = RevoluteJoint1 0.3 DATUM
+
+def threeBars(th_1: <Real>, th_2: <Real>, DATUM: Frame, ea: Frame, we: Frame) = {
+  def myRJoint = RevoluteJoint1 0.2 DATUM;
+  def myBar = Bar1 1. 0.2 3. DATUM;
+  def myBar_c(rr: Vector2, th: <Real>) = Bar1 1. 0.2 3. rr th DATUM;
+  def f_1, f_2, f_3, f_4: Frame;
+  def x_1, y_1, x_2, y_2: Real;
+
+  myBar_c (vec x_1 y_1) th_1 ea f_1
+  ++ myRJoint f_1 f_2
+  ++ myBar f_2 f_3
+  ++ myRJoint f_3 f_4
+  ++ myBar_c (vec x_2 y_2) th_2 f_4 we
+}
+
+def th_1a, th_2a: Real
+def th_1b, th_2b: Real
+
+def model = myRJoint DATUM f_1
+            ++ threeBars th_1a th_2a DATUM f_1 f_2
+            ++ myRJoint f_2 f_3
+            ++ equationsElement (th_1a <- PI / 3.; th_2a <~ -4. * PI / 3.)
+
+            ++ myRJoint DATUM f_5
+            ++ myRJoint f_3 f_6
+            ++ threeBars th_2b th_1b DATUM f_5 f_6
+            ++ equationsElement (th_1b <- PI / 3.; th_2b <~ -4. * PI / 3.)
+
+            ++ Translation1 3. 0. DATUM f_3
+
+def main = {
+  elaborateToFile model
+}
