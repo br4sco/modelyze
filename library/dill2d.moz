@@ -523,3 +523,9 @@ def Rotation(th: Real, f_1: Frame, f_2: Frame) -> Equations = {
   AcrossActuator th f_1 f_2
   // ; AcrossActuator (vec 0. 0.) f_1 f_2
 }
+
+def RotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
+  def th_d, T_d: Real;
+  scalarEdge f_1 f_2 th_d T_d;
+  T_d = D * th_d'
+}

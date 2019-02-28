@@ -207,3 +207,32 @@ def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
 def RotationController1(th: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (AcrossController th f_1 f_2)
 }
+
+def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RotationalDamper D f_1 f_2)
+}
+
+type ModelFun1 = Frame -> ModelElement
+type ModelFun2 = Frame -> Frame -> ModelElement
+type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
+
+def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+  l f_1 f_2 ++ r f_1 f_2
+}
+def (+) = inParalell
+
+def inSeries(f: Frame, r: ModelFun1) -> ModelElement = {
+  r f
+}
+def (-) = inSeries
+
+def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
+  r f
+}
+def (-) = inSeries
+
+def inSeries(l: ModelFun1, r: ModelFun2, f_1: Frame) -> ModelElement = {
+  def f: Frame;
+  l f ++ r f f_1
+}
+def (-) = inSeries
