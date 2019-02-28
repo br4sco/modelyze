@@ -13,9 +13,9 @@ def myBar2(ea: Frame, we: Frame) -> ModelElement = { def c: Frame; myBar c ea we
 
 def x_1, y_1, th_1, x_3, y_3, th_3: Real
 
-def bars = myRJoint - myBar c_1 - myRJoint - myBar2 - myRJoint - myBar c_3 - myRJoint
+def chain = myRJoint - myBar c_1 - myRJoint - myBar2 - myRJoint - myBar c_3 - myRJoint
 
-def model = (bars + Translation1 3. 0.) DATUM fp_1
+def model = (chain + Translation1 3. 0.) DATUM fp_1
             ++ TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) DATUM c_1
             ++ TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) fp_1 c_3
 
