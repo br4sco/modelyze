@@ -180,8 +180,9 @@ def RevoluteJoint1(r: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElemen
   def fs = (if seq DATUM f_1 then f_2 else f_1);
   equationsElement (RevoluteJoint f_1 f_2
                     ; AcrossController rr DATUM fs
-                    ; AcrossController th_rs DATUM fs) ++
-  visualElement rr th_rs (visualSolid (circle r) (stdMaterial RED 0.5))
+                    ; AcrossController th_rs DATUM fs
+                    )
+  ++ visualElement rr th_rs (visualSolid (circle r) (stdMaterial RED 0.5))
 }
 
 def Translation1(x: Real, y: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
@@ -241,6 +242,17 @@ def inSeries(l: ModelFun1, r: ModelFun2) = {
   fun f_2: Frame -> l f_1 ++ r f_1 f_2
 }
 def (-) = inSeries
+
+def inSeries2(l: ModelFun2, f_2: Frame) = {
+  (l, f_2)
+}
+def (-.) = inSeries2
+
+def inSeries2(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
+  def (l, f_2) = lf_2;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (-.) = inSeries2
 
 def inSeries(l: ModelFun2, r: ModelFun2) = {
   def f_2: Frame;

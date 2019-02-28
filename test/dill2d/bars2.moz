@@ -1,22 +1,23 @@
 include DILL2DV
 include DILLEXPORT
-def DATUM, c_1, c_2, c_3, fp_1: Frame
+def DATUM, c_1, c_3, fp_1, f_1, f_2: Frame
 
 def myRJoint = RevoluteJoint1 0.3 DATUM
 def myDamper = RotationalDamper1 3.
 
-def myBar(c: Frame, ea: Frame, we: Frame) = {
+def myBar(c: Frame, ea: Frame, we: Frame) -> ModelElement = {
   Bar1 1. 0.2 3. DATUM ea c we
 }
 
+def myBar2(ea: Frame, we: Frame) -> ModelElement = { def c: Frame; myBar c ea we }
+
 def x_1, y_1, th_1, x_3, y_3, th_3: Real
 
-def model = (((((((myRJoint - (myBar c_1)) - (myRJoint)) - (myBar c_2)) - myRJoint) - (myBar c_3)) - myRJoint)
-                           +
-            (Translation1 3. 0.)) DATUM fp_1
+def bars = myRJoint - myBar c_1 - myRJoint - myBar2 - myRJoint - myBar c_3 - myRJoint
 
-            ++ TranslationController1 (vec x_1 y_1) (x_1 <- 0.0) DATUM c_1
-            ++ TranslationController1 (vec x_3 y_3) (x_3 <~ 0.0) fp_1 c_3
+def model = (bars + Translation1 3. 0.) DATUM fp_1
+            ++ TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) DATUM c_1
+            ++ TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) fp_1 c_3
 
 def main = {
   elaborateToFile model
