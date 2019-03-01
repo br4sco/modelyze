@@ -104,6 +104,9 @@ let reserved_strings = [
   ("++",            fun(i,l) -> Parser.PLUSPLUS{i=i;l=l;v=()});
   ("^",             fun(i,l) -> Parser.EXP{i=i;l=l;v=()});
   ("^.",            fun(i,l) -> Parser.DOTEXP{i=i;l=l;v=()});
+  ("<->",           fun(i,l) -> Parser.DOUBLEARROW{i=i;l=l;v=()});
+  ("<-.>",           fun(i,l) -> Parser.DOTDOUBLEARROW{i=i;l=l;v=()});
+  ("<|>",           fun(i,l) -> Parser.BARARROWS{i=i;l=l;v=()});
 
   (* Symbolic Tokens *)
   ("(",             fun(i,l) -> Parser.LPAREN{i=i;l=l;v=()});
@@ -294,7 +297,7 @@ let operator = "="  | "~="  | "<-"  | "mod" |
                "+." | "-."  | "*."  | "/."  |
                "<." | "<=." | ">."  | ">=." | "==." | "!=." |
                "!"  | "&&"  | "||"  | ";"   | "++"  |
-	      "--"  | "--." | "^"   | "^."  | "'" | "-->" | "<~"
+	      "--"  | "--." | "^"   | "^."  | "'" | "-->" | "<~" | "<->" | "<-.>" | "<|>"
 
 let symtok  =  "(" | ")" | "["  | "]" | "{"  | "}" | "::" | ":" |
                 "," | "." | "|" | "->" |  "=>" | "~" | "<==>" | "_" |

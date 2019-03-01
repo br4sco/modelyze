@@ -156,6 +156,18 @@ def elaborateToFile(o: ModelElement) -> () = {
   writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
+def Body1(m: Real, I: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+  equationsElement (Body m I DATUM f)
+}
+
+def Body1(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> ModelElement = {
+  equationsElement (Body m I rr th DATUM f)
+}
+
+def RigidArm1(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RigidArm l DATUM f_1 f_2)
+}
+
 def Bar1(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
   equationsElement (Bar m h l rr th DATUM we ea) ++
   visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
@@ -220,37 +232,42 @@ type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
 def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
   l f_1 f_2 ++ r f_1 f_2
 }
-def (+) = inParalell
+def (<|>) = inParalell
 
-def inSeries(f: Frame, r: ModelFun1) -> ModelElement = {
-  r f
+def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
+  r l
 }
-def (-) = inSeries
+def (<->) = inSeries
+
+def inSeries(l: ModelFun1, r: Frame) -> ModelElement = {
+  l r
+}
+def (<->) = inSeries
 
 def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
   r f
 }
-def (-) = inSeries
+def (<->) = inSeries
 
 def inSeries(l: ModelFun1, r: ModelFun2) = {
   def f_1: Frame;
   fun f_2: Frame -> l f_1 ++ r f_1 f_2
 }
-def (-) = inSeries
+def (<->) = inSeries
 
 def inSeries2(l: ModelFun2, f_2: Frame) = {
   (l, f_2)
 }
-def (-.) = inSeries2
+def (<-.>) = inSeries2
 
 def inSeries2(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
   def (l, f_2) = lf_2;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
-def (-.) = inSeries2
+def (<->) = inSeries2
 
 def inSeries(l: ModelFun2, r: ModelFun2) = {
   def f_2: Frame;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
-def (-) = inSeries
+def (<->) = inSeries

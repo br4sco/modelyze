@@ -103,61 +103,64 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %token <unit Ast.tokendata> PEVAL
 
 /* Operators */
-%token <unit Ast.tokendata> EQ            /* "="  */
-%token <unit Ast.tokendata> APXEQ         /* "~=" */
-%token <unit Ast.tokendata> LEFTARROW     /* "<-" */
-%token <unit Ast.tokendata> APXLEFTARROW  /* "<~" */
-%token <unit Ast.tokendata> MOD           /* "mod"*/
-%token <unit Ast.tokendata> ADD           /* "+"  */
-%token <unit Ast.tokendata> SUB           /* "-"  */
-%token <unit Ast.tokendata> MUL           /* "*"  */
-%token <unit Ast.tokendata> DIV           /* "/"  */
-%token <unit Ast.tokendata> LESS          /* "<"  */
-%token <unit Ast.tokendata> LESSEQUAL     /* "<=" */
-%token <unit Ast.tokendata> GREAT         /* ">"  */
-%token <unit Ast.tokendata> GREATEQUAL    /* ">=" */
-%token <unit Ast.tokendata> EQUAL         /* "==" */
-%token <unit Ast.tokendata> NOTEQUAL      /* "!=" */
-%token <unit Ast.tokendata> DOTADD        /* "+." */
-%token <unit Ast.tokendata> DOTSUB        /* "-." */
-%token <unit Ast.tokendata> DOTMUL        /* "*." */
-%token <unit Ast.tokendata> DOTDIV        /* "/." */
-%token <unit Ast.tokendata> DOTLESS       /* "<." */
-%token <unit Ast.tokendata> DOTLESSEQUAL  /* "<=."*/
-%token <unit Ast.tokendata> DOTGREAT      /* ">." */
-%token <unit Ast.tokendata> DOTGREATEQUAL /* ">=."*/
-%token <unit Ast.tokendata> DOTEQUAL      /* "==."*/
-%token <unit Ast.tokendata> DOTNOTEQUAL   /* "!=."*/
-%token <unit Ast.tokendata> NOT           /* "!"  */
-%token <unit Ast.tokendata> AND           /* "&&" */
-%token <unit Ast.tokendata> OR            /* "||" */
-%token <unit Ast.tokendata> SEMI          /* ";"  */
-%token <unit Ast.tokendata> PLUSPLUS      /* "++"  */
-%token <unit Ast.tokendata> EXP           /* "^"  */
-%token <unit Ast.tokendata> DOTEXP        /* "^."  */
+%token <unit Ast.tokendata> EQ              /* "="  */
+%token <unit Ast.tokendata> APXEQ           /* "~=" */
+%token <unit Ast.tokendata> LEFTARROW       /* "<-" */
+%token <unit Ast.tokendata> APXLEFTARROW    /* "<~" */
+%token <unit Ast.tokendata> MOD             /* "mod"*/
+%token <unit Ast.tokendata> ADD             /* "+"  */
+%token <unit Ast.tokendata> SUB             /* "-"  */
+%token <unit Ast.tokendata> MUL             /* "*"  */
+%token <unit Ast.tokendata> DIV             /* "/"  */
+%token <unit Ast.tokendata> LESS            /* "<"  */
+%token <unit Ast.tokendata> LESSEQUAL       /* "<=" */
+%token <unit Ast.tokendata> GREAT           /* ">"  */
+%token <unit Ast.tokendata> GREATEQUAL      /* ">=" */
+%token <unit Ast.tokendata> EQUAL           /* "==" */
+%token <unit Ast.tokendata> NOTEQUAL        /* "!=" */
+%token <unit Ast.tokendata> DOTADD          /* "+." */
+%token <unit Ast.tokendata> DOTSUB          /* "-." */
+%token <unit Ast.tokendata> DOTMUL          /* "*." */
+%token <unit Ast.tokendata> DOTDIV          /* "/." */
+%token <unit Ast.tokendata> DOTLESS         /* "<." */
+%token <unit Ast.tokendata> DOTLESSEQUAL    /* "<=."*/
+%token <unit Ast.tokendata> DOTGREAT        /* ">." */
+%token <unit Ast.tokendata> DOTGREATEQUAL   /* ">=."*/
+%token <unit Ast.tokendata> DOTEQUAL        /* "==."*/
+%token <unit Ast.tokendata> DOTNOTEQUAL     /* "!=."*/
+%token <unit Ast.tokendata> NOT             /* "!"  */
+%token <unit Ast.tokendata> AND             /* "&&" */
+%token <unit Ast.tokendata> OR              /* "||" */
+%token <unit Ast.tokendata> SEMI            /* ";"  */
+%token <unit Ast.tokendata> PLUSPLUS        /* "++"  */
+%token <unit Ast.tokendata> EXP             /* "^"  */
+%token <unit Ast.tokendata> DOTEXP          /* "^."  */
+%token <unit Ast.tokendata> DOUBLEARROW     /* "<->" */
+%token <unit Ast.tokendata> DOTDOUBLEARROW  /* "<-.>" */
+%token <unit Ast.tokendata> BARARROWS       /* "<|>" */
 
 /* Symbolic Tokens */
-%token <unit Ast.tokendata> LPAREN        /* "("  */
-%token <unit Ast.tokendata> RPAREN        /* ")"  */
-%token <unit Ast.tokendata> LSQUARE       /* "["  */
-%token <unit Ast.tokendata> RSQUARE       /* "]"  */
-%token <unit Ast.tokendata> LCURLY        /* "{"  */
-%token <unit Ast.tokendata> RCURLY        /* "}"  */
-%token <unit Ast.tokendata> CONS          /* "::" */
-%token <unit Ast.tokendata> COLON         /* ":"  */
-%token <unit Ast.tokendata> COMMA         /* ","  */
-%token <unit Ast.tokendata> DOT           /* "."  */
-%token <unit Ast.tokendata> BAR           /* "|"  */
-%token <unit Ast.tokendata> LONGARROW     /* "-->" */
-%token <unit Ast.tokendata> ARROW         /* "->" */
-%token <unit Ast.tokendata> DARROW        /* "=>" */
-%token <unit Ast.tokendata> POLYEQUAL     /* "<==>" */
-%token <unit Ast.tokendata> USCORE        /* "_"  */
-%token <unit Ast.tokendata> ESCAPE        /* "~"  */
-%token <unit Ast.tokendata> SQUOTE        /* "'"  */
-%token <unit Ast.tokendata> PARENAPP      /* ")("  */
-%token <unit Ast.tokendata> EQSEMI        /* ";;"  */
-%token <unit Ast.tokendata> QUESTIONMARK  /* "?"  */
+%token <unit Ast.tokendata> LPAREN          /* "("  */
+%token <unit Ast.tokendata> RPAREN          /* ")"  */
+%token <unit Ast.tokendata> LSQUARE         /* "["  */
+%token <unit Ast.tokendata> RSQUARE         /* "]"  */
+%token <unit Ast.tokendata> LCURLY          /* "{"  */
+%token <unit Ast.tokendata> RCURLY          /* "}"  */
+%token <unit Ast.tokendata> CONS            /* "::" */
+%token <unit Ast.tokendata> COLON           /* ":"  */
+%token <unit Ast.tokendata> COMMA           /* ","  */
+%token <unit Ast.tokendata> DOT             /* "."  */
+%token <unit Ast.tokendata> BAR             /* "|"  */
+%token <unit Ast.tokendata> LONGARROW       /* "-->" */
+%token <unit Ast.tokendata> ARROW           /* "->" */
+%token <unit Ast.tokendata> DARROW          /* "=>" */
+%token <unit Ast.tokendata> POLYEQUAL       /* "<==>" */
+%token <unit Ast.tokendata> USCORE          /* "_"  */
+%token <unit Ast.tokendata> ESCAPE          /* "~"  */
+%token <unit Ast.tokendata> SQUOTE          /* "'"  */
+%token <unit Ast.tokendata> PARENAPP        /* ")("  */
+%token <unit Ast.tokendata> EQSEMI          /* ";;"  */
+%token <unit Ast.tokendata> QUESTIONMARK    /* "?"  */
 
 
 %start main
@@ -171,7 +174,7 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %left OR  /*prec 2*/
 %left AND  /*prec 3*/
 %left EQ APXEQ LEFTARROW APXLEFTARROW PLUSPLUS /*prec 5*/
-%left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW /*prec 6*/
+%left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW BARARROWS DOUBLEARROW DOTDOBLEARROW /*prec 6*/
 %left DOTLESS DOTLESSEQUAL DOTGREAT DOTGREATEQUAL DOTEQUAL DOTNOTEQUAL /*prec 7*/
 %nonassoc NOT /*prec8 */
 %left ADD SUB DOTADD DOTSUB /*prec 8*/
@@ -483,6 +486,12 @@ pat_op:
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(^.)" $1 $3 }
   | pat_op LONGARROW pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(-->)" $1 $3 }
+  | pat_op DOUBLEARROW pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<->)" $1 $3 }
+  | pat_op DOTDOUBLEARROW pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<-.>)" $1 $3 }
+  | pat_op BARARROWS pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<|>)" $1 $3 }
 
   | pat_op SQUOTE
       { mk_unpat_op (mkinfo (pat_info $1) $2.i) $2.l "(')" $1 }
@@ -649,6 +658,12 @@ op:
       { mk_binop (mktminfo $1 $3) $2.l "(^.)" $1 $3 }
   | op LONGARROW op
       { mk_binop (mktminfo $1 $3) $2.l "(-->)" $1 $3 }
+  | op DOUBLEARROW op
+      { mk_binop (mktminfo $1 $3) $2.l "(<->)" $1 $3 }
+  | op DOTDOUBLEARROW op
+      { mk_binop (mktminfo $1 $3) $2.l "(<-.>)" $1 $3 }
+  | op BARARROWS op
+      { mk_binop (mktminfo $1 $3) $2.l "(<|>)" $1 $3 }
 
   | op SQUOTE
       { mk_unop (mkinfo (tm_info $1) $2.i) $2.l "(')" $1 }

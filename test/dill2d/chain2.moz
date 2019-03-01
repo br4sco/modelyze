@@ -1,23 +1,21 @@
 include DILL2DV
 include DILLEXPORT
-def DATUM, c_1, c_3, fp_1, f_1, f_2: Frame
+def DATUM, c_1, c_3, fp_1: Frame
 
 def myRJoint = RevoluteJoint1 0.3 DATUM
 def myDamper = RotationalDamper1 3.
 
-def myBar(c: Frame, ea: Frame, we: Frame) -> ModelElement = {
-  Bar1 1. 0.2 3. DATUM ea c we
-}
+def myBar(c: Frame, ea: Frame, we: Frame) = { Bar1 1. 0.2 3. DATUM ea c we }
 
-def myBar2(ea: Frame, we: Frame) -> ModelElement = { def c: Frame; myBar c ea we }
+def myBar2(ea: Frame, we: Frame) = { def c: Frame; myBar c ea we }
 
 def x_1, y_1, th_1, x_3, y_3, th_3: Real
 
-def chain = myRJoint - myBar c_1 - myRJoint - myBar2 - myRJoint - myBar c_3 - myRJoint
+def chain = (myRJoint <|> myDamper) <-> myBar c_1 <-> myRJoint <-> myBar2 <-> myRJoint <-> myBar c_3 <-> myRJoint
 
-def model = (chain + Translation1 3. 0.) DATUM fp_1
-            ++ TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) DATUM c_1
-            ++ TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) fp_1 c_3
+def model = DATUM <-> (chain <|> Translation1 3. 0.) <-> fp_1
+            ++ DATUM <-> TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) <-> c_1
+            ++ fp_1 <-> TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) <-> c_3
 
 def main = {
   elaborateToFile model
