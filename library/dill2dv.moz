@@ -43,6 +43,53 @@ def visualElement: Vector2 -> <Real> -> VisualData -> ModelElement
 def equationsElement: Equations -> ModelElement
 def NoElement: ModelElement
 
+type ModelFun1 = Frame -> ModelElement
+type ModelFun2 = Frame -> Frame -> ModelElement
+type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
+
+def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+  l f_1 f_2 ++ r f_1 f_2
+}
+def (<|>) = inParalell
+
+def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
+  r l
+}
+def (<->) = inSeries
+
+def inSeries(l: ModelFun1, r: Frame) -> ModelElement = {
+  l r
+}
+def (<->) = inSeries
+
+def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
+  r f
+}
+def (<->) = inSeries
+
+def inSeries(l: ModelFun1, r: ModelFun2) = {
+  def f_1: Frame;
+  fun f_2: Frame -> l f_1 ++ r f_1 f_2
+}
+def (<->) = inSeries
+
+def inSeriesExposeFrame(l: ModelFun2, f_2: Frame) = {
+  (l, f_2)
+}
+def (<-.>) = inSeriesExposeFrame
+
+def inSeriesExposeFrame(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
+  def (l, f_2) = lf_2;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (<-.>) = inSeriesExposeFrame
+
+def inSeries(l: ModelFun2, r: ModelFun2) = {
+  def f_2: Frame;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (<->) = inSeries
+
 def WHITE = "#ffffff"
 def RED = "#ff0000"
 def BLUE = "#0000ff"
@@ -168,24 +215,6 @@ def RigidArm1(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RigidArm l DATUM f_1 f_2)
 }
 
-def Bar1(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  equationsElement (Bar m h l rr th DATUM we ea) ++
-  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
-}
-
-def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  def x_m, y_m, th_m: Real;
-  Bar1 m h l (vec x_m y_m) th_m DATUM we ea
-}
-
-def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> ModelElement = {
-  def x, y, th: Real;
-  def rr = vec x y;
-  equationsElement (Bar m h l DATUM we c ea) ++
-  equationsElement (AcrossController rr DATUM c; AcrossController th DATUM c) ++
-  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
-}
-
 def RevoluteJoint1(r: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
   def x_rs, y_rs, th_rs: Real;
   def rr = vec x_rs y_rs;
@@ -225,49 +254,15 @@ def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RotationalDamper D f_1 f_2)
 }
 
-type ModelFun1 = Frame -> ModelElement
-type ModelFun2 = Frame -> Frame -> ModelElement
-type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
-
-def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
-  l f_1 f_2 ++ r f_1 f_2
+def Bar1(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
+  equationsElement (Bar m h l rr th DATUM we ea) ++
+  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
 }
-def (<|>) = inParalell
 
-def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
-  r l
+def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> ModelElement = {
+  def x, y, th: Real;
+  def rr = vec x y;
+  equationsElement (Bar m h l DATUM we c ea) ++
+  equationsElement (AcrossController rr DATUM c; AcrossController th DATUM c) ++
+  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
 }
-def (<->) = inSeries
-
-def inSeries(l: ModelFun1, r: Frame) -> ModelElement = {
-  l r
-}
-def (<->) = inSeries
-
-def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
-  r f
-}
-def (<->) = inSeries
-
-def inSeries(l: ModelFun1, r: ModelFun2) = {
-  def f_1: Frame;
-  fun f_2: Frame -> l f_1 ++ r f_1 f_2
-}
-def (<->) = inSeries
-
-def inSeries2(l: ModelFun2, f_2: Frame) = {
-  (l, f_2)
-}
-def (<-.>) = inSeries2
-
-def inSeries2(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
-  def (l, f_2) = lf_2;
-  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
-}
-def (<-.>) = inSeries2
-
-def inSeries(l: ModelFun2, r: ModelFun2) = {
-  def f_2: Frame;
-  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
-}
-def (<->) = inSeries
