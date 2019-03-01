@@ -138,6 +138,8 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %token <unit Ast.tokendata> DOUBLEARROW     /* "<->" */
 %token <unit Ast.tokendata> DOTDOUBLEARROW  /* "<-.>" */
 %token <unit Ast.tokendata> BARARROWS       /* "<|>" */
+%token <unit Ast.tokendata> DOUBLEDASH      /* "--" */
+%token <unit Ast.tokendata> DOUBLEDASHDOT   /* "-.-" */
 
 /* Symbolic Tokens */
 %token <unit Ast.tokendata> LPAREN          /* "("  */
@@ -174,8 +176,8 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %left OR  /*prec 2*/
 %left AND  /*prec 3*/
 %left EQ APXEQ LEFTARROW APXLEFTARROW PLUSPLUS /*prec 5*/
-%left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW DOUBLEARROW BARARROWS /*prec 6*/
-%left DOTLESS DOTLESSEQUAL DOTGREAT DOTGREATEQUAL DOTEQUAL DOTNOTEQUAL DOTDOUBLEARROW /*prec 7*/
+%left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW DOUBLEARROW BARARROWS DOUBLEDASH /*prec 6*/
+%left DOTLESS DOTLESSEQUAL DOTGREAT DOTGREATEQUAL DOTEQUAL DOTNOTEQUAL DOTDOUBLEARROW DOUBLEDASHDOT /*prec 7*/
 %nonassoc NOT /*prec8 */
 %left ADD SUB DOTADD DOTSUB /*prec 8*/
 %left MUL DIV DOTMUL DOTDIV /*prec 9*/
@@ -492,13 +494,18 @@ pat_op:
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<-.>)" $1 $3 }
   | pat_op BARARROWS pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<|>)" $1 $3 }
+  | pat_op DOUBLEDASH pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(--)" $1 $3 }
+  | pat_op DOUBLEDASHDOT pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(-.-)" $1 $3 }
 
   | pat_op SQUOTE
       { mk_unpat_op (mkinfo (pat_info $1) $2.i) $2.l "(')" $1 }
+
   | SUB pat_op %prec UNARYMINUS
-      { mk_unpat_op (mkinfo $1.i (pat_info $2)) $1.l "(--)" $2 }
+      { mk_unpat_op (mkinfo $1.i (pat_info $2)) $1.l "(---)" $2 }
   | DOTSUB pat_op %prec UNARYMINUS
-      { mk_unpat_op (mkinfo $1.i (pat_info $2)) $1.l "(--.)" $2 }
+      { mk_unpat_op (mkinfo $1.i (pat_info $2)) $1.l "(---.)" $2 }
 
 
 pat_left:
@@ -664,13 +671,17 @@ op:
       { mk_binop (mktminfo $1 $3) $2.l "(<-.>)" $1 $3 }
   | op BARARROWS op
       { mk_binop (mktminfo $1 $3) $2.l "(<|>)" $1 $3 }
+  | op DOUBLEDASH op
+      { mk_binop (mktminfo $1 $3) $2.l "(--)" $1 $3 }
+  | op DOUBLEDASHDOT op
+      { mk_binop (mktminfo $1 $3) $2.l "(-.-)" $1 $3 }
 
   | op SQUOTE
       { mk_unop (mkinfo (tm_info $1) $2.i) $2.l "(')" $1 }
   | SUB op %prec UNARYMINUS
-      { mk_unop (mkinfo $1.i (tm_info $2)) $1.l "(--)" $2 }
+      { mk_unop (mkinfo $1.i (tm_info $2)) $1.l "(---)" $2 }
   | DOTSUB op %prec UNARYMINUS
-      { mk_unop (mkinfo $1.i (tm_info $2)) $1.l "(--.)" $2 }
+      { mk_unop (mkinfo $1.i (tm_info $2)) $1.l "(---.)" $2 }
 
   | op POLYEQUAL op
       { let fi = mktminfo $1 $3 in

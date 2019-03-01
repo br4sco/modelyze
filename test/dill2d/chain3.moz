@@ -9,12 +9,12 @@ def myBar(c: Frame, ea: Frame, we: Frame) = { Bar1 1. 0.2 3. DATUM ea c we }
 
 def myBar2(ea: Frame, we: Frame) = { def c: Frame; myBar c ea we }
 
-def chain1 = myRJoint <-> myBar2 <-> myRJoint <-> myBar2 <-.> f_1 <-.> myRJoint
-             <-> myBar2 <-> myRJoint <-> myBar2 <-> myRJoint <-> myBar2
+def chain1 = myRJoint -- myBar2 -- myRJoint -- myBar2 -.- f_1 -.- myRJoint
+             -- myBar2 -- myRJoint -- myBar2 -- myRJoint -- myBar2
 
-def chain2 = myRJoint <-> myBar2 <-> myRJoint <-> myBar2
+def chain2 = myRJoint -- myBar2 -- myRJoint -- myBar2
 
-def model = DATUM <-> chain1 <-> f_2 ++ f_1 <-> chain2 <-> f_3
+def model = DATUM -- chain1 -- f_2 ++ f_1 -- chain2 -- f_3
 
 def main = {
   elaborateToFile model

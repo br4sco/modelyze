@@ -394,15 +394,15 @@ def matrixChsgn(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
 def matrixChsgn(M: MatrixMapInt) -> MatrixMapInt = {
   matrixChsgn mmIntFind mmIntAdd mmIntZero chsgnInt M
 }
-def (--): MatrixMapInt -> MatrixMapInt = matrixChsgn
+def (---): MatrixMapInt -> MatrixMapInt = matrixChsgn
 def matrixChsgn(M: MatrixMapReal) -> MatrixMapReal = {
   matrixChsgn mmRealFind mmRealAdd mmRealZero chsgnReal M
 }
-def (--): MatrixMapReal -> MatrixMapReal = matrixChsgn
+def (---): MatrixMapReal -> MatrixMapReal = matrixChsgn
 def matrixChsgn(M: MatrixMapSReal) -> MatrixMapSReal = {
   matrixChsgn mmSRealFind mmSRealAdd mmSRealZero chsgnSReal M
 }
-def (--): MatrixMapSReal -> MatrixMapSReal = matrixChsgn
+def (---): MatrixMapSReal -> MatrixMapSReal = matrixChsgn
 
 def matrixSubst(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
   add: (Dyn -> Dyn -> Dyn), cs: (Dyn -> Dyn), lM: Matrix, rM: Matrix)

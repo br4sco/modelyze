@@ -39,8 +39,8 @@ def (!=) : Real -> Real -> Bool = @@real_not_equal
 def (!) : Bool -> Bool = @@bool_not
 def (&&) : Bool -> Bool -> Bool = @@bool_and
 def (||) : Bool -> Bool -> Bool = @@bool_or
-def (--) : Int -> Int = @@int_neg
-def (--) : Real -> Real = @@real_neg
+def (---) : Int -> Int = @@int_neg
+def (---) : Real -> Real = @@real_neg
 def bool2string : Bool -> String = @@bool2string
 def int2string : Int -> String = @@int2string
 def real2string : Real -> String = @@real2string

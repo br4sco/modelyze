@@ -11,11 +11,11 @@ def myBar2(ea: Frame, we: Frame) = { def c: Frame; myBar c ea we }
 
 def x_1, y_1, th_1, x_3, y_3, th_3: Real
 
-def chain = (myRJoint <|> myDamper) <-> myBar c_1 <-> myRJoint <-> myBar2 <-> myRJoint <-> myBar c_3 <-> myRJoint
+def chain = (myRJoint || myDamper) -- myBar c_1 -- myRJoint -- myBar2 -- myRJoint -- myBar c_3 -- myRJoint
 
-def model = DATUM <-> (chain <|> Translation1 3. 0.) <-> fp_1
-            ++ DATUM <-> TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) <-> c_1
-            ++ fp_1 <-> TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) <-> c_3
+def model = DATUM -- (chain || Translation1 3. 0.) -- fp_1
+            ++ DATUM -- TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) -- c_1
+            ++ fp_1 -- TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) -- c_3
 
 def main = {
   elaborateToFile model
