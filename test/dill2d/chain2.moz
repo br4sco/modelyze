@@ -1,22 +1,30 @@
 include DILL2DV
 
-def DATUM, c_1, c_3, fp_1: Frame
+def DATUM, c_1, c_2, c_3, fp_1: Frame
 
-def myRJoint = RevoluteJoint1 0.3 DATUM
 def myDamper = RotationalDamper1 3.
 
-def myBar(c: Frame, ea: Frame, we: Frame) = { Bar1 1. 0.2 3. DATUM ea c we }
+def myRJoint(f_1: Frame, f_2: Frame) = {
+  def f = (if seq f_1 DATUM then f_2 else f_1);
+  f_1 -- RevoluteJoint1 -- f_2 ++
+  DATUM -- VisSolid1 (circle 0.2) RED 0.5 -- f
+}
 
-def myBar2(ea: Frame, we: Frame) = { def c: Frame; myBar c ea we }
+def myBar(c: Frame, we: Frame, ea: Frame) = {
+  def h = 0.2;
+  def l = 3.;
+  def m = 1.;
+  we -- Bar1 m h l DATUM c -- ea ++
+  DATUM -- VisSolid1 (rectangle h l) GREEN 0.5 -- c
+}
 
-def x_1, y_1, th_1, x_3, y_3, th_3: Real
+def th_1, x_2, y_2, th_3: Real
 
-def chain = (myRJoint || myDamper) -- myBar c_1 -- myRJoint -- myBar2 -- myRJoint -- myBar c_3 -- myRJoint
+def chain = (myRJoint || myDamper) -- myBar c_1 -- myRJoint -- myBar c_2 -- myRJoint -- myBar c_3 -- myRJoint
 
 def model = DATUM -- (chain || Translation1 3. 0.) -- fp_1
-            ++ DATUM -- TranslationController1 (vec x_1 y_1) (x_1 <- 0.8) -- c_1
-            ++ fp_1 -- TranslationController1 (vec x_3 y_3) (x_3 <~ 0.8) -- c_3
+            ++ DATUM -- RotationController1 th_1 (th_1 <- PI / 3.) -- c_1
+            ++ DATUM -- TranslationController1 (vec x_2 y_2) (y_2 <~ 2.) -- c_2
+            ++ DATUM -- RotationController1 th_3 (th_3 <~ -PI / 3.) -- c_3
 
-def main = {
-  elaborateToFile model
-}
+def main = { elaborateToFile model }

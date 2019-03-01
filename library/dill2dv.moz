@@ -207,23 +207,20 @@ def Body1(m: Real, I: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Body m I DATUM f)
 }
 
-def Body1(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> ModelElement = {
-  equationsElement (Body m I rr th DATUM f)
+// def Body1(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> ModelElement = {
+//   equationsElement (Body m I rr th DATUM f)
+// }
+
+def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+  equationsElement (Gravity m DATUM f)
 }
 
 def RigidArm1(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RigidArm l DATUM f_1 f_2)
 }
 
-def RevoluteJoint1(r: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  def x_rs, y_rs, th_rs: Real;
-  def rr = vec x_rs y_rs;
-  def fs = (if seq DATUM f_1 then f_2 else f_1);
-  equationsElement (RevoluteJoint f_1 f_2
-                    ; AcrossController rr DATUM fs
-                    ; AcrossController th_rs DATUM fs
-                    )
-  ++ visualElement rr th_rs (visualSolid (circle r) (stdMaterial RED 0.5))
+def RevoluteJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RevoluteJoint f_1 f_2)
 }
 
 def Translation1(x: Real, y: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
@@ -254,15 +251,15 @@ def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RotationalDamper D f_1 f_2)
 }
 
-def Bar1(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  equationsElement (Bar m h l rr th DATUM we ea) ++
-  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
-}
-
-def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> ModelElement = {
+def VisSolid1(g: Geometry2D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   def x, y, th: Real;
   def rr = vec x y;
-  equationsElement (Bar m h l DATUM we c ea) ++
-  equationsElement (AcrossController rr DATUM c; AcrossController th DATUM c) ++
-  visualElement rr th (visualSolid (rectangle h l) (stdMaterial GREEN 0.5))
+  DATUM -- (TranslationController1(rr) || RotationController1(th)) -- f ++
+  visualElement rr th (visualSolid g (stdMaterial c opacity))
+}
+
+def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+  def I = h * l * (h^2. + l^2.) / 12.;
+  DATUM -- (Body1 m I || Gravity1 m ) -- c ++
+  we -- RigidArm1 (l / 2.) DATUM -.- c -.- RigidArm1 (l / 2.) DATUM -- ea
 }

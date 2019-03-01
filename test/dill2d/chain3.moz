@@ -1,11 +1,23 @@
 include DILL2DV
 include DILLEXPORT
+
 def DATUM, f_1, f_2, f_3: Frame
 
-def myRJoint = RevoluteJoint1 0.3 DATUM
 def myDamper = RotationalDamper1 3.
 
-def myBar(c: Frame, ea: Frame, we: Frame) = { Bar1 1. 0.2 3. DATUM ea c we }
+def myRJoint(f_1: Frame, f_2: Frame) = {
+  def f = (if seq f_1 DATUM then f_2 else f_1);
+  f_1 -- RevoluteJoint1 -- f_2 ++
+  DATUM -- VisSolid1 (circle 0.2) RED 0.5 -- f
+}
+
+def myBar(c: Frame, we: Frame, ea: Frame) = {
+  def h = 0.2;
+  def l = 3.;
+  def m = 1.;
+  we -- Bar1 m h l DATUM c -- ea ++
+  DATUM -- VisSolid1 (rectangle h l) GREEN 0.5 -- c
+}
 
 def myBar2(ea: Frame, we: Frame) = { def c: Frame; myBar c ea we }
 
@@ -16,6 +28,4 @@ def chain2 = myRJoint -- myBar2 -- myRJoint -- myBar2
 
 def model = DATUM -- chain1 -- f_2 ++ f_1 -- chain2 -- f_3
 
-def main = {
-  elaborateToFile model
-}
+def main = { elaborateToFile model }
