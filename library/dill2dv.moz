@@ -264,7 +264,7 @@ def inSeries2(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
   def (l, f_2) = lf_2;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
-def (<->) = inSeries2
+def (<-.>) = inSeries2
 
 def inSeries(l: ModelFun2, r: ModelFun2) = {
   def f_2: Frame;
