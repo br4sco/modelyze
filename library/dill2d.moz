@@ -451,7 +451,7 @@ def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
 }
 
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
-  ThroughActuator (vec 0. (GRAVITATIONAL_CONSTANT * m)) DATUM f
+  ThroughActuator (vec 0. (m * GRAVITATIONAL_CONSTANT)) DATUM f
 }
 
 def RigidArm(l: Real,

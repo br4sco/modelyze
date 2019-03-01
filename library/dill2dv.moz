@@ -207,10 +207,6 @@ def Body1(m: Real, I: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Body m I DATUM f)
 }
 
-// def Body1(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> ModelElement = {
-//   equationsElement (Body m I rr th DATUM f)
-// }
-
 def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m DATUM f)
 }

@@ -23,8 +23,8 @@ def th_1, x_2, y_2, th_3: Real
 def chain = (myRJoint || myDamper) -- myBar c_1 -- myRJoint -- myBar c_2 -- myRJoint -- myBar c_3 -- myRJoint
 
 def model = DATUM -- (chain || Translation1 3. 0.) -- fp_1
-            ++ DATUM -- RotationController1 th_1 (th_1 <- PI / 3.) -- c_1
+            // ++ DATUM -- RotationController1 th_1 (th_1 <- PI / 3.) -- c_1
             ++ DATUM -- TranslationController1 (vec x_2 y_2) (y_2 <~ 2.) -- c_2
-            ++ DATUM -- RotationController1 th_3 (th_3 <~ -PI / 3.) -- c_3
+            // ++ DATUM -- RotationController1 th_3 (th_3 <~ -PI / 3.) -- c_3
 
 def main = { elaborateToFile model }
