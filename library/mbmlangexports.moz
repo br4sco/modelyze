@@ -21,7 +21,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 include ExportModelica2
 include ExportMatlab
-include DILL2D
+include MbmlangCore
 
 def exportDill2Modelica(name: String, m: Equations) -> String = {
   def (ivs, ie) = getInits m;

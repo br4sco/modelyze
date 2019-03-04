@@ -1,5 +1,6 @@
 echo(false);
 loadFile("/tmp/model.mo");
+getParameterNames();
 cs := getClassNames();
 c := cs[1];
 echo(true);
