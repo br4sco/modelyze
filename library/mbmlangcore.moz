@@ -43,18 +43,16 @@ def (<~) = initGuess
 
 def initEq: <Real> -> <Real> -> Equations
 def (~=) = initEq
-// def initEq: Equations -> Equations
 
-type Vector2
-def vec: Real -> Real -> Vector2
-def v2zero = vec 0. 0.
+type Vector3
+def vec3: Real -> Real -> Real -> Vector3
 
 def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
-def vector2Edge: Node -> Node -> Vector2 -> Vector2 -> Equations
+def vector3edge: Node -> Node -> Vector2 -> Vector2 -> Equations
 
 type ModelEdge = (Edge, (Dyn, Dyn))
 type ScalarEdge = (Edge, (<Real>, <Real>))
-type Vector2Edge = (Edge, (Vector2, Vector2))
+type vector3edge = (Edge, (Vector2, Vector2))
 
 def mkGraph(mes: [ModelEdge]) -> [Edge] = {
   map (fun me: ModelEdge -> fst me) mes
@@ -66,21 +64,43 @@ def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
 
 type InitVal = (<Real>, (Real, Bool))
 
-def i_(v: Vector2) -> <Real> = {
+def i_(v: Vector3) -> <Real> = {
   match v with
-  | vec x _ -> x
+  | vec3 x _ _ -> x
   | _ -> error "Invalid Operand"
 }
 
-def j_(v: Vector2) -> <Real> = {
+def j_(v: Vector3) -> <Real> = {
   match v with
-  | vec _ y -> y
+  | vec3 _ y _ -> y
   | _ -> error "Invalid Operand"
 }
 
-def mkVec = (fun t: () -> { def i, j: Real; vec i j })
-def mkVec(v: (Real, Real)) -> Vector2 = { def (i, j) = v; vec i j }
-// def mkScalar = (fun t: () -> { def s: Real; s })
+def k_(v: Vector3) -> <Real> = {
+  match v with
+  | vec3 _ _ z -> z
+  | _ -> error "Invalid Operand"
+}
+
+def crossProd(l: Vector3, r: Vector3) -> Vector3 = {
+  match l with
+  | vec3 lx ly lz -> {
+      match r with
+      | vec3 rx ry rz -> vec3 (ly * rz - lz * ry) (lx * rz - lz * rx) (lx * ry - ly * rx)
+      | _ -> error "Right operand invalid"
+    }
+  | _ -> error "Left operand invalid"
+}
+
+def innerProd(l: Vector3, r: Vector3) -> <Real> = {
+  match l with
+  | vec3 lx ly lz -> {
+      match r with
+      | vec3 rx ry rz -> lx * rx + ly * ry + lz * rz
+      | _ -> error "Right operand invalid"
+    }
+  | _ -> error "Left operand invalid"
+}
 
 def getUknowns(m: Equations) -> [<Real>] = {
   def f(e: (<Real>, (Int, Bool))) -> <Real> = { fst e };
@@ -98,11 +118,11 @@ def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
   work e ([], NoEqn)
 }
 
-def getVector2Edges(e: Equations) -> ([Vector2Edge], Equations) = {
-  def work(e: Equations, a: ([Vector2Edge], Equations)) -> ([Vector2Edge], Equations) = {
+def getvector3edges(e: Equations) -> ([vector3edge], Equations) = {
+  def work(e: Equations, a: ([vector3edge], Equations)) -> ([vector3edge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | vector2Edge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | vector3edge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -218,17 +238,18 @@ def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equ
   work rs a
 }
 
-def mkVector2TopolEquations(C: MatrixMapInt, pvs: [Vector2], svs: [Vector2], a: Equations)
+def mkVector2TopolEquations(C: MatrixMapInt, pvs: [vector3], svs: [vector3], a: Equations)
   -> Equations = {
-  def bop(c: Int, l: Vector2, r: Vector2) -> Vector2 = {
-    vec (i_ l + (int2real c) * i_ r) (j_ l + (int2real c) * j_ r)
+  def bop(c: Int, l: vector3, r: vector3) -> vector3 = {
+    def c = int2real c;
+    vec3 (i_ l + c * i_ r) (j_ l + c * j_ r) (k_ l + c * k_ r)
   };
   def rs = mkTopolRes bop C pvs svs;
 
-  def work(rs: [Vector2], a: Equations) -> Equations = {
+  def work(rs: [vector3], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; i_ r = 0.; j_ r = 0.)
+    | r::rs -> work rs (a; i_ r = 0.; j_ r = 0.; k_ r = 0.)
     | _ -> error "Unmatched"
   };
 
@@ -250,7 +271,7 @@ def mkTopolEquations(f: (MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equation
 
 def elaborate(e: Equations) -> Equations = {
   def (ses, e) = getScalarEdges e;
-  def (ves, e) = getVector2Edges e;
+  def (ves, e) = getvector3edges e;
   def e = (if isEmpty ses then e else mkTopolEquations mkScalarTopolEquations ses e);
   def e = (if isEmpty ves then e else  mkTopolEquations mkVector2TopolEquations ves e);
   cleanupEquations e
@@ -264,19 +285,20 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-def ThroughActuator(ff: Vector2, aa: Vector2, n_1: Node, n_2: Node)
+def ThroughActuator(ff: vector3, aa: vector3, n_1: Node, n_2: Node)
   -> Equations = {
 
-  def t_x, t_y: Real;
-  def tt = vec t_x t_y;
-  vector2Edge n_1 n_2 aa tt;
+  def t_x, t_y, t_z: Real;
+  def tt = vec3 t_x t_y t_z;
+  vector3edge n_1 n_2 aa tt;
   i_ tt = i_ ff;
-  j_ tt = j_ ff
+  j_ tt = j_ ff;
+  k_ tt = k_ ff;
 }
 
-def ThroughActuator(ff: Vector2, n_1: Node, n_2: Node) -> Equations = {
-  def x_a, y_a: Real;
-  ThroughActuator ff (vec x_a y_a) n_1 n_2
+def ThroughActuator(ff: vector3, n_1: Node, n_2: Node) -> Equations = {
+  def x_a, y_a, z_a: Real;
+  ThroughActuator ff (vec3 x_a y_a z_a) n_1 n_2
 }
 
 def ThroughActuator(f: <Real>, a: <Real>, n_1: Node, n_2: Node)
@@ -287,21 +309,22 @@ def ThroughActuator(f: <Real>, a: <Real>, n_1: Node, n_2: Node)
   t = f
 }
 
-def AcrossActuator(ff: Vector2, tt: Vector2, n_1: Node, n_2: Node)
+def AcrossActuator(ff: vector3, tt: vector3, n_1: Node, n_2: Node)
   -> Equations = {
 
-  def a_x, a_y: Real;
-  def aa = vec a_x a_y;
-  vector2Edge n_1 n_2 aa tt;
+  def a_x, a_y, a_z: Real;
+  def aa = vec3 a_x a_y, a_z;
+  vector3edge n_1 n_2 aa tt;
   i_ aa = i_ ff;
-  j_ aa = j_ ff
+  j_ aa = j_ ff;
+  k_ aa = k_ ff
 }
 
-def AcrossActuator(ff: Vector2, n_1: Node, n_2: Node)
+def AcrossActuator(ff: vector3, n_1: Node, n_2: Node)
   -> Equations = {
 
-  def t_x, t_y: Real;
-  def tt = vec t_x t_y;
+  def t_x, t_y, t_z: Real;
+  def tt = vec3 t_x t_y t_z;
   AcrossActuator ff tt n_1 n_2
 }
 
@@ -318,119 +341,107 @@ def AcrossActuator(f: <Real>, n_1: Node, n_2: Node) -> Equations = {
   AcrossActuator f t n_1 n_2
 }
 
-def AcrossController(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
-  ThroughActuator (vec 0. 0.) aa n_1 n_2
+def AcrossController(aa: vector3, n_1: Node, n_2: Node) -> Equations = {
+  ThroughActuator (vec3 0. 0. 0.) aa n_1 n_2
 }
 
 def AcrossController(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
   ThroughActuator 0. a n_1 n_2
 }
 
-def Body(m: Real, I: Real,
-         rr: Vector2,
-         vv: Vector2,
-         FF: Vector2,
-         th: <Real>,
-         om: <Real>,
-         T: <Real>,
-         DATUM: Frame, f: Frame) -> Equations = {
-
+def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
+  def x_m, y_m, z_m, vx_m, vy_m, vx_m, Fx_m, Fy_m, Fz_m, om_m, T_m: Real;
+  def rr = vec3 x_m y_m z_m;
+  def vv = vec3 vx_m vy_m vz_m;
+  def FF = vec3 Fx_m Fy_m Fz_m;
   scalarEdge DATUM f th T;
-  vector2Edge DATUM f rr FF;
+  vector3edge DATUM f rr FF;
   (i_ rr)' = i_ vv;
   (j_ rr)' = j_ vv;
+  (k_ rr)' = k_ vv;
   i_ FF = m * (i_ vv)';
   j_ FF = m * (j_ vv)';
+  k_ FF = m * (k_ vv)';
   th' = om;
   T = I * om'
 }
 
-def Body(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> Equations = {
-  def vx_m, vy_m, Fx_m, Fy_m, om_m, T_m: Real;
-  Body m I rr (vec vx_m vy_m) (vec Fx_m Fy_m) th om_m T_m DATUM f
-}
-
-def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
-  def x_m, y_m, th_m: Real;
-  Body m I (vec x_m y_m) th_m DATUM f
-}
-
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
-  ThroughActuator (vec 0. (m * GRAVITATIONAL_CONSTANT)) DATUM f
+  ThroughActuator (vec3 0. (m * GRAVITATIONAL_CONSTANT) 0.) DATUM f
 }
 
-def RigidArm(l: Real,
-             rr: Vector2,
-             FF: Vector2,
-             th_1: <Real>,
-             T_1: <Real>,
-             th_2: <Real>,
-             T_2: <Real>,
-             DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-
+def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def x_r1, y_r1, z_r1, vx_r1, vy_r1, vz_r1, Fx_r1, Fy_r1, Fz_r1: Real;
+  def th_r1, om_r1, T_r1, th_r2, om_r2, T_r2: Real;
+  def rr_r1 = vec3 x_r1 y_r1 z_r1;
+  def vv_r1 = vec3 vx_r1 vy_r1 vz_r1;
+  def FF_r1 = vec3 Fx_r1 Fy_r1 Fz_r1;
+  def om_r2_X_rr_r1 = crossProd (vec3 0. 0. om_r2) rr_r1;
+  def rr_r1_X_FF_r1 = crossProd rr_r1 FF_r1;
   scalarEdge f_2 f_1 th_1 T_1;
   scalarEdge DATUM f_2 th_2 T_2;
-  vector2Edge f_2 f_1 rr FF;
-  i_ rr = -l * cos th_2;
-  j_ rr = -l * sin th_2;
-  th_1 = 0.;
-  T_2 = l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
+  vector3edge f_2 f_1 rr_r1 FF_r1;
+  i_ rr_r1 = -x;
+  j_ rr_r1 = -y;
+  k_ rr_r1 = -z;
+  i_ vv_r1 = i_ om_r2_X_rr_r1;
+  j_ vv_r1 = j_ om_r2_X_rr_r1;
+  z_ vv_r1 = z_ om_r2_X_rr_r1;
+  th_r1' = om_r1;
+  om_r1 = 0.;
+  th_r2' = om_r2;
+  T_2 = -(z_ rr_r1_X_FF_r1)
 }
 
-def RigidArm(l: Real, f_1: Frame, f_2: Frame, f_3: Frame) -> Equations = {
-  def x_r1, y_r1, Fx_r1, Fy_r1, th_r1, T_r1, th_r2, T_r2: Real;
-  RigidArm l (vec x_r1 y_r1) (vec Fx_r1 Fy_r1) th_r1 T_r1 th_r2 T_r2 f_1 f_2 f_3
-}
+// def NoAcceleration(rr: vector3, vv: vector3, f_1: Frame, f_2: Frame) -> Equations = {
+//   def Fx_i, Fy_i, th_i, T_i: Real;
+//   vector3edge f_1 f_2 rr (vec3 Fx_i Fy_i);
+//   scalarEdge f_1 f_2 th_i T_i;
+//   (i_ rr)' = i_ vv;
+//   (j_ rr)' = j_ vv;
+//   (i_ vv)' = 0.;
+//   (j_ vv)' = 0.;
+//   th_i = 0.
+// }
 
-def NoAcceleration(rr: Vector2, vv: Vector2, f_1: Frame, f_2: Frame) -> Equations = {
-  def Fx_i, Fy_i, th_i, T_i: Real;
-  vector2Edge f_1 f_2 rr (vec Fx_i Fy_i);
-  scalarEdge f_1 f_2 th_i T_i;
-  (i_ rr)' = i_ vv;
-  (j_ rr)' = j_ vv;
-  (i_ vv)' = 0.;
-  (j_ vv)' = 0.;
-  th_i = 0.
-}
+// def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
+//   def x_i, y_i, vx_i, vy_i: Real;
+//   NoAcceleration (vec3 x_i y_i) (vec3 vx_i vy_i) f_1 f_2
+// }
 
-def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
-  def x_i, y_i, vx_i, vy_i: Real;
-  NoAcceleration (vec x_i y_i) (vec vx_i vy_i) f_1 f_2
-}
+// def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
+//   AcrossActuator (vec3 0. 0.) f_1 f_2
+// }
 
-def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
-  AcrossActuator (vec 0. 0.) f_1 f_2
-}
+// def Bar(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> Equations = {
+//   def I = h * l * (h^2. + l^2.) / 12.;
+//   RigidArm (l / 2.) DATUM we c;
+//   RigidArm (l / 2.) DATUM c ea;
+//   Body m I DATUM c;
+//   Gravity m DATUM c
+// }
 
-def Bar(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> Equations = {
-  def I = h * l * (h^2. + l^2.) / 12.;
-  RigidArm (l / 2.) DATUM we c;
-  RigidArm (l / 2.) DATUM c ea;
-  Body m I DATUM c;
-  Gravity m DATUM c
-}
+// def Bar(m: Real, h: Real, l: Real, rr: vector3, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> Equations = {
+//   def c: Frame;
+//   def I = h * l * (h^2. + l^2.) / 12.;
+//   RigidArm (l / 2.) DATUM we c;
+//   RigidArm (l / 2.) DATUM c ea;
+//   Body m I rr th DATUM c;
+//   Gravity m DATUM c
+// }
 
-def Bar(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> Equations = {
-  def c: Frame;
-  def I = h * l * (h^2. + l^2.) / 12.;
-  RigidArm (l / 2.) DATUM we c;
-  RigidArm (l / 2.) DATUM c ea;
-  Body m I rr th DATUM c;
-  Gravity m DATUM c
-}
+// def Translation(x: Real, y: Real, f_1: Frame, f_2: Frame) -> Equations = {
+//   AcrossActuator (vec3 x y) f_1 f_2
+//   // ; AcrossActuator 0. f_1 f_2
+// }
 
-def Translation(x: Real, y: Real, f_1: Frame, f_2: Frame) -> Equations = {
-  AcrossActuator (vec x y) f_1 f_2
-  // ; AcrossActuator 0. f_1 f_2
-}
+// def Rotation(th: Real, f_1: Frame, f_2: Frame) -> Equations = {
+//   AcrossActuator th f_1 f_2
+//   // ; AcrossActuator (vec3 0. 0.) f_1 f_2
+// }
 
-def Rotation(th: Real, f_1: Frame, f_2: Frame) -> Equations = {
-  AcrossActuator th f_1 f_2
-  // ; AcrossActuator (vec 0. 0.) f_1 f_2
-}
-
-def RotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
-  def th_d, T_d: Real;
-  scalarEdge f_1 f_2 th_d T_d;
-  T_d = D * th_d'
-}
+// def RotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
+//   def th_d, T_d: Real;
+//   scalarEdge f_1 f_2 th_d T_d;
+//   T_d = D * th_d'
+// }

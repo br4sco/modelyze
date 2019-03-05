@@ -29,17 +29,17 @@ type Color = String
 type Material
 def stdMaterial: Color -> Real -> Material
 
-type Geometry2D
-def rectangle: Real -> Real -> Geometry2D
-def circle: Real -> Geometry2D
+type Geometry3D
+def cubiod: Real -> Real -> Real -> Geometry3D
+def sphere: Real -> Geometry3D
 
 type VisualData
-def visualSolid: Geometry2D -> Material -> VisualData
+def visualSolid: Geometry3D -> Material -> VisualData
 def visualAxes: Real -> VisualData
 
 type ModelElement
 def (++) : ModelElement -> ModelElement -> ModelElement
-def visualElement: Vector2 -> <Real> -> VisualData -> ModelElement
+def visualElement: Vector3 -> <Real> -> VisualData -> ModelElement
 def equationsElement: Equations -> ModelElement
 def NoElement: ModelElement
 
@@ -101,22 +101,23 @@ def real2JSONstring(r: Real) -> String = {
   else real2string r
 }
 
-def geometry2JSON(g: Geometry2D) -> String = {
+def geometry2JSON(g: Geometry3D) -> String = {
   match g with
-  | rectangle (sval h: Real) (sval w: Real) -> "{ " ++
-                                    "\"type\": \"Rectangle\", " ++
+  | cubiod (sval h: Real) (sval w: Real) (sval d: Real) -> "{ " ++
+                                    "\"type\": \"Cubiod\", " ++
                                     "\"height\": " ++ real2JSONstring h ++ ", " ++
-                                    "\"width\": " ++ real2JSONstring w ++
+                                    "\"width\": " ++ real2JSONstring w ++ ", " ++
+                                    "\"depth\": " ++ real2JSONstring d ++
                                     " }"
 
-  | circle (sval r: Real) -> "{ " ++
-                             "\"type\": \"Circle\", " ++
+  | sphere (sval r: Real) -> "{ " ++
+                             "\"type\": \"Sphere\", " ++
                              "\"radius\": " ++ real2JSONstring r ++
                              " }"
-  | _ -> error "Unmatched Geometry2D"
+  | _ -> error "Unmatched Geometry3D"
 }
 
-// def frameToJSON(rr: Vector2, th: <Real>, u: Real) -> String = {
+// def frameToJSON(rr: Vector3, th: <Real>, u: Real) -> String = {
 //   "{ \"type\": Frame, \"units\": "   "}"
 // }
 
@@ -150,10 +151,11 @@ def visualElement2Json(o: ModelElement) -> String = {
   def work(o: ModelElement) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
-    | visualElement (vec x y) th vo -> {
+    | visualElement (vec3 x y z) th vo -> {
                                       "{ " ++
                                       "\"x\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"y\": \"" ++ symstr(y) ++ "\", " ++
+                                      "\"z\": \"" ++ symstr(z) ++ "\", " ++
                                       "\"th\": \"" ++ symstr(th) ++ "\", " ++
                                       "\"data\": " ++ visualData2Json vo ++
                                       " }"}
@@ -215,19 +217,19 @@ def RigidArm1(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RigidArm l DATUM f_1 f_2)
 }
 
-def RevoluteJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RevoluteJoint f_1 f_2)
-}
+// def RevoluteJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RevoluteJoint f_1 f_2)
+// }
 
-def Translation1(x: Real, y: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (Translation x y f_1 f_2)
-}
+// def Translation1(x: Real, y: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (Translation x y f_1 f_2)
+// }
 
-def TranslationController1(rr: Vector2, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
+def TranslationController1(rr: Vector3, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (ie; AcrossController rr f_1 f_2)
 }
 
-def TranslationController1(rr: Vector2, f_1: Frame, f_2: Frame) -> ModelElement = {
+def TranslationController1(rr: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (AcrossController rr f_1 f_2)
 }
 
@@ -247,15 +249,15 @@ def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (RotationalDamper D f_1 f_2)
 }
 
-def VisSolid1(g: Geometry2D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
-  def x, y, th: Real;
-  def rr = vec x y;
+def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+  def x, y, z, th: Real;
+  def rr = vec3 x y z;
   DATUM -- (TranslationController1(rr) || RotationController1(th)) -- f ++
   visualElement rr th (visualSolid g (stdMaterial c opacity))
 }
 
-def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  def I = h * l * (h^2. + l^2.) / 12.;
-  DATUM -- (Body1 m I || Gravity1 m ) -- c ++
-  we -- RigidArm1 (l / 2.) DATUM -.- c -.- RigidArm1 (l / 2.) DATUM -- ea
-}
+// def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+//   def I = h * l * (h^2. + l^2.) / 12.;
+//   DATUM -- (Body1 m I || Gravity1 m ) -- c ++
+//   we -- RigidArm1 (l / 2.) DATUM -.- c -.- RigidArm1 (l / 2.) DATUM -- ea
+// }
