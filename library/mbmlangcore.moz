@@ -52,7 +52,7 @@ def vector3edge: Node -> Node -> Vector3 -> Vector3 -> Equations
 
 type ModelEdge = (Edge, (Dyn, Dyn))
 type ScalarEdge = (Edge, (<Real>, <Real>))
-type vector3edge = (Edge, (Vector3, Vector3))
+type Vector3Edge = (Edge, (Vector3, Vector3))
 
 def mkGraph(mes: [ModelEdge]) -> [Edge] = {
   map (fun me: ModelEdge -> fst me) mes
@@ -118,8 +118,8 @@ def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
   work e ([], NoEqn)
 }
 
-def getvector3edges(e: Equations) -> ([vector3edge], Equations) = {
-  def work(e: Equations, a: ([vector3edge], Equations)) -> ([vector3edge], Equations) = {
+def getvector3edges(e: Equations) -> ([Vector3Edge], Equations) = {
+  def work(e: Equations, a: ([Vector3Edge], Equations)) -> ([Vector3Edge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | vector3edge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)

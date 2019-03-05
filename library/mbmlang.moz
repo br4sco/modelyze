@@ -153,9 +153,9 @@ def visualElement2Json(o: ModelElement) -> String = {
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
     | visualElement (vec3 x y z) th vo -> {
                                       "{ " ++
-                                      "\"x\": \"" ++ symstr(x) ++ "\", " ++
-                                      "\"y\": \"" ++ symstr(y) ++ "\", " ++
-                                      "\"z\": \"" ++ symstr(z) ++ "\", " ++
+                                      "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
+                                      "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
+                                      "\"zLabel\": \"" ++ symstr(z) ++ "\", " ++
                                       "\"th\": \"" ++ symstr(th) ++ "\", " ++
                                       "\"data\": " ++ visualData2Json vo ++
                                       " }"}
@@ -198,9 +198,9 @@ def getModel(o: ModelElement) -> Equations = {
 }
 
 def elaborateToFile(o: ModelElement) -> () = {
-  def m = getModel o;
-  def vo = getVisualElements o;
-  def vo = cleanupModelElements vo;
+  def m = dprintln (getModel o);
+  def vo = dprintln (getVisualElements o);
+  def vo = dprintln (cleanupModelElements vo);
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
   writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
