@@ -213,8 +213,8 @@ def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m DATUM f)
 }
 
-def RigidArm1(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RigidArm l DATUM f_1 f_2)
+def RigidArm1(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RigidArm x y z DATUM f_1 f_2)
 }
 
 // def RevoluteJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
@@ -238,7 +238,7 @@ def RotationController1(th: <Real>, ie: Equations, f_1: Frame, f_2: Frame) -> Mo
 }
 
 def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (Translation 0. 0. f_1 f_2)
+  equationsElement (Rotation th f_1 f_2)
 }
 
 def RotationController1(th: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
