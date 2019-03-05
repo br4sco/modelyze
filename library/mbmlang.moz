@@ -30,7 +30,7 @@ type Material
 def stdMaterial: Color -> Real -> Material
 
 type Geometry3D
-def cubiod: Real -> Real -> Real -> Geometry3D
+def cuboid: Real -> Real -> Real -> Geometry3D
 def sphere: Real -> Geometry3D
 
 type VisualData
@@ -103,8 +103,8 @@ def real2JSONstring(r: Real) -> String = {
 
 def geometry2JSON(g: Geometry3D) -> String = {
   match g with
-  | cubiod (sval h: Real) (sval w: Real) (sval d: Real) -> "{ " ++
-                                    "\"type\": \"Cubiod\", " ++
+  | cuboid (sval h: Real) (sval w: Real) (sval d: Real) -> "{ " ++
+                                    "\"type\": \"Cuboid\", " ++
                                     "\"height\": " ++ real2JSONstring h ++ ", " ++
                                     "\"width\": " ++ real2JSONstring w ++ ", " ++
                                     "\"depth\": " ++ real2JSONstring d ++
@@ -176,8 +176,7 @@ def getVisualElements(o: ModelElement) -> ModelElement = {
 
 def cleanupModelElements(o: ModelElement) -> ModelElement = {
     match o with
-    | o_1 ++ o_2 ->
-       {
+    | o_1 ++ o_2 -> {
           match (cleanupModelElements o_1, cleanupModelElements o_2) with
           | (NoElement, NoElement) -> NoElement
           | (NoElement, o) -> o
