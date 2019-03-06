@@ -39,7 +39,7 @@ def visualAxes: Real -> VisualData
 
 type ModelElement
 def (++) : ModelElement -> ModelElement -> ModelElement
-def visualElement: Vector3 -> <Real> -> VisualData -> ModelElement
+def visualElement: Vector3 -> Quaternion -> VisualData -> ModelElement
 def equationsElement: Equations -> ModelElement
 def NoElement: ModelElement
 
@@ -151,13 +151,16 @@ def visualElement2Json(o: ModelElement) -> String = {
   def work(o: ModelElement) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
-    | visualElement (vec3 x y z) th vo -> {
+    | visualElement (vec3 x y z) (quat w i j k) vd -> {
                                       "{ " ++
                                       "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
                                       "\"zLabel\": \"" ++ symstr(z) ++ "\", " ++
-                                      "\"th\": \"" ++ symstr(th) ++ "\", " ++
-                                      "\"data\": " ++ visualData2Json vo ++
+                                      "\"wLabel\": \"" ++ symstr(w) ++ "\", " ++
+                                      "\"iLabel\": \"" ++ symstr(i) ++ "\", " ++
+                                      "\"jLabel\": \"" ++ symstr(j) ++ "\", " ++
+                                      "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
+                                      "\"data\": " ++ visualData2Json vd ++
                                       " }"}
     | _ -> error "Expected only visualElement"
   };
@@ -225,34 +228,36 @@ def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
 // }
 
 def TranslationController1(rr: Vector3, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (ie; AcrossController rr f_1 f_2)
+  equationsElement (ie; TranslationController rr f_1 f_2)
 }
 
 def TranslationController1(rr: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (AcrossController rr f_1 f_2)
+  equationsElement (TranslationController rr f_1 f_2)
 }
 
-def RotationController1(th: <Real>, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (ie; AcrossController th f_1 f_2)
+def RotationController1(qth: Quaternion, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (ie; RotationController qth f_1 f_2)
 }
 
-def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (Rotation th f_1 f_2)
+// def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (Rotation th f_1 f_2)
+// }
+
+def RotationController1(qth: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RotationController qth f_1 f_2)
 }
 
-def RotationController1(th: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (AcrossController th f_1 f_2)
-}
-
-def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RotationalDamper D f_1 f_2)
-}
+// def RotationalDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RotationalDamper D f_1 f_2)
+// }
 
 def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
-  def x, y, z, th: Real;
+  def x, y, z: Real;
+  def w, i, j, k: Real;
   def rr = vec3 x y z;
-  DATUM -- (TranslationController1(rr) || RotationController1(th)) -- f ++
-  visualElement rr th (visualSolid g (stdMaterial c opacity))
+  def qth = quat w i j k;
+  DATUM -- (TranslationController1(rr) || RotationController1(qth)) -- f ++
+  visualElement rr qth (visualSolid g (stdMaterial c opacity))
 }
 
 // def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
