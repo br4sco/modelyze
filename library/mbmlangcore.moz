@@ -200,8 +200,13 @@ def v3eq(l: Vector3, r: Vector3) -> Equations = { x_ l = x_ r; y_ l = y_ r; z_ l
 def v3der(v: Vector3) -> Vector3 = { vec3 ((x_ v)') ((y_ v)') ((z_ v)') }
 
 def qeq(l: Quaternion, r: Quaternion) -> Equations = {
-    // w_ l = w_ r;
+    w_ l = w_ r;
     i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }
+
+def L(q: Quaternion, v: Vector3) -> Vector3 = {
+  def wv = quatProd (quatProd q (quat 0. (x_ v) (y_ v) (z_ v))) (conj q);
+  vec3 (i_ wv) (j_ wv) (k_ wv)
+}
 
 def v3init(v: Vector3, iv: (Real, Real, Real)) -> Equations = {
   def (x_0, y_0, z_0) = iv;
@@ -546,25 +551,14 @@ def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) ->
   def th_1 = quat w_r1 i_r1 j_r1 k_r1;
   def T_1 = vec3 Tx_r1 Ty_r1 Tz_r1;
 
-  def w_r2, i_r2, j_r2, k_r2, omx_r2, omy_r2, omz_r2, Tx_r2, Ty_r2, Tz_r2: Real;
+  def w_r2, i_r2, j_r2, k_r2, Tx_r2, Ty_r2, Tz_r2: Real;
   def th_2 = quat w_r2 i_r2 j_r2 k_r2;
-  def om_2 = vec3 omx_r2 omy_r2 omz_r2;
   def T_2 = vec3 Tx_r2 Ty_r2 Tz_r2;
 
-  def om_X_r = crossProd om_2 r_1;
-  def r_X_F = crossProd r_1 F_1;
+  def r = vec3 x y z;
+  def r_X_F = crossProd r F_1;
 
-  translationEdge f_1 f_2 r_1 F_1;
-  rotationEdge f_1 f_2 th_1 T_1;
-  rotationEdge DATUM f_1 th_2 T_2;
-
-  mkAngularVelocityEqs om_2 th_2;
-  norm2 th_2 = 1.;
-
-  v3eq r_1 (vec3 x y z);
-  v3eq v_1 om_X_r;
-  qeq th_1 (quat 1. 0. 0. 0.);
-  x_ T_2 = -(x_ r_X_F);
-  y_ T_2 = -(y_ r_X_F);
-  z_ T_2 = -(z_ r_X_F)
+  translationEdge f_2 f_1 r_1 F_1;
+  rotationEdge f_2 f_1 th_1 T_1;
+  rotationEdge DATUM f_1 th_2 T_2;)
 }
