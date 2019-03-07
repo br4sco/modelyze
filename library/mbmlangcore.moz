@@ -50,9 +50,6 @@ def vec3: Real -> Real -> Real -> Vector3
 type Quaternion
 def quat: Real -> Real -> Real -> Real -> Quaternion
 
-type EulerAxisAngle
-def eaa: Real -> Real -> Real -> Real -> EulerAxisAngle
-
 def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def translationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
 def rotationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
@@ -71,6 +68,9 @@ def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
 }
 
 type InitVal = (<Real>, (Real, Bool))
+
+def mkVec3 = fun t: () -> { def x, y, z: Real; vec3 x y z }
+def mkQaut = fun t: () -> { def w, i, j, k :Real; quat w i j k }
 
 def x_(v: Vector3) -> <Real> = {
   match v with
@@ -114,13 +114,9 @@ def k_(q: Quaternion) -> <Real> = {
   | _ -> error "Invalid Operand"
 }
 
-def eaa2q(eaa: EulerAxisAngle) -> Quaternion = {
-  match eaa with
-  | eaa x y z th -> {
-      def c = (sin (th / 2.)) / (sqrt (x^2. + y^2. + z^2.));
-      quat (cos (th / 2.)) (c * x) (c * y) (c * z)
-    }
-  | _ -> error "Invalid Operand"
+def eaa2q(x: Real, y: Real, z: Real, th: Real) -> (Real, Real, Real, Real) = {
+  def c = (sin (th / 2.)) / (sqrt (x^2. + y^2. + z^2.));
+  (cos (th / 2.), c * x, c * y, c * z)
 }
 
 def sv32q(s: <Real>, v: Vector3) -> Quaternion = {
@@ -197,7 +193,19 @@ def v3eq(l: Vector3, r: Vector3) -> Equations = { x_ l = x_ r; y_ l = y_ r; z_ l
 
 def v3der(v: Vector3) -> Vector3 = { vec3 ((x_ v)') ((y_ v)') ((z_ v)') }
 
-def qeq(l: Quaternion, r: Quaternion) -> Equations = { w_ l = w_ r; i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }
+def qeq(l: Quaternion, r: Quaternion) -> Equations = {
+// w_ l = w_ r;
+i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }
+
+def v3init(v: Vector3, iv: (Real, Real, Real)) -> Equations = {
+  def (x_0, y_0, z_0) = iv;
+  x_ v <~ x_0; y_ v <~ y_0; z_ v <~ z_0
+}
+
+def qinit(q: Quaternion, iv: (Real, Real, Real, Real)) -> Equations = {
+  def (w_0, i_0, j_0, k_0) = iv;
+  w_ q <~ w_0; i_ q <~ i_0; j_ q <~ j_0; k_ q <~ k_0
+}
 
 def getUknowns(m: Equations) -> [<Real>] = {
   def f(e: (<Real>, (Int, Bool))) -> <Real> = { fst e };
@@ -381,8 +389,8 @@ def elaborate(e: Equations) -> Equations = {
   def (tes, e) = getTranslationEdges e;
   def (res, e) = getRotationEdges e;
   def e = (if isEmpty ses then e else mkTopolEquations mkScalarTopolEquations ses e);
-  def e = (if isEmpty tes then e else  mkTopolEquations mkVector3TopolEquations tes e);
-  def e = (if isEmpty res then e else  mkTopolEquations mkVector3TopolEquations res e);
+  def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations tes e);
+  def e = (if isEmpty res then e else mkTopolEquations mkVector3TopolEquations res e);
   cleanupEquations e
 }
 
@@ -394,159 +402,145 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-def ForceActuator(ff: Vector3, rr: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def ForceActuator(f: Vector3, r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def Fx_a, Fy_a, Fz_a: Real;
-  def FF = vec3 Fx_a Fy_a Fz_a;
-  translationEdge f_1 f_2 rr FF;
-  v3eq FF ff
+  def F = vec3 Fx_a Fy_a Fz_a;
+  translationEdge f_1 f_2 r F;
+  v3eq F f
 }
 
-def ForceActuator(ff: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def ForceActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def x_a, y_a, z_a: Real;
-  ForceActuator ff (vec3 x_a y_a z_a) f_1 f_2
+  ForceActuator f (vec3 x_a y_a z_a) f_1 f_2
 }
 
-def TranslationActuator(ff: Vector3, FF: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def TranslationActuator(f: Vector3, F: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def x_a, y_a, z_a: Real;
-  def rr = vec3 x_a y_a z_a;
-  translationEdge f_1 f_2 rr FF;
-  v3eq rr ff
+  def r = vec3 x_a y_a z_a;
+  translationEdge f_1 f_2 r F;
+  v3eq r f
 }
 
-def TranslationActuator(ff: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def TranslationActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def Fx_a, Fy_a, Fz_a: Real;
-  TranslationActuator ff (vec3 Fx_a Fy_a Fz_a) f_1 f_2
+  TranslationActuator f (vec3 Fx_a Fy_a Fz_a) f_1 f_2
 }
 
-def RotationActuator(qf: Quaternion, TT: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def RotationActuator(f: Quaternion, T: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def w_a, i_a, j_a, k_a, omx_a, omy_a, omz_a: Real;
-  def qth = quat w_a i_a j_a k_a;
-  def oom = vec3 omx_a omy_a omz_a;
-  rotationEdge f_1 f_2 oom TT;
-  mkAngularVelocityEqs oom qth;
-  qeq qth qf
+  def th = quat w_a i_a j_a k_a;
+  def om = vec3 omx_a omy_a omz_a;
+  rotationEdge f_1 f_2 om T;
+  mkAngularVelocityEqs om th;
+  qeq th f
 }
 
-def RotationActuator(qf: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+def RotationActuator(f: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def Tx_a, Ty_a, Tz_a: Real;
-  RotationActuator qf (vec3 Tx_a Ty_a Tz_a) f_1 f_2
+  RotationActuator f (vec3 Tx_a Ty_a Tz_a) f_1 f_2
 }
 
-def TorqueActuator(ff: Vector3, qth: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+// def RotationVelocityActuator(f: Vector3, T: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+//   def omx_a, omy_a, omz_a: Real;
+//   def om = vec3 omx_a omy_a omz_a;
+//   rotationEdge f_1 f_2 om T;
+//   v3eq om f
+// }
+
+// def RotationVelocityActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+//   def Tx_a, Ty_a, Tz_a: Real;
+//   RotationVelocityActuator f (vec3 Tx_a Ty_a Tz_a) f_1 f_2
+// }
+
+def TorqueActuator(f: Vector3, th: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def Tx_a, Ty_a, Tz_a, omx_a, omy_a, omz_a: Real;
-  def TT = vec3 Tx_a Ty_a Tz_a;
-  def oom = vec3 omx_a omy_a omz_a;
-  rotationEdge f_1 f_2 oom TT;
-  mkAngularVelocityEqs oom qth;
-  v3eq TT ff
+  def T = vec3 Tx_a Ty_a Tz_a;
+  def om = vec3 omx_a omy_a omz_a;
+  rotationEdge f_1 f_2 om T;
+  mkAngularVelocityEqs om th;
+  v3eq T f
 }
 
-def TorqueActuator(ff: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def TorqueActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def w_a, i_a, j_a, k_a: Real;
-  TorqueActuator ff (quat w_a i_a j_a k_a) f_1 f_2
+  TorqueActuator f (quat w_a i_a j_a k_a) f_1 f_2
 }
 
-def TranslationController(rr: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-  ForceActuator (vec3 0. 0. 0.) rr f_1 f_2
+def TranslationController(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  ForceActuator (vec3 0. 0. 0.) r f_1 f_2
 }
 
-def RotationController(qth: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-  RotationActuator qth (vec3 0. 0. 0.) f_1 f_2
+def RotationController(th: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+  TorqueActuator (vec3 0. 0. 0.) th f_1 f_2
 }
 
-def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
+// def RotationVelocityController(om: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+//   RotationVelocityActuator om (vec3 0. 0. 0.) f_1 f_2
+// }
+
+def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = {
+  def (I_xx, I_yy, I_zz) = I;
   def x_m, y_m, z_m, vx_m, vy_m, vz_m, Fx_m, Fy_m, Fz_m: Real;
   def w_m, i_m, j_m, k_m, omx_m, omy_m, omz_m, Tx_m, Ty_m, Tz_m: Real;
-  def rr = vec3 x_m y_m z_m;
-  def vv = vec3 vx_m vy_m vz_m;
-  def FF = vec3 Fx_m Fy_m Fz_m;
-  def qth = quat w_m i_m j_m k_m;
-  def oom = vec3 omx_m omy_m omz_m;
-  def TT = vec3 Tx_m Ty_m Tz_m;
-  rotationEdge DATUM f oom TT;
-  translationEdge DATUM f rr FF;
-  v3eq (v3der rr) vv;
-  v3eq FF (scalarProd m (v3der vv));
-  mkAngularVelocityEqs oom qth;
-  v3eq (v3der oom) TT
+  def r = vec3 x_m y_m z_m;
+  def v = vec3 vx_m vy_m vz_m;
+  def F = vec3 Fx_m Fy_m Fz_m;
+  def th = quat w_m i_m j_m k_m;
+  def om = vec3 omx_m omy_m omz_m;
+  def T = vec3 Tx_m Ty_m Tz_m;
+
+  rotationEdge DATUM f om T;
+  translationEdge DATUM f r F;
+  mkAngularVelocityEqs om th;
+  v3eq (v3der r) v;
+
+  x_ F = m * (x_ v)';
+  y_ F = m * (y_ v)';
+  z_ F = m * (z_ v)';
+
+  x_ T = (I_xx * (x_ om)' + (I_zz - I_yy) * y_ om * z_ om);
+  y_ T = (I_yy * (y_ om)' + (I_xx - I_zz) * z_ om * x_ om);
+  z_ T = (I_zz * (z_ om)' + (I_yy - I_xx) * x_ om * y_ om)
 }
 
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
   ForceActuator (vec3 0. (m * GRAVITATIONAL_CONSTANT) 0.) DATUM f
 }
 
-// def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-//   def x_r1, y_r1, z_r1, vx_r1, vy_r1, vz_r1, Fx_r1, Fy_r1, Fz_r1: Real;
-//   def th_r1, om_r1, T_r1, th_r2, om_r2, T_r2: Real;
-//   def rr_r1 = vec3 x_r1 y_r1 z_r1;
-//   def vv_r1 = vec3 vx_r1 vy_r1 vz_r1;
-//   def FF_r1 = vec3 Fx_r1 Fy_r1 Fz_r1;
-//   def om_r2_X_rr_r1 = crossProd (vec3 0. 0. om_r2) rr_r1;
-//   def rr_r1_X_FF_r1 = crossProd rr_r1 FF_r1;
-//   scalarEdge f_2 f_1 th_r1 T_r1;
-//   scalarEdge DATUM f_2 th_r2 T_r2;
-//   vector3Edge f_2 f_1 rr_r1 FF_r1;
-//   i_ rr_r1 = -x;
-//   j_ rr_r1 = -y;
-//   k_ rr_r1 = -z;
-//   i_ vv_r1 = i_ om_r2_X_rr_r1;
-//   j_ vv_r1 = j_ om_r2_X_rr_r1;
-//   k_ vv_r1 = k_ om_r2_X_rr_r1;
-//   th_r1' = om_r1;
-//   om_r1 = 0.;
-//   th_r2' = om_r2;
-//   T_r2 = -(k_ rr_r1_X_FF_r1)
-// }
+def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
+  TranslationActuator (vec3 0. 0. 0.) f_1 f_2
+}
 
-// def NoAcceleration(rr: Vector3, vv: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def Fx_i, Fy_i, th_i, T_i: Real;
-//   vector3Edge f_1 f_2 rr (vec3 Fx_i Fy_i);
-//   scalarEdge f_1 f_2 th_i T_i;
-//   (i_ rr)' = i_ vv;
-//   (j_ rr)' = j_ vv;
-//   (i_ vv)' = 0.;
-//   (j_ vv)' = 0.;
-//   th_i = 0.
-// }
+def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def x_r1, y_r1, z_r1, vx_r1, vy_r1, vz_r1, Fx_r1, Fy_r1, Fz_r1: Real;
+  def r_1 = vec3 x_r1 y_r1 z_r1;
+  def v_1 = vec3 vx_r1 vy_r1 vz_r1;
+  def F_1 = vec3 Fx_r1 Fy_r1 Fz_r1;
 
-// def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
-//   def x_i, y_i, vx_i, vy_i: Real;
-//   NoAcceleration (vec3 x_i y_i) (vec3 vx_i vy_i) f_1 f_2
-// }
+  def w_r1, i_r1, j_r1, k_r1, omx_r1, omy_r1, omz_r1, Tx_r1, Ty_r1, Tz_r1: Real;
+  def th_1 = quat w_r1 i_r1 j_r1 k_r1;
+  def om_1 = vec3 omx_r1 omy_r1 omz_r1;
+  def T_1 = vec3 Tx_r1 Ty_r1 Tz_r1;
 
-// def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
-//   AcrossActuator (vec3 0. 0.) f_1 f_2
-// }
+  def w_r2, i_r2, j_r2, k_r2, omx_r2, omy_r2, omz_r2, Tx_r2, Ty_r2, Tz_r2: Real;
+  def th_2 = quat w_r2 i_r2 j_r2 k_r2;
+  def om_2 = vec3 omx_r2 omy_r2 omz_r2;
+  def T_2 = vec3 Tx_r2 Ty_r2 Tz_r2;
 
-// def Bar(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> Equations = {
-//   def I = h * l * (h^2. + l^2.) / 12.;
-//   RigidArm (l / 2.) DATUM we c;
-//   RigidArm (l / 2.) DATUM c ea;
-//   Body m I DATUM c;
-//   Gravity m DATUM c
-// }
+  def om_X_r = crossProd om_2 r_1;
+  def r_X_F = crossProd r_1 F_1;
 
-// def Bar(m: Real, h: Real, l: Real, rr: Vector3, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> Equations = {
-//   def c: Frame;
-//   def I = h * l * (h^2. + l^2.) / 12.;
-//   RigidArm (l / 2.) DATUM we c;
-//   RigidArm (l / 2.) DATUM c ea;
-//   Body m I rr th DATUM c;
-//   Gravity m DATUM c
-// }
+  translationEdge f_1 f_2 r_1 F_1;
+  rotationEdge f_1 f_2 om_1 T_1;
+  rotationEdge DATUM f_1 om_2 T_2;
 
-// def Translation(x: Real, y: Real, f_1: Frame, f_2: Frame) -> Equations = {
-//   AcrossActuator (vec3 x y) f_1 f_2
-//   // ; AcrossActuator 0. f_1 f_2
-// }
+  mkAngularVelocityEqs om_1 th_1;
+  mkAngularVelocityEqs om_2 th_2;
 
-// def Rotation(th: Real, f_1: Frame, f_2: Frame) -> Equations = {
-//   AcrossActuator th f_1 f_2
-//   // ; AcrossActuator (vec3 0. 0. 0.) f_1 f_2
-// }
-
-// def RotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
-//   def th_d, T_d: Real;
-//   scalarEdge f_1 f_2 th_d T_d;
-//   T_d = D * th_d'
-// }
+  v3eq r_1 (vec3 x y z);
+  v3eq v_1 om_X_r;
+  v3eq om_1 (vec3 0. 0. 0.);
+  x_ T_1 = -(x_ r_X_F);
+  y_ T_1 = -(y_ r_X_F);
+  z_ T_1 = -(z_ r_X_F)
+}
