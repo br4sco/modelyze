@@ -215,9 +215,9 @@ def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m DATUM f)
 }
 
-// def RigidArm1(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-//   equationsElement (RigidArm x y z DATUM f_1 f_2)
-// }
+def RigidArm1(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RigidArm x y z DATUM f_1 f_2)
+}
 
 def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (SphericalJoint f_1 f_2)
