@@ -179,11 +179,12 @@ def dotProd(l: Vector3, r: Vector3) -> <Real> = {
   | _ -> error "Left operand invalid"
 }
 
+def norm2(q: Quaternion) -> <Real> = { (w_ q)^2. + (i_ q)^2. + (j_ q)^2. + (k_ q)^2. }
+
 def mkAngularVelocityEqs(om: Vector3, th: Quaternion) -> Equations = {
   match th with
   | quat w i j k -> {
       def r = quatProd (quat (2. * w') (2. * i') (2. * j') (2. * k')) (conj th);
-      1. = w^2. + i^2. + j^2. + k^2.;
       // 0. = w_ r;
       x_ om = i_ r;
       y_ om = j_ r;
@@ -199,8 +200,8 @@ def v3eq(l: Vector3, r: Vector3) -> Equations = { x_ l = x_ r; y_ l = y_ r; z_ l
 def v3der(v: Vector3) -> Vector3 = { vec3 ((x_ v)') ((y_ v)') ((z_ v)') }
 
 def qeq(l: Quaternion, r: Quaternion) -> Equations = {
-// w_ l = w_ r;
-i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }
+    // w_ l = w_ r;
+    i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }
 
 def v3init(v: Vector3, iv: (Real, Real, Real)) -> Equations = {
   def (x_0, y_0, z_0) = iv;
@@ -516,6 +517,8 @@ def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = 
   translationEdge DATUM f r F;
   mkAngularVelocityEqs om th;
   v3eq (v3der r) v;
+  norm2 th = 1.;
+  // omx_m <- 1.;
 
   x_ F = m * (x_ v)';
   y_ F = m * (y_ v)';
