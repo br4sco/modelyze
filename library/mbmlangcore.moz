@@ -560,5 +560,10 @@ def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) ->
 
   translationEdge f_2 f_1 r_1 F_1;
   rotationEdge f_2 f_1 th_1 T_1;
-  rotationEdge DATUM f_1 th_2 T_2;)
+  rotationEdge DATUM f_1 th_2 T_2;
+
+  v3eq r_1 (L th_2 (scalarProd (-1.) r));
+  qeq th_1 (quat 1. 0. 0. 0.);
+  // norm2 th_1 = 1.;
+  v3eq T_2 (L th_2 r_X_F)
 }
