@@ -524,13 +524,13 @@ def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = 
   v3eq (v3der r) v;
   norm2 th = 1.;
 
-  x_ F = m * (x_ v)';
-  y_ F = m * (y_ v)';
-  z_ F = m * (z_ v)';
+  x_ F = -m * (x_ v)';
+  y_ F = -m * (y_ v)';
+  z_ F = -m * (z_ v)';
 
-  x_ T = (I_xx * (x_ om)' + (I_zz - I_yy) * y_ om * z_ om);
-  y_ T = (I_yy * (y_ om)' + (I_xx - I_zz) * z_ om * x_ om);
-  z_ T = (I_zz * (z_ om)' + (I_yy - I_xx) * x_ om * y_ om)
+  x_ T = -(I_xx * (x_ om)' + (I_zz - I_yy) * y_ om * z_ om);
+  y_ T = -(I_yy * (y_ om)' + (I_xx - I_zz) * z_ om * x_ om);
+  z_ T = -(I_zz * (z_ om)' + (I_yy - I_xx) * x_ om * y_ om);
 }
 
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
@@ -556,14 +556,14 @@ def RigidArm(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) ->
   def T_2 = vec3 Tx_r2 Ty_r2 Tz_r2;
 
   def r = vec3 x y z;
-  def r_X_F = crossProd r F_1;
+  def r_X_F = crossProd r_1 F_1;
 
   translationEdge f_2 f_1 r_1 F_1;
   rotationEdge f_2 f_1 th_1 T_1;
   rotationEdge DATUM f_1 th_2 T_2;
 
-  v3eq r_1 (L th_2 (scalarProd (-1.) r));
+  v3eq r_1 (L (th_2) (scalarProd (1.) r));
   qeq th_1 (quat 1. 0. 0. 0.);
   // norm2 th_1 = 1.;
-  v3eq T_2 (L th_2 r_X_F)
+  v3eq T_2 (scalarProd (-1.) r_X_F)
 }

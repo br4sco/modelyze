@@ -204,7 +204,8 @@ def elaborateToFile(o: ModelElement) -> () = {
   def vo = getVisualElements o;
   def vo = cleanupModelElements vo;
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
-  writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
+  // writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
+  ()
 }
 
 def Body1(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> ModelElement = {
