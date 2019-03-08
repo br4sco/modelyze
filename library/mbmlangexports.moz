@@ -20,18 +20,17 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include ExportModelica2
-include ExportMatlab
-include MbmlangCore
+include MBMLANGCORE
 
-def exportDill2Modelica(name: String, m: Equations) -> String = {
+def MODEL_FILENAME = "/tmp/model.mo"
+
+def export2Modelica(name: String, m: Equations) -> String = {
   def (ivs, ie) = getInits m;
   def e = elaborate m;
   def ie = elaborate ie;
   exportModelica name e ie (listToMap ivs)
 }
 
-def exportDill2Matlab(m: Equations) -> String = {
-  def (ivs, _) = getInits m;
-  def e = elaborate m;
-  exportMatlab e
+def export2ModelicaFile(name: String, m: Equations) -> () = {
+  writeFile MODEL_FILENAME (export2Modelica "Model" m ++ "\n");
 }

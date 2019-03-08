@@ -137,6 +137,39 @@ def ga_(R: RotMatrix) -> <Real> = {
   | _ -> error "Invalid Operand"
 }
 
+def differentiateModel(expr:Expr) -> Expr = {
+
+  def sdiff(expr:Signal) -> Signal = {
+    match expr with
+    | sym: Real -> expr'
+    | der e -> sdiff(sdiff(e))
+    | e1 + e2 -> sdiff(e1) + sdiff(e2)
+    | e1 - e2 -> sdiff(e1) - sdiff(e2)
+    | e1 * e2 -> sdiff(e1) * e2 + e1 * sdiff(e2)
+    | e1 / e2 -> (sdiff(e1) * e2 - e1 * sdiff(e2)) / (e2 * e2)
+    | ~sin e -> sdiff(e) * cos(e)
+    | ~cos e -> sdiff(e) * -(sin(e))
+    | ~tan e -> sdiff(e) * 1./(cos(e))^2.
+    | ~asin e -> sdiff(e) * (1. / (sqrt(1. - e^2.)))
+    | ~acos e -> sdiff(e) * -(1. / (sqrt(1. - e^2.)))
+    | ~atan e -> sdiff(e) * (1. / (1. + e^2.))
+    | ~sinh e -> sdiff(e) * cosh(e)
+    | ~cosh e -> sdiff(e) * sinh(e)
+    | ~tanh e -> sdiff(e) * (1. / (cosh e)^2.)
+    | ~log e -> sdiff(e)/ e
+    | ~log10 e -> sdiff(e)* log10(eulerNumber) / e
+    | ~sqrt e -> sdiff(e)/ (2.*(sqrt e))
+    | e1 ^ (sval k:Real) -> (k * e1 ^ (k - 1.)) * sdiff(e1)
+    | -e -> -(sdiff(e))
+    | sval x:Real -> 0.
+    | _ -> error "Cannot differentiate model"
+  };
+  match expr with
+  | der e -> sdiff e
+  | e1 e2 -> (differentiateModel e1)  (differentiateModel e2)
+  | _ -> expr
+}
+
 def mkRotationMatrix(R: RotMatrix) -> MatrixMapSReal = {
   def z: <Real> = 0.;
   def u: <Real> = 1.;
@@ -144,21 +177,22 @@ def mkRotationMatrix(R: RotMatrix) -> MatrixMapSReal = {
   def be = be_ R;
   def ga = ga_ R;
 
-  def R_x = listToMatrix [[u, z, z],
-                          [z, cos ga, -sin ga],
-                          [z, sin ga, cos ga]] (mmSRealZero (3, 3));
+  def R_x(th: <Real>) = listToMatrix [[u, z, z],
+                                      [z, cos th, -sin th],
+                                      [z, sin th, cos th]] (mmSRealZero (3, 3));
 
-  def R_y = listToMatrix [[cos be, z, sin be],
-                          [z, u, z],
-                          [-sin be, z, cos be]] (mmSRealZero (3, 3));
+  def R_y(th: <Real>) = listToMatrix [[cos th, z, sin th],
+                                      [z, u, z],
+                                      [-sin th, z, cos th]] (mmSRealZero (3, 3));
 
-  def R_z = listToMatrix [[cos al, -sin al, z],
-                          [sin al, cos al, z],
-                          [z, z, u]] (mmSRealZero (3, 3));
-  R_z * R_y * R_x
+  def R_z(th: <Real>) = listToMatrix [[cos th, -sin th, z],
+                                      [sin th, cos th, z],
+                                      [z, z, u]] (mmSRealZero (3, 3));
+  R_z(al) * R_x(be) * R_z(ga)
 }
 
-def Mv3Prod(M: MatrixMapSReal, v: Vector3) -> Vector3 = {
+def Mv3Prod(M: RotMatrix, v: Vector3) -> Vector3 = {
+  def M = mkRotationMatrix M;
   def v = listToMatrix [[x_ v], [y_ v], [z_ v]] (mmSRealZero (3, 1));
   def v = M * v;
   vec3 (find (1, 1) v) (find (2, 1) v) (find (3, 1) v)
@@ -586,31 +620,31 @@ def Clock(t_0: Real, t: <Real>) = {
 //   RotationVelocityActuator om (vec3 0. 0. 0.) f_1 f_2
 // }
 
-def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = {
-  def (I_xx, I_yy, I_zz) = I;
-  def x_m, y_m, z_m, vx_m, vy_m, vz_m, Fx_m, Fy_m, Fz_m: Real;
-  def w_m, i_m, j_m, k_m, omx_m, omy_m, omz_m, Tx_m, Ty_m, Tz_m: Real;
-  def r = vec3 x_m y_m z_m;
-  def v = vec3 vx_m vy_m vz_m;
-  def F = vec3 Fx_m Fy_m Fz_m;
-  def th = quat w_m i_m j_m k_m;
-  def om = vec3 omx_m omy_m omz_m;
-  def T = vec3 Tx_m Ty_m Tz_m;
+// def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = {
+//   def (I_xx, I_yy, I_zz) = I;
+//   def x_m, y_m, z_m, vx_m, vy_m, vz_m, Fx_m, Fy_m, Fz_m: Real;
+//   def al_m, be_m, ga_m, omx_m, omy_m, omz_m, Tx_m, Ty_m, Tz_m: Real;
+//   def r = vec3 x_m y_m z_m;
+//   def v = vec3 vx_m vy_m vz_m;
+//   def F = vec3 Fx_m Fy_m Fz_m;
+//   def R_m = rotM al_m be_m ga_m;
+//   def om = vec3 omx_m omy_m omz_m;
+//   def T = vec3 Tx_m Ty_m Tz_m;
 
-  rotationEdge DATUM f th T;
-  translationEdge DATUM f r F;
-  mkAngularVelocityEqs om th;
-  v3eq (v3der r) v;
-  norm2 th = 1.;
+//   rotationEdge DATUM f R_m T;
+//   translationEdge DATUM f r F;
+//   mkAngularVelocityEqs om th;
+//   v3eq (v3der r) v;
+//   norm2 th = 1.;
 
-  x_ F = m * (x_ v)';
-  y_ F = m * (y_ v)';
-  z_ F = m * (z_ v)';
+//   x_ F = m * (x_ v)';
+//   y_ F = m * (y_ v)';
+//   z_ F = m * (z_ v)';
 
-  x_ T = (I_xx * (x_ om)' + (I_zz - I_yy) * y_ om * z_ om);
-  y_ T = (I_yy * (y_ om)' + (I_xx - I_zz) * z_ om * x_ om);
-  z_ T = (I_zz * (z_ om)' + (I_yy - I_xx) * x_ om * y_ om)
-}
+//   x_ T = (I_xx * (x_ om)' + (I_zz - I_yy) * y_ om * z_ om);
+//   y_ T = (I_yy * (y_ om)' + (I_xx - I_zz) * z_ om * x_ om);
+//   z_ T = (I_zz * (z_ om)' + (I_yy - I_xx) * x_ om * y_ om)
+// }
 
 // def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
 //   ForceActuator (vec3 0. (m * GRAVITATIONAL_CONSTANT) 0.) DATUM f

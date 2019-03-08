@@ -1,0 +1,10 @@
+include MBMLANGEXPORTS
+
+def al, be, ga: Real
+
+def main = {
+  // def _  = dp (mkRotationMatrix (rotM al be ga));
+  def _  = dprintln (diff ((-al*be)'));
+  // def  _ = export2ModelicaFile "Test" m;
+  ()
+}

@@ -21,7 +21,6 @@ written by Oscar Eriksson oerikss@kth.se
 include MbmlangExports
 include MbmlangCore
 
-def MODEL_FILENAME = "/tmp/model.mo"
 def SCENE_FILENAME = "/tmp/scene.json"
 
 type Color = String

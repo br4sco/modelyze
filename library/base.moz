@@ -76,6 +76,7 @@ def writeFile: String -> String -> () = @@write_file
 def INFINITE = 1./0.
 def NEG_INFINITE = -1./0.
 def PI = acos (-1.)
+def EULER_NUMBER = exp 1.
 
 type RealSignal = <Real>
 type IntSignal = <Int>
