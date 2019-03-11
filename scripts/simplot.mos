@@ -1,9 +1,0 @@
-echo(false);
-loadFile("/tmp/model.mo");
-cs := getClassNames();
-c := cs[1];
-echo(true);
-checkModel(c); getErrorString();
-simulate(c, stopTime = 20.0, outputFormat="csv"); getErrorString();
-echo(false);
-plotAll(externalWindow = true);
