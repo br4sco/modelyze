@@ -49,6 +49,20 @@ def R_z(th: <Real>) = {
                ] (mmSRealZero (3, 3))
 }
 
+def dR_z(th: <Real>) = {
+  listToMatrix [
+                [th' * -sin th, th' * -cos th, z],
+                [th' * cos th, th' * -sin th, z],
+                [z, z, z]
+               ] (mmSRealZero (3, 3))
+}
+
+def dual(M: MatrixMapSReal) -> MatrixMapSReal = {
+  if dim M == (3, 3) then {
+    listToMatrix [[find (2, 3) M], [find (3, 1) M], [find (1, 2) M]] (mmSRealZero (3, 1))
+  } else error DIMENSION_MISSMATCH
+}
+
 def R_p(th: <Real>) = {
   listToMatrix [
                 [cos th, -sin th],
@@ -97,41 +111,76 @@ def Tx_r1, Ty_r1, Tz_r1: Real
 def al_r2, be_r2, ga_r2: Real
 def Tx_r2, Ty_r2, Tz_r2: Real
 
-// 2D
-def r_m = mkVector(x_m, y_m)
-def v_m = mkVector(vx_m, vy_m)
-def F_m = mkVector(Fx_m, Fy_m)
-def om_m = mkScalar(omz_m)
-def T_m = mkScalar(Tz_m)
+// // === 2D ===
+// def r_m = mkVector(x_m, y_m)
+// def v_m = mkVector(vx_m, vy_m)
+// def F_m = mkVector(Fx_m, Fy_m)
+// def om_m = mkScalar(omz_m)
+// def T_m = mkScalar(Tz_m)
 
-def r_g = mkVector(x_g, y_g)
-def F_g = mkVector(Fx_g, Fy_g)
+// def r_g = mkVector(x_g, y_g)
+// def F_g = mkVector(Fx_g, Fy_g)
 
-def r_h = mkVector(x_h, y_h)
-def F_h = mkVector(Fx_h, Fy_h)
+// def r_h = mkVector(x_h, y_h)
+// def F_h = mkVector(Fx_h, Fy_h)
 
-def r_r1 = mkVector(x_r1, y_r1)
-def F_r1 = mkVector(Fx_r1, Fy_r1)
-def T_r1 = mkScalar(Tz_r1)
-def T_r2 = mkScalar(Tz_r2)
+// def r_r1 = mkVector(x_r1, y_r1)
+// def F_r1 = mkVector(Fx_r1, Fy_r1)
+// def T_r1 = mkScalar(Tz_r1)
+// def T_r2 = mkScalar(Tz_r2)
 
-// 2D rotation derivatives
-def R_r1 = R_p al_r1
-def R_r2 = R_p al_r2
+// // 2D rotation
+// def R_r1 = R_p al_r1
+// def R_r2 = R_p al_r2
+// def R_m = R_r2 // From topological equations
+
+// def th_r1 = mkScalar(al_r1)
+
+// def dth_r2 = mkScalar(al_r2' * (cos al_r2 * cos al_r2 + sin al_r2 * sin al_r2))
+// def dth_m = dth_r2 // From topological equations
+
+// def gg = mkVector(z, g)
+// def r = mkVector(u, z)
+// def SSM = skewsym_p (R_r2 * r)
+
+// === 3D with 2D rotation ===
+def r_m = mkVector(x_m, y_m, z_m)
+def v_m = mkVector(vx_m, vy_m, vz_m)
+def F_m = mkVector(Fx_m, Fy_m, Fz_m)
+def om_m = mkVector(omx_m, omy_m, omz_m)
+def T_m = mkVector(Tx_m, Ty_m, Tz_m)
+
+def r_g = mkVector(x_g, y_g, z_g)
+def F_g = mkVector(Fx_g, Fy_g, Fz_g)
+
+def r_h = mkVector(x_h, y_h, z_h)
+def F_h = mkVector(Fx_h, Fy_h, Fz_h)
+
+def r_r1 = mkVector(x_r1, y_r1, z_r1)
+def F_r1 = mkVector(Fx_r1, Fy_r1, Fz_r1)
+def F_r1_2 = mkVector(Fx_r1, Fy_r1)
+def T_r1 = mkVector(Tx_r1, Ty_r1, Tz_r1)
+def T_r2 = mkVector(Tx_r2, Ty_r2, Tz_r2)
+def T_r2_2 = mkScalar(Tz_r2)
+
+// rotation
+def R_r1 = R_z al_r1
+def R_r2 = R_z al_r2
 def R_m = R_r2 // From topological equations
 
 def th_r1 = mkScalar(al_r1)
-def th_r2 = mkScalar(al_r2)
-def th_m = th_r2 // From topological equations
 
-def gg = mkVector(z, g)
-def r = mkVector(u, z)
+def dth_r2 = mkVector(z, z, al_r2')
+def dth_m = dth_r2 // From topological equations
+
+def gg = mkVector(z, g, z)
+def r = mkVector(u, z, z)
 def SSM = skewsym_p (R_r2 * r)
 
 def body = [
   r_m' - v_m,
   v_m' - F_m,
-  th_m' - om_m,
+  dth_m - om_m,
   om_m' - T_m
 ]
 
@@ -146,7 +195,7 @@ def joint = [
 def arm = [
   r_r1 + R_r2 * r,
   th_r1,
-  T_r2 - SSM * F_r1
+  T_r2_2 - SSM * F_r1_2
 ]
 
 def ttopol = [
@@ -162,7 +211,14 @@ def rtopol = [
   T_m + T_r2
 ]
 
-def model = concat [body, gravity, joint, arm, ttopol, rtopol]
+def model = concat [
+                   body
+                   , gravity
+                   , joint
+                   , arm
+                   , ttopol
+                   , rtopol
+                   ]
 
 // def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
 
