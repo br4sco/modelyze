@@ -1,10 +1,13 @@
 include MBMLANGEXPORTS
 
-def al, be, ga: Real
+def DATUM, f_1, f_2: Frame
+
+def m =
+        Body 1. (1., 1., 1.) DATUM f_2
+        ; Gravity 1. DATUM f_2
+        ; SphericalJoint DATUM f_1
+        ; RigidArm 1. 0. 0. DATUM f_1 f_2
 
 def main = {
-  // def _  = dp (mkRotationMatrix (rotM al be ga));
-  def _  = dprintln (diff ((-al*be)'));
-  // def  _ = export2ModelicaFile "Test" m;
-  ()
+  export2ModelicaFile "Body" m
 }
