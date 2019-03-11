@@ -1,0 +1,170 @@
+include MATRIX
+include EXPORTMODELICA2
+
+def MODEL_FILENAME = "/tmp/model.mo"
+
+def z: <Real> = 0.
+def u: <Real> = 1.
+def g: <Real> = 9.81
+
+def i_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (1, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def j_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (2, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def k_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (3, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def skewsym(v: MatrixMapSReal) -> MatrixMapSReal = {
+  def e_1 = i_ v;
+  def e_2 = j_ v;
+  def e_3 = k_ v;
+  listToMatrix [
+                [z, -e_3, e_2],
+                [e_3, z, -e_1],
+                [-e_2, e_1, z]
+               ] (mmSRealZero (3, 3))
+}
+
+def skewsym_p(v: MatrixMapSReal) -> MatrixMapSReal = {
+  def e_1 = find (1, 1) v;
+  def e_2 = find (2, 1) v;
+  listToMatrix [
+                [e_2, -e_1]
+               ] (mmSRealZero (1, 2))
+}
+
+def R_z(th: <Real>) = {
+  listToMatrix [
+                [cos th, -sin th, z],
+                [sin th, cos th, z],
+                [z, z, u]
+               ] (mmSRealZero (3, 3))
+}
+
+def R_p(th: <Real>) = {
+  listToMatrix [
+                [cos th, -sin th],
+                [sin th, cos th]
+               ] (mmSRealZero (2, 2))
+}
+
+def mkVector(i: <Real>, j: <Real>, k: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[i], [j], [k]] (mmSRealZero (3, 1))
+}
+
+def mkVector(i: <Real>, j: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[i], [j]] (mmSRealZero (2, 1))
+}
+
+def mkScalar(k: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[k]] (mmSRealZero (1, 1))
+}
+
+def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
+  mapij (fun ij: Pos -> (find ij M)') M
+}
+def (') = mmSRealDer
+
+def Id_3 = mmSRealId 3
+def Id_2 = mmSRealId 2
+def z_3 = mkVector z z z
+def z_2 = mkVector z z
+
+
+// Unkowns
+def x_m, y_m, z_m: Real
+def vx_m, vy_m, vz_m: Real
+def Fx_m, Fy_m, Fz_m: Real
+def al_m, be_m, ga_m: Real
+def omx_m, omy_m, omz_m: Real
+def Tx_m, Ty_m, Tz_m: Real
+def x_g, y_g, z_g: Real
+def Fx_g, Fy_g, Fz_g: Real
+def x_h, y_h, z_h: Real
+def Fx_h, Fy_h, Fz_h: Real
+def x_r1, y_r1, z_r1: Real
+def Fx_r1, Fy_r1, Fz_r1: Real
+def al_r1, be_r1, ga_r1: Real
+def Tx_r1, Ty_r1, Tz_r1: Real
+def al_r2, be_r2, ga_r2: Real
+def Tx_r2, Ty_r2, Tz_r2: Real
+
+// 2D
+def r_m = mkVector(x_m, y_m)
+def v_m = mkVector(vx_m, vy_m)
+def F_m = mkVector(Fx_m, Fy_m)
+def om_m = mkScalar(omz_m)
+def T_m = mkScalar(Tz_m)
+
+def r_g = mkVector(x_g, y_g)
+def F_g = mkVector(Fx_g, Fy_g)
+
+def r_h = mkVector(x_h, y_h)
+def F_h = mkVector(Fx_h, Fy_h)
+
+def r_r1 = mkVector(x_r1, y_r1)
+def F_r1 = mkVector(Fx_r1, Fy_r1)
+def T_r1 = mkScalar(Tz_r1)
+def T_r2 = mkScalar(Tz_r2)
+
+// 2D rotation derivatives
+def R_r1 = R_p al_r1
+def R_r2 = R_p al_r2
+def R_m = R_r2 // From topological equations
+
+def th_r1 = mkScalar(al_r1)
+def th_r2 = mkScalar(al_r2)
+def th_m = th_r2 // From topological equations
+
+def gg = mkVector(z, g)
+def r = mkVector(u, z)
+def SSM = skewsym_p (R_r2 * r)
+
+def body = [
+  r_m' - v_m,
+  v_m' - F_m,
+  th_m' - om_m,
+  om_m' - T_m
+]
+
+def gravity = [
+  F_g - gg
+]
+
+def joint = [
+  r_h
+]
+
+def arm = [
+  r_r1 + R_r2 * r,
+  th_r1,
+  T_r2 - SSM * F_r1
+]
+
+def ttopol = [
+  r_h - r_r1 - r_m,
+  r_g - r_m,
+  F_m + F_g + F_h,
+  F_r1 - F_h
+]
+
+def rtopol = [
+  // th_r2 - th_m, We substitute this rather than formulating the across equation directly
+  T_r1,
+  T_m + T_r2
+]
+
+def model = concat [body, gravity, joint, arm, ttopol, rtopol]
+
+// def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
+
+def rs = concat (concat (map (fun M: MatrixMapSReal -> matrixToList M) model))
+def _ = writeFile MODEL_FILENAME (exportModelica "Pendulum" rs (Map.empty))

@@ -23,54 +23,95 @@ include Equation
 
 type InitValMap = (<Real> => (Real, Bool))
 
-def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -> String = {
+def r2mr(r: Real) -> String = {
+    if r < 0. then "(" ++ real2string r  ++ ")"
+    else real2string r
+}
 
-  def r2mr(r: Real) -> String = {
-      if r < 0. then "(" ++ real2string r  ++ ")"
-      else real2string r
+def pprintExpr(e: <Real>) -> String = {
+  def work(e: <>) -> String = {
+      match e with
+      | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
+      | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
+      | e1 * e2 -> work e1 ++ " * " ++ work e2
+      | e1 / e2 -> work e1 ++ " / " ++ work e2
+      | -e -> "(-" ++ work e ++ ")"
+      | e1^e2 -> work e1 ++ " ^ " ++ "(" ++ work e2 ++ ")"
+      | der e -> "der(" ++ work e ++ ")"
+      | ~sin e -> "sin(" ++ work e ++ ")"
+      | ~cos e -> "cos(" ++ work e ++ ")"
+      | ~tan e -> "tan(" ++ work e ++ ")"
+      | ~asin e -> "asin(" ++ work e ++ ")"
+      | ~acos e -> "acos(" ++ work e ++ ")"
+      | ~atan e -> "atan(" ++ work e ++ ")"
+      | ~sinh e -> "sinh(" ++ work e ++ ")"
+      | ~cosh e -> "cosh(" ++ work e ++ ")"
+      | ~tanh e -> "tanh(" ++ work e ++ ")"
+      | ~sqrt e -> "sqrt(" ++ work e ++ ")"
+      | ~exp e -> "exp(" ++ work e ++ ")"
+      | ~log e -> "log(" ++ work e ++ ")"
+      | ~log10 e -> "log10(" ++ work e ++ ")"
+      | sym: Real -> symstr(e)
+      | sval r: Real -> r2mr r
+      | _ -> error "Unmatched"
   };
 
+  work e
+}
+
+def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
+  def iv = (if Map.mem u ivm then {
+              def (u_0, fix) = (Map.find u ivm);
+              " (start=" ++ r2mr u_0 ++ (if fix then ", fixed=true)" else ")")
+            } else "");
+  "Real " ++ symstr(u) ++ iv
+}
+
+def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
+
+  def getUknowns(rs: [<Real>]) -> Set(<Real>) = {
+    def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+      match e with
+      | e_1 e_2 -> work e_2 (work e_1 a)
+      | sym: Real -> Set.add e a
+      | _ -> a
+    };
+
+    Union (map (fun r: <Real> -> work r (Set.empty)) rs)
+  };
+
+  def pprintUnknowns(rs: [<Real>]) -> String = {
+    def f(a: String, u: <Real>) -> String = {
+      a ++ " " ++ pprintUnknown u ivm ++ ";\n"
+    };
+
+    def us = getUknowns rs;
+    foldLeft f "" (Set.toList us)
+  };
+
+  def pprintResidual(rs: [<Real>]) -> String = {
+    def f(a: String, r: <Real>) -> String = {
+      a ++ pprintExpr r ++ " = 0.;\n"
+    };
+
+    foldLeft f "" rs
+  };
+
+
+  "model " ++ name ++ "\n"
+  ++ pprintUnknowns rs
+  ++ "equation\n"
+  ++ pprintResidual rs
+  ++ "end " ++ name ++ ";\n"
+}
+
+def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -> String = {
   def pprintUnknowns(e: Equations) -> String = {
     def f(a: String, u: <Real>) -> String = {
-      def iv = (if Map.mem u ivm then {
-                  def (u_0, fix) = (Map.find u ivm);
-                  " (start=" ++ r2mr u_0 ++ (if fix then ", fixed=true)" else ")")
-                } else "");
-      a ++ "  Real " ++ symstr(u) ++ iv ++ ";\n"
+      a ++ " " ++ pprintUnknown u ivm ++ ";\n"
     };
     def us = (map (fun uk: (<Real>, (Int, Bool)) -> fst uk) (Map.toList (makeUkMap e)));
     foldLeft f "" us
-  };
-
-  def pprintExpr(e: <Real>) -> String = {
-    def work(e: <>) -> String = {
-        match e with
-        | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
-        | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
-        | e1 * e2 -> work e1 ++ " * " ++ work e2
-        | e1 / e2 -> work e1 ++ " / " ++ work e2
-        | -e -> "(-" ++ work e ++ ")"
-        | e1^e2 -> work e1 ++ " ^ " ++ "(" ++ work e2 ++ ")"
-        | der e -> "der(" ++ work e ++ ")"
-        | ~sin e -> "sin(" ++ work e ++ ")"
-        | ~cos e -> "cos(" ++ work e ++ ")"
-        | ~tan e -> "tan(" ++ work e ++ ")"
-        | ~asin e -> "asin(" ++ work e ++ ")"
-        | ~acos e -> "acos(" ++ work e ++ ")"
-        | ~atan e -> "atan(" ++ work e ++ ")"
-        | ~sinh e -> "sinh(" ++ work e ++ ")"
-        | ~cosh e -> "cosh(" ++ work e ++ ")"
-        | ~tanh e -> "tanh(" ++ work e ++ ")"
-        | ~sqrt e -> "sqrt(" ++ work e ++ ")"
-        | ~exp e -> "exp(" ++ work e ++ ")"
-        | ~log e -> "log(" ++ work e ++ ")"
-        | ~log10 e -> "log10(" ++ work e ++ ")"
-        | sym: Real -> symstr(e)
-        | sval r: Real -> r2mr r
-        | _ -> error "Unmatched"
-    };
-
-    work e
   };
 
   def pprintEqs(e: Equations) -> String  = {
