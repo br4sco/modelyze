@@ -55,6 +55,6 @@ def Cz = listToMatrix
       [ 0.,  0.,  0.,  0.,  0.]
     ] (mmRealZero (4, 5))
 
-def _ = dprint(trimzerorows Az == A)
-def _ = dprint(trimzerorows Bz == B)
-def _ = dprint(trimzerorows Cz == C)
+def _ = dprintln(trimzerorows Az == A)
+def _ = dprintln(trimzerorows Bz == B)
+def _ = dprintln(trimzerorows Cz == C)

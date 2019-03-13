@@ -38,19 +38,19 @@ def Bs2 = listToMatrix [[5, 6], [7, 8], [9, 10]] (mmIntZero (3, 2))
 
 def main = {
   def (Ar1, Ar2) = vsplit 2 A;
-  def _ = dprint(Ar1 == As1);
-  def _ = dprint(Ar2 == As2);
+  def _ = dprintln(Ar1 == As1);
+  def _ = dprintln(Ar2 == As2);
 
   def (ur1, ur2) = vsplit 1 u;
-  def _ = dprint(ur1 == I1);
-  def _ = dprint(ur2 == us);
+  def _ = dprintln(ur1 == I1);
+  def _ = dprintln(ur2 == us);
 
   def (vr1, vr2) = hsplit 1 v;
-  def _ = dprint(vr1 == I1);
-  def _ = dprint(vr2 == vs);
+  def _ = dprintln(vr1 == I1);
+  def _ = dprintln(vr2 == vs);
 
   def (Br1, Br2) = hsplit 2 B;
-  def _ = dprint(Br1 == Bs1);
-  def _ = dprint(Br2 == Bs2);
+  def _ = dprintln(Br1 == Bs1);
+  def _ = dprintln(Br2 == Bs2);
   ()
 }

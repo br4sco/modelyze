@@ -57,6 +57,6 @@ def rrC = listToMatrix
       [ 0.,  0.,  0.,  0.,  0.]
     ] (mmRealZero (4, 5))
 
-def _ = dprint(rowreduce A == rrA)
-def _ = dprint(rowreduce B == rrB)
-def _ = dprint(rowreduce C == rrC)
+def _ = dprintln(rowreduce A == rrA)
+def _ = dprintln(rowreduce B == rrB)
+def _ = dprintln(rowreduce C == rrC)

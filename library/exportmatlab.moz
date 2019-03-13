@@ -71,10 +71,25 @@ def exportMatlab(e: Equations) -> String = {
     match e with
     | e_1; e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
     | e_1 = e_2 -> pprintExpr e_1 ++ " == " ++ pprintExpr e_2
-    | _ -> error "Unmatched"
+    // | _ -> error "Unmatched"
+    | _ -> ""
   };
 
   "syms t " ++ pprintUnknowns e ++ "\n\n" ++
-  "vars = [ " ++pprintUnknowns e ++ "]\n\n" ++
-  "eqns = [" ++ pprintEqs e ++ "]\n\n"
+  "vars = [" ++pprintUnknowns e ++ "];\n\n" ++
+  "eqns = [" ++ pprintEqs e ++ "];\n\n"
+}
+
+def exportMatlab2(rs: [<Real>]) -> String = {
+  def rs = filter (fun r: <Real> -> { match r with
+                                       | sval r: Real -> r != 0.
+                                       | _ -> true
+                                     }) rs;
+
+  def f(a: Equations, r: <Real>) -> Equations = {
+    a; r = 0.
+  };
+
+  def e = foldLeft f NoEqn rs;
+  exportMatlab e
 }

@@ -26,9 +26,9 @@ def B = listToMatrix [[0, 2, 3], [4, 5, 6], [7, 8, 9]] M
 def C = listToMatrix [[0, 0, 6], [1, 2, 3], [7, 8, 9]] M
 def D = listToMatrix [[7, 8, 9], [4, 0, 6], [1, 2, 3]] M
 
-def _ = dprint(argmax M == (1, 1))
-def _ = dprint(argmax A == (2, 3))
-def _ = dprint(argmax B == (3, 3))
-def _ = dprint(argmax C == (3, 3))
-def _ = dprint(argmax D == (1, 3))
+def _ = dprintln(argmax M == (1, 1))
+def _ = dprintln(argmax A == (2, 3))
+def _ = dprintln(argmax B == (3, 3))
+def _ = dprintln(argmax C == (3, 3))
+def _ = dprintln(argmax D == (1, 3))
 

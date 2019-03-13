@@ -27,8 +27,8 @@ def At = listToMatrix [[1, 4, 7], [2, 5, 8], [3, 6, 9]] M
 def v = listToMatrix [[1], [2], [3]] (mmIntZero (3, 1))
 def vt = listToMatrix [[1, 2, 3]] (mmIntZero (1, 3))
 
-def _ = dprint(tr I == I)
-def _ = dprint(tr A == At)
-def _ = dprint(tr At == A)
-def _ = dprint(tr v == vt)
-def _ = dprint(tr vt == v)
+def _ = dprintln(tr I == I)
+def _ = dprintln(tr A == At)
+def _ = dprintln(tr At == A)
+def _ = dprintln(tr v == vt)
+def _ = dprintln(tr vt == v)

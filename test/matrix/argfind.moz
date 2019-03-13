@@ -28,8 +28,8 @@ def D = listToMatrix [[7, 8, 9], [4, 0, 6], [1, 2, 3]] M
 
 def f(v: Int) -> Bool = { v == 2 }
 
-def _ = dprint(argfind f M == (4, 1))
-def _ = dprint(argfind f A == (2, 2))
-def _ = dprint(argfind f B == (1, 2))
-def _ = dprint(argfind f C == (2, 2))
-def _ = dprint(argfind f D == (3, 2))
+def _ = dprintln(argfind f M == (4, 1))
+def _ = dprintln(argfind f A == (2, 2))
+def _ = dprintln(argfind f B == (1, 2))
+def _ = dprintln(argfind f C == (2, 2))
+def _ = dprintln(argfind f D == (3, 2))

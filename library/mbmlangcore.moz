@@ -200,6 +200,18 @@ def v3eq(l: Vector3, r: Vector3) -> Equations = { x_ l = x_ r; y_ l = y_ r; z_ l
 
 def v3der(v: Vector3) -> Vector3 = { vec3 ((x_ v)') ((y_ v)') ((z_ v)') }
 
+def v3add(l: Vector3, r: Vector3) -> Vector3 = {
+  vec3 (x_ l + x_ r) (y_ l + y_ r) (z_ l + z_ r)
+}
+
+def v3sub(l: Vector3, r: Vector3) -> Vector3 = {
+  vec3 (x_ l - x_ r) (y_ l - y_ r) (z_ l - z_ r)
+}
+
+def v3sgn(v: Vector3) -> Vector3 = {
+  vec3 (- x_ v) (- y_ v) (- z_ v)
+}
+
 def qeq(l: Quaternion, r: Quaternion) -> Equations = {
     w_ l = w_ r;
     i_ l = i_ r; j_ l = j_ r; k_ l = k_ r }

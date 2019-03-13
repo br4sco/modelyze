@@ -1,0 +1,24 @@
+include MBMLANGEXPORTS
+
+def omx, omy, omz, w, i, j, k: Real
+def om = vec3 omx omy omz
+def dom = v3der om
+def gg = vec3 (0.) (GRAVITATIONAL_CONSTANT) (0.)
+def q = quat w i j k
+
+def r = L q (vec3 (-1.) 0. 0.)
+def t_1 = crossProd r (crossProd dom r)
+def t_2 = crossProd r (crossProd om (crossProd om r))
+def t_3 = crossProd r gg
+
+def model = {
+  v3eq dom (v3sub t_3 (v3sub t_1 t_2));
+  mkAngularVelocityEqs om q;
+  norm2 q = 1.
+}
+
+def main = {
+  // println (exportDill2Modelica "Pendulum" model)
+  // export2ModelicaFile "Pendulum" model
+  println (exportDill2Matlab model)
+}

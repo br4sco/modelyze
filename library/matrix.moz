@@ -70,7 +70,7 @@ def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   else if iszSReal r then l
   else {
     match r with
-    | - r -> l - r
+    | --- r -> l - r
     | _ -> l + r
   }
 }
@@ -96,10 +96,10 @@ def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
   else l * r
 }
 def chsgnSReal(v: <Real>) -> <Real> = {
-  if iszSReal v then v
+  if iszSReal v then 0.
   else {
     match v with
-    | - v_1 -> v
+    | ---v_1 -> v
     | _ -> -v
   }
 }
@@ -474,7 +474,7 @@ def matrixProd(mfindl: MatrixFind, mfindr: MatrixFind, madd: MatrixAdd,
     def rpos = (1, snd ij);
     work 2 (prod (mfindl lpos lM) (mfindr rpos rM))
   };
-  if (cdim lM) != (rdim rM) then error DIMENSION_MISSMATCH
+  if (cdim lM) != (rdim rM) then { def _ = dp lM; error DIMENSION_MISSMATCH}
   else mapij madd mzero f (mzero (rdim lM, cdim rM))
 }
 def mmIntProd(lM: MatrixMapInt, rM: MatrixMapInt) -> MatrixMapInt = {

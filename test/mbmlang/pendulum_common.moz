@@ -1,0 +1,111 @@
+include MATRIX
+include EXPORTMODELICA2
+include EXPORTMATLAB
+
+def MODEL_FILENAME = "/tmp/model.mo"
+
+def z: <Real> = 0.
+def u: <Real> = 1.
+def g: <Real> = 9.81
+
+def i_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (1, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def j_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (2, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def k_(v: MatrixMapSReal) -> <Real> = {
+  if dim v == (3, 1) then find (3, 1) v
+  else error DIMENSION_MISSMATCH
+}
+
+def skewsym(v: MatrixMapSReal) -> MatrixMapSReal = {
+  def e_1 = i_ v;
+  def e_2 = j_ v;
+  def e_3 = k_ v;
+  def e_1n = chsgnSReal e_1;
+  def e_2n = chsgnSReal e_2;
+  def e_3n = chsgnSReal e_3;
+  listToMatrix [
+                [z, e_3n, e_2],
+                [e_3, z, e_1n],
+                [e_2n, e_1, z]
+               ] (mmSRealZero (3, 3))
+}
+
+def skewsym_p(v: MatrixMapSReal) -> MatrixMapSReal = {
+  def e_1 = find (1, 1) v;
+  def e_2 = find (2, 1) v;
+  listToMatrix [
+                [e_2, -e_1]
+               ] (mmSRealZero (1, 2))
+}
+
+def R_z(x: <Real>) = {
+  listToMatrix [
+                [cos x, -sin x, z],
+                [sin x, cos x, z],
+                [z, z, u]
+               ] (mmSRealZero (3, 3))
+}
+
+def R_x(x: <Real>) = {
+  listToMatrix [
+                [u, z, z],
+                [z, cos x, -sin x],
+                [z, sin x, cos x]
+               ] (mmSRealZero (3, 3))
+}
+
+def R_zxz(al: <Real>, be: <Real>, ga: <Real>) = { R_z al * R_x be * R_z ga }
+
+// def om_zxz(al: <Real>, be: <Real>, ga: <Real>) = {
+
+// }
+
+// def dR_z(th: <Real>) = {
+//   listToMatrix [
+//                 [th' * -sin th, th' * -cos th, z],
+//                 [th' * cos th, th' * -sin th, z],
+//                 [z, z, z]
+//                ] (mmSRealZero (3, 3))
+// }
+
+// def dual(M: MatrixMapSReal) -> MatrixMapSReal = {
+//   if dim M == (3, 3) then {
+//     listToMatrix [[find (2, 3) M], [find (3, 1) M], [find (1, 2) M]] (mmSRealZero (3, 1))
+//   } else error DIMENSION_MISSMATCH
+// }
+
+def R_p(th: <Real>) = {
+  listToMatrix [
+                [cos th, -sin th],
+                [sin th, cos th]
+               ] (mmSRealZero (2, 2))
+}
+
+def mkVector(i: <Real>, j: <Real>, k: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[i], [j], [k]] (mmSRealZero (3, 1))
+}
+
+def mkVector(i: <Real>, j: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[i], [j]] (mmSRealZero (2, 1))
+}
+
+def mkScalar(k: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[k]] (mmSRealZero (1, 1))
+}
+
+def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
+  mapij (fun ij: Pos -> (find ij M)') M
+}
+def (') = mmSRealDer
+
+def Id_3 = mmSRealId 3
+def Id_2 = mmSRealId 2
+def z_3 = mkVector z z z
+def z_2 = mkVector z z

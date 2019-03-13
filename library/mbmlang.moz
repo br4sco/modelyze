@@ -21,7 +21,6 @@ written by Oscar Eriksson oerikss@kth.se
 include MbmlangExports
 include MbmlangCore
 
-def MODEL_FILENAME = "/tmp/model.mo"
 def SCENE_FILENAME = "/tmp/scene.json"
 
 type Color = String
@@ -203,9 +202,8 @@ def elaborateToFile(o: ModelElement) -> () = {
   def m = getModel o;
   def vo = getVisualElements o;
   def vo = cleanupModelElements vo;
-  def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
-  // writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
-  ()
+  def _ = export2ModelicaFile "Model" m;
+  writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
 def Body1(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> ModelElement = {

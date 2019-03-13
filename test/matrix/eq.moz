@@ -23,8 +23,8 @@ include Matrix
 def M = mmIntZero (3, 3)
 def I = mmIntId 3
 
-def _ = dprint(M == M)
-def _ = dprint(I == I)
-def _ = dprint(M != I)
-def _ = dprint(I != M)
+def _ = dprintln(M == M)
+def _ = dprintln(I == I)
+def _ = dprintln(M != I)
+def _ = dprintln(I != M)
 

@@ -22,15 +22,15 @@ include Matrix
 
 def M = mmIntZero (3, 3)
 
-def _ = dprint((find (1, 1) M) == 0)
-def _ = dprint((find (2, 1) M) == 0)
-def _ = dprint((find (3, 3) M) == 0)
+def _ = dprintln((find (1, 1) M) == 0)
+def _ = dprintln((find (2, 1) M) == 0)
+def _ = dprintln((find (3, 3) M) == 0)
 
 def I = (add (3, 3) 1 (add (2, 2) 1 (add (1, 1) 1 M)))
 
-def _ = dprint((find (1, 1) I) == 1)
-def _ = dprint((find (2, 2) I) == 1)
-def _ = dprint((find (3, 3) I) == 1)
+def _ = dprintln((find (1, 1) I) == 1)
+def _ = dprintln((find (2, 2) I) == 1)
+def _ = dprintln((find (3, 3) I) == 1)
 
-def _ = dprint((find (1, 2) I) == 0)
-def _ = dprint((find (3, 2) I) == 0)
+def _ = dprintln((find (1, 2) I) == 0)
+def _ = dprintln((find (3, 2) I) == 0)

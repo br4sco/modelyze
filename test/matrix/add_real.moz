@@ -26,7 +26,7 @@ def A = listToMatrix [[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]] M
 def B = listToMatrix [[0., 1., 2.], [3., 4., 5.], [6., 7., 8.]] M
 def C = listToMatrix [[1., 1., 1.], [1., 1., 1.], [1., 1., 1.]] M
 
-def _ = dprint(I + M == I)
-def _ = dprint((C + B) == A)
-def _ = dprint((I + M) == I)
-def _ = dprint((C + B) == A)
+def _ = dprintln(I + M == I)
+def _ = dprintln((C + B) == A)
+def _ = dprintln((I + M) == I)
+def _ = dprintln((C + B) == A)

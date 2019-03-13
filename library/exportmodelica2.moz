@@ -69,6 +69,11 @@ def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
 
 def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
 
+  def rs = filter (fun r: <Real> -> { match r with
+                                       | sval r: Real -> r != 0.
+                                       | _ -> true
+                                     }) rs;
+
   def getUknowns(rs: [<Real>]) -> Set(<Real>) = {
     def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
       match e with
