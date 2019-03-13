@@ -70,7 +70,7 @@ def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   else if iszSReal r then l
   else {
     match r with
-    | --- r -> l - r
+    | -r -> l - r
     | _ -> l + r
   }
 }
@@ -99,7 +99,7 @@ def chsgnSReal(v: <Real>) -> <Real> = {
   if iszSReal v then 0.
   else {
     match v with
-    | ---v -> v
+    | -v -> v
     | _ -> -v
   }
 }

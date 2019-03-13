@@ -23,20 +23,6 @@ def k_(v: MatrixMapSReal) -> <Real> = {
   else error DIMENSION_MISSMATCH
 }
 
-def skewsym(v: MatrixMapSReal) -> MatrixMapSReal = {
-  def e_1 = i_ v;
-  def e_2 = j_ v;
-  def e_3 = k_ v;
-  def e_1n = chsgnSReal e_1;
-  def e_2n = chsgnSReal e_2;
-  def e_3n = chsgnSReal e_3;
-  listToMatrix [
-                [z, e_3n, e_2],
-                [e_3, z, e_1n],
-                [e_2n, e_1, z]
-               ] (mmSRealZero (3, 3))
-}
-
 def skewsym_p(v: MatrixMapSReal) -> MatrixMapSReal = {
   def e_1 = find (1, 1) v;
   def e_2 = find (2, 1) v;
