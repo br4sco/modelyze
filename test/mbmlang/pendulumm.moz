@@ -20,13 +20,6 @@ def model = [
   dth - om
 ]
 
-// def model = [
-//   listToMatrix [
-//     [om_z' * 2. + cos th * 9.81],
-//     [th' - om_z]
-//   ] (mmSRealZero (2, 1))
-// ]
-
 // def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
 
 def rs = concat (concat (map (fun M: MatrixMapSReal -> matrixToList M) model))
