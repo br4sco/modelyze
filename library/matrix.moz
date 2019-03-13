@@ -99,7 +99,7 @@ def chsgnSReal(v: <Real>) -> <Real> = {
   if iszSReal v then 0.
   else {
     match v with
-    | ---v_1 -> v
+    | ---v -> v
     | _ -> -v
   }
 }
@@ -772,3 +772,19 @@ def argfind(p: (Real -> Bool), M: MatrixMapReal) -> Pos = {
 def listToMatrix(l: [[Real]], M: MatrixMapSReal) -> MatrixMapSReal = {
   real2sreal (listToMatrix l (mmRealZero (dim M)))
 }
+
+def skewsym(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero, cs: (Dyn -> Dyn), v: Matrix) -> Matrix = {
+  if dim v != (3, 1) then error DIMENSION_MISSMATCH
+  else {
+    def A = mzero (3, 3);
+    def A = madd (1, 2) (cs (mfind (3, 1) v)) A;
+    def A = madd (2, 1) (mfind (3, 1) v) A;
+    def A = madd (3, 1) (cs (mfind (2, 1) v)) A;
+    def A = madd (1, 3) (mfind (2, 1) v) A;
+    def A = madd (2, 3) (cs (mfind (1, 1) v)) A;
+    madd (3, 2) (mfind (1, 1) v) A
+  }
+}
+def ss(v: MatrixMapInt) -> MatrixMapInt = { skewsym mmIntFind mmIntAdd mmIntZero chsgnInt v }
+def ss(v: MatrixMapReal) -> MatrixMapReal = { skewsym mmRealFind mmRealAdd mmRealZero chsgnReal v }
+def ss(v: MatrixMapSReal) -> MatrixMapSReal = { skewsym mmSRealFind mmSRealAdd mmSRealZero chsgnSReal v }
