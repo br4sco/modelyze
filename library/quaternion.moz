@@ -1,0 +1,33 @@
+include Matrix
+
+type Quaternion = (<Real>, MatrixMapSReal)
+
+def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> Quaternion = {
+  def qq = listToMatrix [[i], [j], [k]] (mmSRealZero (3, 1));
+  (w, qq)
+}
+
+def re(q: Quaternion) -> <Real> = { fst q }
+def im(q: Quaternion) -> MatrixMapSReal = { snd q }
+
+def i_(q: Quaternion) -> <Real> = { find (1, 1) (im q) }
+def j_(q: Quaternion) -> <Real> = { find (2, 1) (im q) }
+def k_(q: Quaternion) -> <Real> = { find (3, 1) (im q) }
+
+def dp(q: Quaternion) -> Quaternion = {
+  def qq = im q;
+  def _ = dprint(re q);
+  def _ = print(" + ");
+  def _ = print("(");
+  def _ = dprint(i_ q);
+  def _ = print(") * i");
+  def _ = print(" + ");
+  def _ = print("(");
+  def _ = dprint(j_ q);
+  def _ = print(") * j");
+  def _ = print(" + ");
+  def _ = print("(");
+  def _ = dprint(k_ q);
+  def _ = println(") * k");
+  q
+}

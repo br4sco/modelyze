@@ -1,0 +1,1 @@
+sval(1) + (sval(2)) * i + (sval(3)) * j + (sval(4)) * k

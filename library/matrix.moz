@@ -230,7 +230,6 @@ def matrixToList(M: MatrixMapSReal) -> [[<Real>]] = {
   matrixToList mmSRealFind M
 }
 
-
 def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
   def _ = println("[");
   def _ = iter (fun r: [Dyn] -> {

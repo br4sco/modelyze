@@ -79,11 +79,7 @@ test_files()
 test_files "matrix"
 # test_files "svector"
 test_files "sreal"
-# test_files "eqformulation"
 # test_files "graph"
-# test_files "beqformulation"
-# test_files "planarmech"
-# test_files "bsimulation"
-# test_files "dill2d"
+test_files "quaternion"
 
 rm -f test.out
