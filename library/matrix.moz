@@ -558,6 +558,9 @@ def sub(s: Pos, e: Pos, M: MatrixMapInt) -> MatrixMapInt = {
 def sub(s: Pos, e: Pos, M: MatrixMapReal) -> MatrixMapReal = {
   matrixSub mmRealFind mmRealAdd mmRealZero s e M
 }
+def sub(s: Pos, e: Pos, M: MatrixMapSReal) -> MatrixMapSReal = {
+  matrixSub mmSRealFind mmSRealAdd mmSRealZero s e M
+}
 
 def matrixConcat(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
   lM: Matrix, rM: Matrix) -> Matrix = {
