@@ -64,14 +64,32 @@ def iszSReal(v: <Real>) -> Bool = {
   | lift r: Real -> iszReal r
   | _ -> false
 }
+def chsgnSReal(v: <Real>) -> <Real> = {
+  if iszSReal v then 0.
+  else {
+    match v with
+    | sval v: Real -> -v
+    | -v -> v
+    | _ -> -v
+  }
+}
+def subSReal(l: <Real>, r: <Real>) -> <Real> = {
+  match (l, r) with
+  | (sval l: Real, sval r: Real) -> l - r
+  | _ -> l - r
+}
 def addSReal(l: <Real>, r: <Real>) -> <Real> = {
   if iszSReal l && iszSReal r then 0.
   else if iszSReal l then r
   else if iszSReal r then l
   else {
-    match r with
-    | -r -> l - r
-    | _ -> l + r
+    match (l, r) with
+    | (sval l: Real, sval r: Real) -> l + r
+    | _ -> {
+        match r with
+        | -r -> subSReal l r
+        | _ -> l + r
+      }
   }
 }
 def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
@@ -91,18 +109,15 @@ def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
   else if iszSReal r then 0.
   else if isuSReal l then r
   else if isuSReal r then l
-  else if isnuSReal l then -r
-  else if isnuSReal r then -l
-  else l * r
-}
-def chsgnSReal(v: <Real>) -> <Real> = {
-  if iszSReal v then 0.
+  else if isnuSReal l then (chsgnSReal r)
+  else if isnuSReal r then (chsgnSReal l)
   else {
-    match v with
-    | -v -> v
-    | _ -> -v
+    match (l, r) with
+    | (sval l: Real, sval r: Real) -> l * r
+    | _ -> l * r
   }
 }
+
 
 def _mem(ij: Pos, Mm: MMap) -> Bool = {
   def (i, j) = ij;
