@@ -1,0 +1,10 @@
+include ExportModelica2
+
+def xx, yy: Vector3
+def c: Real
+def r = -xx + yy' + (c + 1. + dot xx yy) * jj
+// def _ = dp (vector32Matrix r)
+// def _ = dprintln (matrices2Equations (vector32Matrix r) (vector32Matrix r) NoEqn)
+def e = toScalarEquations (r == r; c = 1.)
+// def _ = dprintln e
+def _ = dprintln (exportModelica "Test" e NoEqn (Map.empty))

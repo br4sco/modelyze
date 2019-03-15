@@ -19,7 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-include Equation
+include Vector3
 
 type InitValMap = (<Real> => (Real, Bool))
 
@@ -29,7 +29,7 @@ def r2mr(r: Real) -> String = {
 }
 
 def pprintExpr(e: <Real>) -> String = {
-  def work(e: <>) -> String = {
+  def work(e: <Real>) -> String = {
       match e with
       | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
       | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
@@ -53,7 +53,7 @@ def pprintExpr(e: <Real>) -> String = {
       | ~log10 e -> "log10(" ++ work e ++ ")"
       | sym: Real -> symstr(e)
       | sval r: Real -> r2mr r
-      | _ -> error "Unmatched"
+      | _ -> { def _ = dprintln e;  error "Unmatched" }
   };
 
   work e
@@ -111,11 +111,29 @@ def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
 }
 
 def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -> String = {
+  def getUknowns(e: Equations) -> Set(<Real>) = {
+    def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+      match e with
+      | e_1 e_2 -> workMore e_2 (workMore e_1 a)
+      | sym: Real -> Set.add e a
+      | _ -> a
+    };
+
+    def work(e: Equations, a: Set(<Real>)) -> Set(<Real>) = {
+      match e with
+      | e_1; e_2 -> work e_2 (work e_1 a)
+      | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
+      | _ -> a
+    };
+
+    work e (Set.empty)
+  };
+
   def pprintUnknowns(e: Equations) -> String = {
     def f(a: String, u: <Real>) -> String = {
       a ++ " " ++ pprintUnknown u ivm ++ ";\n"
     };
-    def us = (map (fun uk: (<Real>, (Int, Bool)) -> fst uk) (Map.toList (makeUkMap e)));
+    def us = (Set.toList (getUknowns e));
     foldLeft f "" us
   };
 

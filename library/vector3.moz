@@ -1,0 +1,119 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+
+*/
+
+include MATRIX
+include Equation
+
+// def der: Real -> Real
+// def (') = der
+
+def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
+  mapij (fun ij: Pos -> (find ij M)') M
+}
+// def (') = mmSRealDer
+
+type Vector3
+
+def ii: Vector3
+def jj: Vector3
+def kk: Vector3
+def vec3: Real -> Real -> Real -> Vector3
+def (+): Vector3 -> Vector3 -> Vector3
+def (-): Vector3 -> Vector3 -> Vector3
+def (---): Vector3 -> Vector3
+def (*): Real -> Vector3 -> Vector3
+def dot: Vector3 -> Vector3 -> Real
+def cross: Vector3 -> Vector3 -> Vector3
+def ('): Vector3 -> Vector3
+
+def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
+  listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
+}
+
+def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
+  match v with
+  | ii -> mkVector3 1. 0. 0.
+  | jj -> mkVector3 0. 1. 0.
+  | kk -> mkVector3 0. 0. 1.
+  | sym: Vector3 -> { def x, y, z: Real; mkVector3 x y z }
+  | vec3 x y z -> mkVector3 x y z
+  | l + r -> (vector32Matrix l) + (vector32Matrix r)
+  | l - r -> (vector32Matrix l) - (vector32Matrix r)
+  | r * v -> r *. (vector32Matrix v)
+  | v' -> mmSRealDer (vector32Matrix v)
+  | -v -> -(vector32Matrix v)
+  | cross l r -> (ss (vector32Matrix l)) * (vector32Matrix r)
+  | _ -> error "Unmatched"
+}
+
+def applyDots(e: <Real>) -> <Real> = {
+  def work(e: <>) -> <> = {
+    match e with
+    | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l)) * (vector32Matrix r))))
+    | e_1 e_2 -> (work e_1) (work e_2)
+    | _ -> e
+  };
+
+  work e
+}
+
+type Equations
+def (;): Equations -> Equations -> Equations
+def (=): Real -> Real -> Equations
+def (==): Vector3 -> Vector3 -> Equations
+def NoEqn: Equations
+
+def toR(r: Dyn) -> <Real> = { r }
+
+def equations2residual(e: Equations) -> [<Real>] = {
+  def work(e: Equations, a: [<Real>]) -> [<Real>] = {
+    match e with
+    | e_1; e_2 -> work e_1 (work e_2 a)
+    | r_1 = r_2 -> ((toR r_1) - (toR r_2))::a
+    | _ -> error "Expected only scalar equations"
+  };
+
+  work e []
+}
+
+def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
+  def f(a: Equations, ij: Pos) -> Equations = { a; find ij l = find ij r };
+  if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
+}
+
+def elaborateDots(e: Equations) -> Equations  = {
+  match e with
+  | e_1; e_2 -> (elaborateDots e_1); (elaborateDots e_2)
+  | r_1 = r_2 -> applyDots r_1 = applyDots r_2
+  | NoEqn -> NoEqn
+  | _ -> error "Expected only scalar equations"
+}
+
+def toScalarEquations(e: Equations) -> Equations = {
+  def work(e: Equations, a: Equations) -> Equations  = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1) (vector32Matrix v_2) a
+    | r_1 = r_2 -> a; (applyDots r_1) = (applyDots r_2)
+    | _ -> error "Unexpected construct"
+  };
+  elaborateDots (work e NoEqn)
+}

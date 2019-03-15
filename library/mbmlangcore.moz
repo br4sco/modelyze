@@ -204,6 +204,9 @@ def v3add(l: Vector3, r: Vector3) -> Vector3 = {
   vec3 (x_ l + x_ r) (y_ l + y_ r) (z_ l + z_ r)
 }
 
+def _ = dprintln (vec3 1. 2. 3. + vec3 1. 2. 3.)
+def _ = dprintln (1. + 2.)
+
 def v3sub(l: Vector3, r: Vector3) -> Vector3 = {
   vec3 (x_ l - x_ r) (y_ l - y_ r) (z_ l - z_ r)
 }
