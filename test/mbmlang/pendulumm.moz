@@ -20,8 +20,8 @@ def model = [
   dth - om
 ]
 
-// def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
+def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
 
-def rs = concat (concat (map (fun M: MatrixMapSReal -> matrixToList M) model))
-def _ = writeFile MODEL_FILENAME (exportModelica "Pendulum" rs (listToMap []))
+// def rs = concat (concat (map (fun M: MatrixMapSReal -> matrixToList M) model))
+// def _ = writeFile MODEL_FILENAME (exportModelica "Pendulum" rs (listToMap []))
 // def _ = println (exportMatlab2 rs)

@@ -186,7 +186,7 @@ def mkAngularVelocityEqs(om: Vector3, th: Quaternion) -> Equations = {
   match th with
   | quat w i j k -> {
       def r = quatProd (quat (2. * w') (2. * i') (2. * j') (2. * k')) (conj th);
-      // 0. = w_ r;
+      0. = w_ r;
       x_ om = i_ r;
       y_ om = j_ r;
       z_ om = k_ r

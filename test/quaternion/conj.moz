@@ -1,0 +1,7 @@
+include Quaternion
+
+def q = mkQuaternion 1. 2. 3. 4.
+def _ = dp (quatConj q)
+
+def q = mkQuaternion 1. 2. 3. 0.
+def _ = dp (quatConj q)

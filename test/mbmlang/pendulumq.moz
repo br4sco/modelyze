@@ -1,24 +1,30 @@
-include MBMLANGEXPORTS
+include Pendulum_Common
+include Quaternion
 
-def omx, omy, omz, w, i, j, k: Real
-def om = vec3 omx omy omz
-def dom = v3der om
-def gg = vec3 (0.) (GRAVITATIONAL_CONSTANT) (0.)
-def q = quat w i j k
+def w, i, j, k: Real
+def om_x, om_y, om_z: Real
 
-def r = L q (vec3 (-1.) 0. 0.)
-def t_1 = crossProd r (crossProd dom r)
-def t_2 = crossProd r (crossProd om (crossProd om r))
-def t_3 = crossProd r gg
+def gg = mkVector(0., 9.81, 0.)
 
-def model = {
-  v3eq dom (v3sub t_3 (v3sub t_1 t_2));
-  mkAngularVelocityEqs om q;
-  norm2 q = 1.
-}
+def q = mkQuaternion(w, i, j, k)
+def om = mkVector(om_x, om_y, om_z)
+def om_q = mkQuaternion(0., om)
+def dom = om'
+def r = mkVector((-1.), 0., (-1.))
+def r_q = mkQuaternion(0., r)
+def rr = im (quatProd q (quatProd r_q (quatConj q)))
 
-def main = {
-  // println (exportDill2Modelica "Pendulum" model)
-  // export2ModelicaFile "Pendulum" model
-  println (exportDill2Matlab model)
-}
+def t_1 = (ss rr) * ((ss dom) * rr)
+def t_2 = (ss rr) * ((ss om) * ((ss om) * rr))
+def t_3 = (ss rr) * gg
+
+def model = [
+  dom + t_1 + t_2 - t_3,
+  q' - 0.5 *. (quatProd om_q q)
+]
+
+// def _ = iter (fun M: MatrixMapSReal -> def _ = dp M; ()) model
+
+def rs = concat (concat (map (fun M: MatrixMapSReal -> matrixToList M) model))
+def _ = writeFile MODEL_FILENAME (exportModelica "Pendulum" rs (listToMap [(w, (1., false))]))
+// def _ = println (exportMatlab2 rs)

@@ -1,0 +1,8 @@
+include Quaternion
+
+def q = mkQuaternion 1. 2. 3. 4.
+def _ = dp q
+
+def _ = dprintln (re q)
+def _ = dp (im q)
+def _ = dp (mkQuaternion (re q) (im q))
