@@ -4,16 +4,21 @@ type Quaternion
 def quat: Real -> Real -> Real -> Real -> Quaternion
 def pquat: Vector3 -> Quaternion
 def qprod: Quaternion -> Quaternion -> Quaternion
+def qsprod: Real -> Quaternion -> Quaternion
 def qconj: Quaternion -> Quaternion
 def qder: Quaternion -> Quaternion
 def qim: Quaternion -> Vector3
 def qnorm: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
 
+def (*) = qprod
+def (*) = qsprod
+def (') = qder
+
 type QuaternionUkMap = (Quaternion => Quaternion)
 
 def L(q: Quaternion, v: Vector3) -> Vector3 = {
-  qim (qprod q (qprod (pquat v) (qconj q)))
+  qim (q * (pquat v) * (qconj q))
 }
 
 def mkQuaternionUkMap(e: <>) -> QuaternionUkMap = {
@@ -44,6 +49,7 @@ def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = 
     | pquat v -> (z, v)
     | qconj q -> { def (q_0, qq) = work q; (q_0, -qq) }
     | qder q -> { def (q_0, qq) = work q; (q_0', qq') }
+    | qsprod s q -> { def (q_0, qq) = work q; (s * q_0, s * qq) }
     | qprod p q -> {
         def (p_0, pp) = work p;
         def (q_0, qq) = work q;

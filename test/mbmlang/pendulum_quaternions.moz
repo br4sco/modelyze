@@ -9,7 +9,7 @@ def t_3 = cross r (9.81 * jj)
 
 def model = {
   r == L q (vec3 (-1.) 0. (-1.));
-  qder q ==. qprod (pquat (0.5 * om)) q;
+  q' ==. 0.5 * (pquat om) * q;
   om' == -t_1 - t_2 - t_3;
   qnorm q ~= 1.
 }
