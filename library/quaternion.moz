@@ -8,12 +8,14 @@ def qsprod: Real -> Quaternion -> Quaternion
 def qconj: Quaternion -> Quaternion
 def qder: Quaternion -> Quaternion
 def qim: Quaternion -> Vector3
-def qnorm: Quaternion -> Real
+def qnorm2: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
 
 def (*) = qprod
 def (*) = qsprod
 def (') = qder
+def q_ = pquat
+def norm2 = qnorm2
 
 type QuaternionUkMap = (Quaternion => Quaternion)
 
@@ -75,7 +77,7 @@ def applyQim(e: <>, ukm: QuaternionUkMap) -> <> = {
 def applyQnorm(e: <>, ukm: QuaternionUkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | qnorm q -> fst (quat2scalarVec3 (qprod (qconj q) q) ukm)
+    | qnorm2 q -> fst (quat2scalarVec3 (qprod (qconj q) q) ukm)
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
