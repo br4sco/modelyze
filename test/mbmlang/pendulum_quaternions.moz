@@ -1,0 +1,18 @@
+include ExportModelica2
+
+def om, r: Vector3
+def q: Quaternion
+
+def t_1 = cross r (cross (om') r)
+def t_2 = cross r (cross om (cross om r))
+def t_3 = cross r (9.81 * jj)
+
+def model = {
+  r == L q (vec3 (-1.) 0. (-1.));
+  qder q ==. qprod (pquat (0.5 * om)) q;
+  om' == -t_1 - t_2 - t_3;
+  qnorm q ~= 1.
+}
+
+def _ = export2ModelicaFile "Test" model
+

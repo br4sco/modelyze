@@ -1,4 +1,3 @@
-// include Matrix
 include Vector3
 
 type Quaternion
@@ -12,6 +11,10 @@ def qnorm: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
 
 type QuaternionUkMap = (Quaternion => Quaternion)
+
+def L(q: Quaternion, v: Vector3) -> Vector3 = {
+  qim (qprod q (qprod (pquat v) (qconj q)))
+}
 
 def mkQuaternionUkMap(e: <>) -> QuaternionUkMap = {
   def work(e: <>, a: QuaternionUkMap) -> QuaternionUkMap = {
@@ -73,7 +76,6 @@ def applyQnorm(e: <>, ukm: QuaternionUkMap) -> <> = {
 
   work e
 }
-
 
 def toVector3Equations(e: Equations) -> Equations = {
   def ukm = mkQuaternionUkMap e;
