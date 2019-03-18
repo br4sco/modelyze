@@ -1,0 +1,16 @@
+include ExportModelica2
+
+def DATUM, f_1, f_2: Frame
+
+def m = 1.
+def I = (1., 1., 1.)
+
+def model = {
+  Body m I DATUM f_2;
+  Gravity m DATUM f_2;
+  SphericalJoint DATUM f_1;
+  RigidArm (-1., 0., -1.) DATUM f_1 f_2
+}
+
+def _ = export2ModelicaFile "Test" model
+// def _ = dprintln (elaborate model)

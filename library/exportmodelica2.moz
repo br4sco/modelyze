@@ -19,7 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-include Quaternion
+include MBMLANGCORE
 include Base
 
 def MODEL_FILENAME = "/tmp/model.mo"
@@ -72,7 +72,7 @@ def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
 
 def export2Modelica(name: String, e: Equations) -> String = {
 
-  def e = toScalarEquations (toVector3Equations e);
+  def e = toScalarEquations (toVector3Equations (elaborate e));
 
   def getUknowns(e: Equations) -> Set(<Real>) = {
     def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
