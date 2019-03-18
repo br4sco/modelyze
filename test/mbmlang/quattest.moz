@@ -1,0 +1,7 @@
+include Quaternion
+
+
+def w, i, j, k: Real
+def p, q, r: Quaternion
+
+def _ = dprintln (toScalarEquations (toVector3Equations (qprod p q ==. r)))

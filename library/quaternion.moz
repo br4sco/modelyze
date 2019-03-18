@@ -1,34 +1,117 @@
-include Matrix
+// include Matrix
+include Vector3
 
-type Quaternion = MatrixMapSReal
+// def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> MatrixMapSReal = {
+//   listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
+// }
 
-def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> Quaternion = {
-  listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
+// def mkQuaternion(q_0: <Real>, qq: MatrixMapSReal) -> MatrixMapSReal = {
+//   if dim qq == (3, 1) then hconcat (listToMatrix [[q_0]] (mmSRealZero (1, 1))) qq
+//   else error "Invalid Vector dimensions"
+// }
+
+// def mkQuaternion(v: MatrixMapSReal) -> MatrixMapSReal = { mkQuaternion(0., v) }
+
+// def _re(q: MatrixMapSReal) -> MatrixMapSReal = { sub (1, 1) (1, 1) q }
+// def re(q: MatrixMapSReal) -> <Real> = { find (1, 1) q }
+// def im(q: MatrixMapSReal) -> MatrixMapSReal = { sub (2, 1) (4, 1) q }
+
+// def i_(q: MatrixMapSReal) -> <Real> = { find (2, 1) (im q) }
+// def j_(q: MatrixMapSReal) -> <Real> = { find (3, 1) (im q) }
+// def k_(q: MatrixMapSReal) -> <Real> = { find (4, 1) (im q) }
+
+// def quatConj(q: MatrixMapSReal) -> MatrixMapSReal = {
+//   mkQuaternion (re q) (-(im q))
+// }
+
+// def quatProd(p: MatrixMapSReal, q: MatrixMapSReal) -> MatrixMapSReal = {
+//   def p_0 = _re p;
+//   def pp = im p;
+//   def q_0 = _re q;
+//   def qq = im q;
+//   hconcat (p_0 * q_0 - (tr pp) * qq) (qq * p_0 + pp * q_0 + (ss pp) * qq)
+// }
+
+type Quaternion
+def quat: Real -> Real -> Real -> Real -> Quaternion
+def pquat: Vector3 -> Quaternion
+def qprod: Quaternion -> Quaternion -> Quaternion
+def qconj: Quaternion -> Quaternion
+def qder: Quaternion -> Quaternion
+def (==.): Quaternion -> Quaternion -> Equations
+
+type QuaternionUkMap = (Quaternion => Quaternion)
+
+def mkQuaternionUkMap(e: <>) -> QuaternionUkMap = {
+  def work(e: <>, a: QuaternionUkMap) -> QuaternionUkMap = {
+    match e with
+    | e_1 e_2 -> work e_2 (work e_1 a)
+    | sym: Quaternion -> {
+          if Map.mem e a then a
+          else {
+            def w, i, j, k: Real;
+            Map.add e (quat w i j k) a
+          }
+        }
+    | _ -> a
+  };
+  work e (Map.empty)
 }
 
-def mkQuaternion(q_0: <Real>, qq: MatrixMapSReal) -> Quaternion = {
-  if dim qq == (3, 1) then hconcat (listToMatrix [[q_0]] (mmSRealZero (1, 1))) qq
-  else error "Invalid Vector dimensions"
+def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = {
+  def z: <Real> = 0.;
+  def work(q: Quaternion) -> (<Real>, Vector3) = {
+    match q with
+    | sym: Quaternion -> {
+        if Map.mem q ukm then work (Map.find q ukm)
+        else error "Unkown of Quaternion type not in Quaternion uknown map"
+      }
+    | quat w i j k -> (w, vec3 i j k)
+    | pquat v -> (z, v)
+    | qconj q -> { def (q_0, qq) = work q; (q_0, -qq) }
+    | qder q -> { def (q_0, qq) = work q; (q_0', qq') }
+    | qprod p q -> {
+        def (p_0, pp) = work p;
+        def (q_0, qq) = work q;
+        (p_0 * q_0 - dot pp qq, p_0 * qq + q_0 * pp + cross pp qq)
+      }
+    | _ -> { def _ = dprintln q; error "Unmatched" }
+  };
+
+  work q
 }
 
-def mkQuaternion(v: MatrixMapSReal) -> Quaternion = { mkQuaternion(0., v) }
 
-def _re(q: Quaternion) -> MatrixMapSReal = { sub (1, 1) (1, 1) q }
-def re(q: Quaternion) -> <Real> = { find (1, 1) q }
-def im(q: Quaternion) -> MatrixMapSReal = { sub (2, 1) (4, 1) q }
+// def quaternion2Matrix(q: Quaternion, ukm: QuaternionUkMap) -> MatrixMapSReal = {
+//   def work(q: Quaternion) -> MatrixMapSReal  = {
+//     match q with
+//     | sym: Quaternion -> {
+//         if Map.mem q ukm then work (Map.find q ukm)
+//         else error "Unkown of Quaternion type not in Quaternion uknown map"
+//       }
+//    | quat w i j k -> mkQuaternion(w, i, j, k)
+//    | quat (vec3 x y z) -> mkQuaternion(0., x, y, z)
+//    | qprod p q -> quatProd (work p) (work q)
+//    | qconj q -> quatConj (work q)
+//    | qder q -> mmSRealDer (work q)
+//    | _ -> error "Unmatched"
+//   };
+//   work q
+// }
 
-def i_(q: Quaternion) -> <Real> = { find (2, 1) (im q) }
-def j_(q: Quaternion) -> <Real> = { find (3, 1) (im q) }
-def k_(q: Quaternion) -> <Real> = { find (4, 1) (im q) }
+def toVector3Equations(e: Equations) -> Equations = {
+  def ukm = mkQuaternionUkMap e;
 
-def quatConj(q: Quaternion) -> Quaternion = {
-  mkQuaternion (re q) (-(im q))
-}
+  def work(e: Equations, a: Equations) -> Equations = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | l ==. r -> {
+        def (l_0, ll) = quat2scalarVec3 l ukm;
+        def (r_0, rr) = quat2scalarVec3 r ukm;
+        a; l_0 = r_0; ll == rr
+      }
+    | _ -> a
+  };
 
-def quatProd(p: Quaternion, q: Quaternion) -> Quaternion = {
-  def p_0 = _re p;
-  def pp = im p;
-  def q_0 = _re q;
-  def qq = im q;
-  hconcat (p_0 * q_0 - (tr pp) * qq) (qq * p_0 + pp * q_0 + (ss pp) * qq)
+  work e NoEqn
 }

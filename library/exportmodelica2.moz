@@ -68,50 +68,51 @@ def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
   "Real " ++ symstr(u) ++ iv
 }
 
-def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
+// def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
 
-  def rs = filter (fun r: <Real> -> { match r with
-                                       | sval r: Real -> r != 0.
-                                       | _ -> true
-                                     }) rs;
+//   def rs = filter (fun r: <Real> -> { match r with
+//                                        | sval r: Real -> r != 0.
+//                                        | _ -> true
+//                                      }) rs;
 
-  def getUknowns(rs: [<Real>]) -> Set(<Real>) = {
-    def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
-      match e with
-      | e_1 e_2 -> work e_2 (work e_1 a)
-      | sym: Real -> Set.add e a
-      | _ -> a
-    };
+//   def getUknowns(rs: [<Real>]) -> Set(<Real>) = {
+//     def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+//       match e with
+//       | e_1 e_2 -> work e_2 (work e_1 a)
+//       | sym: Real -> Set.add e a
+//       | _ -> a
+//     };
 
-    Union (map (fun r: <Real> -> work r (Set.empty)) rs)
-  };
+//     Union (map (fun r: <Real> -> work r (Set.empty)) rs)
+//   };
 
-  def pprintUnknowns(rs: [<Real>]) -> String = {
-    def f(a: String, u: <Real>) -> String = {
-      a ++ " " ++ pprintUnknown u ivm ++ ";\n"
-    };
+//   def pprintUnknowns(rs: [<Real>]) -> String = {
+//     def f(a: String, u: <Real>) -> String = {
+//       a ++ " " ++ pprintUnknown u ivm ++ ";\n"
+//     };
 
-    def us = getUknowns rs;
-    foldLeft f "" (Set.toList us)
-  };
+//     def us = getUknowns rs;
+//     foldLeft f "" (Set.toList us)
+//   };
 
-  def pprintResidual(rs: [<Real>]) -> String = {
-    def f(a: String, r: <Real>) -> String = {
-      a ++ pprintExpr r ++ " = 0.;\n"
-    };
+//   def pprintResidual(rs: [<Real>]) -> String = {
+//     def f(a: String, r: <Real>) -> String = {
+//       a ++ pprintExpr r ++ " = 0.;\n"
+//     };
 
-    foldLeft f "" rs
-  };
+//     foldLeft f "" rs
+//   };
 
 
-  "model " ++ name ++ "\n"
-  ++ pprintUnknowns rs
-  ++ "equation\n"
-  ++ pprintResidual rs
-  ++ "end " ++ name ++ ";\n"
-}
+//   "model " ++ name ++ "\n"
+//   ++ pprintUnknowns rs
+//   ++ "equation\n"
+//   ++ pprintResidual rs
+//   ++ "end " ++ name ++ ";\n"
+// }
 
-def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -> String = {
+def exportModelica(name: String, e: Equations) -> String = {
+
   def getUknowns(e: Equations) -> Set(<Real>) = {
     def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
       match e with
@@ -130,12 +131,49 @@ def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -
     work e (Set.empty)
   };
 
+  def getInitalValMap(e: Equations) -> InitValMap = {
+    def work(e: Equations, a: InitValMap) -> InitValMap = {
+      match e with
+      | e_1; e_2 -> work e_2 (work e_1 a)
+      | u <- r -> {
+          match (u, r) with
+          | (sym: Real, sval r: Real) -> {
+              if Map.mem u a then error ("Initial value defined twice for unknown: " ++ symstr(u))
+              else Map.add u (r, true) a
+            }
+          | _ -> error "Invalid initial value assignment"
+        }
+      | u <~ r -> {
+          match (u, r) with
+          | (sym: Real, sval r: Real) -> {
+              if Map.mem u a then {
+                if snd (Map.find u a) then a
+                else error ("Initial guess defined twice for unknown: " ++ symstr(u))
+              }
+              else Map.add u (r, false) a
+            }
+          | _ -> error "Invalid initial value guess"
+        }
+      | _ -> a
+    };
+
+    work e (Map.empty)
+  };
+
   def pprintUnknowns(e: Equations) -> String = {
+    def us = (Set.toList (getUknowns e));
+    def ivm = getInitalValMap e;
     def f(a: String, u: <Real>) -> String = {
       a ++ " " ++ pprintUnknown u ivm ++ ";\n"
     };
-    def us = (Set.toList (getUknowns e));
     foldLeft f "" us
+  };
+
+  def pprintInitEqs(e: Equations) -> String = {
+    match e with
+    | e_1; e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
+    | e_1 ~= e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+    | _ -> ""
   };
 
   def pprintEqs(e: Equations) -> String  = {
@@ -148,7 +186,7 @@ def exportModelica(name: String, e: Equations, ie: Equations, ivm: InitValMap) -
   "model " ++ name ++ "\n"
   ++ pprintUnknowns e
   ++ "initial equation\n"
-  ++ pprintEqs ie
+  ++ pprintInitEqs e
   ++ "equation\n"
   ++ pprintEqs e
   ++ "end " ++ name ++ ";\n"

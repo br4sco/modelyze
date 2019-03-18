@@ -1,6 +1,5 @@
-[
-  [sval(8)]
-  [sval(-9)]
-  [sval(-2)]
-  [sval(11)]
-] d = (4, 1)
+NoEqn_2;
+w_1 = sval(3) * sval(2) - sval(-2);
+i_1 = sval(-9);
+j_1 = sval(-2);
+k_1 = sval(11)

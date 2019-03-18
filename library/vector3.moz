@@ -49,7 +49,7 @@ def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
 
-def mkUkMap(e: <>) -> Vector3UkMap = {
+def mkVector3UkMap(e: <>) -> Vector3UkMap = {
   def work(e: <>, a: Vector3UkMap) -> Vector3UkMap = {
     match e with
     | e_1 e_2 -> work e_2 (work e_1 a)
@@ -57,8 +57,7 @@ def mkUkMap(e: <>) -> Vector3UkMap = {
           if Map.mem e a then a
           else {
             def x, y, z: Real;
-            def v = vec3 x y z;
-            Map.add e v a
+            Map.add e (vec3 x y z) a
           }
         }
     | _ -> a
@@ -102,21 +101,24 @@ def applyDots(e: <Real>, ukm: Vector3UkMap) -> <Real> = {
 type Equations
 def (;): Equations -> Equations -> Equations
 def (=): Real -> Real -> Equations
+def (<-): Real -> Real -> Equations
+def (<~): Real -> Real -> Equations
+def (~=): Real -> Real -> Equations
 def (==): Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
-def toR(r: Dyn) -> <Real> = { r }
+// def toR(r: Dyn) -> <Real> = { r }
 
-def equations2residual(e: Equations) -> [<Real>] = {
-  def work(e: Equations, a: [<Real>]) -> [<Real>] = {
-    match e with
-    | e_1; e_2 -> work e_1 (work e_2 a)
-    | r_1 = r_2 -> ((toR r_1) - (toR r_2))::a
-    | _ -> error "Expected only scalar equations"
-  };
+// def equations2residual(e: Equations) -> [<Real>] = {
+//   def work(e: Equations, a: [<Real>]) -> [<Real>] = {
+//     match e with
+//     | e_1; e_2 -> work e_1 (work e_2 a)
+//     | r_1 = r_2 -> ((toR r_1) - (toR r_2))::a
+//     | _ -> error "Expected only scalar equations"
+//   };
 
-  work e []
-}
+//   work e []
+// }
 
 def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
   def f(a: Equations, ij: Pos) -> Equations = { a; find ij l = find ij r };
@@ -127,19 +129,26 @@ def elaborateDots(e: Equations, ukm: Vector3UkMap) -> Equations  = {
   match e with
   | e_1; e_2 -> (elaborateDots e_1 ukm); (elaborateDots e_2 ukm)
   | r_1 = r_2 -> applyDots r_1 ukm = applyDots r_2 ukm
+  | r_1 <- r_2 -> applyDots r_1 ukm <- applyDots r_2 ukm
+  | r_1 <~ r_2 -> applyDots r_1 ukm <~ applyDots r_2 ukm
+  | r_1 ~= r_2 -> applyDots r_1 ukm ~= applyDots r_2 ukm
   | NoEqn -> NoEqn
   | _ -> error "Expected only scalar equations"
 }
 
 def toScalarEquations(e: Equations) -> Equations = {
-  def ukm = mkUkMap e;
+  def ukm = mkVector3UkMap e;
 
   def work(e: Equations, a: Equations) -> Equations  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1 ukm) (vector32Matrix v_2 ukm) a
     | r_1 = r_2 -> a; (applyDots r_1 ukm) = (applyDots r_2 ukm)
-    | _ -> error "Unexpected construct"
+    | r_1 <- r_2 -> a; (applyDots r_1 ukm) <- (applyDots r_2 ukm)
+    | r_1 <~ r_2 -> a; (applyDots r_1 ukm) <~ (applyDots r_2 ukm)
+    | r_1 ~= r_2 -> a; (applyDots r_1 ukm) ~= (applyDots r_2 ukm)
+    | NoEqn -> a
+    | _ -> { def _ = dprintln e; error "Unexpected construct"}
   };
   elaborateDots (work e NoEqn) ukm
 }

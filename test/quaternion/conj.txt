@@ -1,12 +1,10 @@
-[
-  [sval(1)]
-  [sval(-2)]
-  [sval(-3)]
-  [sval(-4)]
-] d = (4, 1)
-[
-  [sval(1)]
-  [sval(-2)]
-  [sval(-3)]
-  [sval(0)]
-] d = (4, 1)
+NoEqn_2;
+w_1 = sval(1);
+i_1 = sval(-2);
+j_1 = sval(-3);
+k_1 = sval(-4)
+NoEqn_2;
+w_2 = sval(1);
+i_2 = sval(-2);
+j_2 = sval(-3);
+k_2 = sval(0)

@@ -1,6 +1,7 @@
 include Quaternion
 
-def p = mkQuaternion 3. 1. (-2.) 1.
-def q = mkQuaternion 2. (-1.) 2. 3.
+def p = quat 3. 1. (-2.) 1.
+def q = quat 2. (-1.) 2. 3.
+def r: Quaternion
 
-def _ = dp (quatProd p q)
+def _ = dprintln (toScalarEquations (toVector3Equations (r ==. qprod p q)))
