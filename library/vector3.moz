@@ -19,6 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
+
 include MATRIX
 include Equation
 
@@ -87,7 +88,7 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
   work v
 }
 
-def applyDots(e: <Real>, ukm: Vector3UkMap) -> <Real> = {
+def applyDots(e: <>, ukm: Vector3UkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
     | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm))))
@@ -125,16 +126,16 @@ def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Eq
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
 
-def elaborateDots(e: Equations, ukm: Vector3UkMap) -> Equations  = {
-  match e with
-  | e_1; e_2 -> (elaborateDots e_1 ukm); (elaborateDots e_2 ukm)
-  | r_1 = r_2 -> applyDots r_1 ukm = applyDots r_2 ukm
-  | r_1 <- r_2 -> applyDots r_1 ukm <- applyDots r_2 ukm
-  | r_1 <~ r_2 -> applyDots r_1 ukm <~ applyDots r_2 ukm
-  | r_1 ~= r_2 -> applyDots r_1 ukm ~= applyDots r_2 ukm
-  | NoEqn -> NoEqn
-  | _ -> error "Expected only scalar equations"
-}
+// def elaborateDots(e: Equations, ukm: Vector3UkMap) -> Equations  = {
+//   match e with
+//   | e_1; e_2 -> (elaborateDots e_1 ukm); (elaborateDots e_2 ukm)
+//   | r_1 = r_2 -> applyDots r_1 ukm = applyDots r_2 ukm
+//   | r_1 <- r_2 -> applyDots r_1 ukm <- applyDots r_2 ukm
+//   | r_1 <~ r_2 -> applyDots r_1 ukm <~ applyDots r_2 ukm
+//   | r_1 ~= r_2 -> applyDots r_1 ukm ~= applyDots r_2 ukm
+//   | NoEqn -> NoEqn
+//   | _ -> error "Expected only scalar equations"
+// }
 
 def toScalarEquations(e: Equations) -> Equations = {
   def ukm = mkVector3UkMap e;
@@ -150,5 +151,5 @@ def toScalarEquations(e: Equations) -> Equations = {
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}
   };
-  elaborateDots (work e NoEqn) ukm
+  applyDots (work e NoEqn) ukm
 }

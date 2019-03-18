@@ -19,8 +19,10 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-include Vector3
+include Quaternion
 include Base
+
+def MODEL_FILENAME = "/tmp/model.mo"
 
 type InitValMap = (<Real> => (Real, Bool))
 
@@ -68,50 +70,9 @@ def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
   "Real " ++ symstr(u) ++ iv
 }
 
-// def exportModelica(name: String, rs: [<Real>], ivm: InitValMap) = {
+def export2Modelica(name: String, e: Equations) -> String = {
 
-//   def rs = filter (fun r: <Real> -> { match r with
-//                                        | sval r: Real -> r != 0.
-//                                        | _ -> true
-//                                      }) rs;
-
-//   def getUknowns(rs: [<Real>]) -> Set(<Real>) = {
-//     def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
-//       match e with
-//       | e_1 e_2 -> work e_2 (work e_1 a)
-//       | sym: Real -> Set.add e a
-//       | _ -> a
-//     };
-
-//     Union (map (fun r: <Real> -> work r (Set.empty)) rs)
-//   };
-
-//   def pprintUnknowns(rs: [<Real>]) -> String = {
-//     def f(a: String, u: <Real>) -> String = {
-//       a ++ " " ++ pprintUnknown u ivm ++ ";\n"
-//     };
-
-//     def us = getUknowns rs;
-//     foldLeft f "" (Set.toList us)
-//   };
-
-//   def pprintResidual(rs: [<Real>]) -> String = {
-//     def f(a: String, r: <Real>) -> String = {
-//       a ++ pprintExpr r ++ " = 0.;\n"
-//     };
-
-//     foldLeft f "" rs
-//   };
-
-
-//   "model " ++ name ++ "\n"
-//   ++ pprintUnknowns rs
-//   ++ "equation\n"
-//   ++ pprintResidual rs
-//   ++ "end " ++ name ++ ";\n"
-// }
-
-def exportModelica(name: String, e: Equations) -> String = {
+  def e = toScalarEquations (toVector3Equations e);
 
   def getUknowns(e: Equations) -> Set(<Real>) = {
     def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
@@ -190,4 +151,8 @@ def exportModelica(name: String, e: Equations) -> String = {
   ++ "equation\n"
   ++ pprintEqs e
   ++ "end " ++ name ++ ";\n"
+}
+
+def export2ModelicaFile(name: String, e: Equations) -> () = {
+  writeFile MODEL_FILENAME (export2Modelica name e ++ "\n");
 }
