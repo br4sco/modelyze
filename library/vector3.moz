@@ -31,6 +31,7 @@ def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
 // def (') = mmSRealDer
 
 type Vector3
+type Vector3UkMap = (Vector3 => Vector3)
 
 def ii: Vector3
 def jj: Vector3
@@ -48,26 +49,49 @@ def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
 
-def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
-  match v with
-  | ii -> mkVector3 1. 0. 0.
-  | jj -> mkVector3 0. 1. 0.
-  | kk -> mkVector3 0. 0. 1.
-  | sym: Vector3 -> { def x, y, z: Real; mkVector3 x y z }
-  | vec3 x y z -> mkVector3 x y z
-  | l + r -> (vector32Matrix l) + (vector32Matrix r)
-  | l - r -> (vector32Matrix l) - (vector32Matrix r)
-  | r * v -> r *. (vector32Matrix v)
-  | v' -> mmSRealDer (vector32Matrix v)
-  | -v -> -(vector32Matrix v)
-  | cross l r -> (ss (vector32Matrix l)) * (vector32Matrix r)
-  | _ -> error "Unmatched"
+def mkUkMap(e: <>) -> Vector3UkMap = {
+  def work(e: <>, a: Vector3UkMap) -> Vector3UkMap = {
+    match e with
+    | e_1 e_2 -> work e_2 (work e_1 a)
+    | sym: Vector3 -> {
+          if Map.mem e a then a
+          else {
+            def x, y, z: Real;
+            def v = vec3 x y z;
+            Map.add e v a
+          }
+        }
+    | _ -> a
+  };
+  work e (Map.empty)
 }
 
-def applyDots(e: <Real>) -> <Real> = {
+def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
+  def work(v: Vector3) -> MatrixMapSReal = {
+    match v with
+    | ii -> mkVector3 1. 0. 0.
+    | jj -> mkVector3 0. 1. 0.
+    | kk -> mkVector3 0. 0. 1.
+    | sym: Vector3 -> {
+        if Map.mem v ukm then work (Map.find v ukm)
+        else error "Unkown of Vector3 type not in Vector3 uknown map"
+      }
+    | vec3 x y z -> mkVector3 x y z
+    | l + r -> (work l) + (work r)
+    | l - r -> (work l) - (work r)
+    | r * v -> r *. (work v)
+    | v' -> mmSRealDer (work v)
+    | -v -> -(work v)
+    | cross l r -> (ss (work l)) * (work r)
+    | _ -> error "Unmatched"
+  };
+  work v
+}
+
+def applyDots(e: <Real>, ukm: Vector3UkMap) -> <Real> = {
   def work(e: <>) -> <> = {
     match e with
-    | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l)) * (vector32Matrix r))))
+    | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm))))
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
@@ -99,21 +123,23 @@ def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Eq
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
 
-def elaborateDots(e: Equations) -> Equations  = {
+def elaborateDots(e: Equations, ukm: Vector3UkMap) -> Equations  = {
   match e with
-  | e_1; e_2 -> (elaborateDots e_1); (elaborateDots e_2)
-  | r_1 = r_2 -> applyDots r_1 = applyDots r_2
+  | e_1; e_2 -> (elaborateDots e_1 ukm); (elaborateDots e_2 ukm)
+  | r_1 = r_2 -> applyDots r_1 ukm = applyDots r_2 ukm
   | NoEqn -> NoEqn
   | _ -> error "Expected only scalar equations"
 }
 
 def toScalarEquations(e: Equations) -> Equations = {
+  def ukm = mkUkMap e;
+
   def work(e: Equations, a: Equations) -> Equations  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1) (vector32Matrix v_2) a
-    | r_1 = r_2 -> a; (applyDots r_1) = (applyDots r_2)
+    | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1 ukm) (vector32Matrix v_2 ukm) a
+    | r_1 = r_2 -> a; (applyDots r_1 ukm) = (applyDots r_2 ukm)
     | _ -> error "Unexpected construct"
   };
-  elaborateDots (work e NoEqn)
+  elaborateDots (work e NoEqn) ukm
 }

@@ -20,6 +20,7 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include Vector3
+include Base
 
 type InitValMap = (<Real> => (Real, Bool))
 
