@@ -19,12 +19,11 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-
 include MATRIX
-include Equation
+include Base
 
-// def der: Real -> Real
-// def (') = der
+def der: Real -> Real
+def (') = der
 
 def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
   mapij (fun ij: Pos -> (find ij M)') M
@@ -43,6 +42,7 @@ def (+): Vector3 -> Vector3 -> Vector3
 def (-): Vector3 -> Vector3 -> Vector3
 def (---): Vector3 -> Vector3
 def (*): Real -> Vector3 -> Vector3
+def (*.): Vector3 -> Vector3 -> Vector3
 def dot: Vector3 -> Vector3 -> Real
 def cross: Vector3 -> Vector3 -> Vector3
 def ('): Vector3 -> Vector3
@@ -82,6 +82,11 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
     | l + r -> (work l) + (work r)
     | l - r -> (work l) - (work r)
     | r * v -> r *. (work v)
+    | l *. r -> {
+        def l = work l;
+        def r = work r;
+        mapij (fun ij: Pos -> find ij l * find ij r) l
+      }
     | v' -> mmSRealDer (work v)
     | -v -> -(work v)
     | cross l r -> (ss (work l)) * (work r)
@@ -110,34 +115,10 @@ def (~=): Real -> Real -> Equations
 def (==): Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
-// def toR(r: Dyn) -> <Real> = { r }
-
-// def equations2residual(e: Equations) -> [<Real>] = {
-//   def work(e: Equations, a: [<Real>]) -> [<Real>] = {
-//     match e with
-//     | e_1; e_2 -> work e_1 (work e_2 a)
-//     | r_1 = r_2 -> ((toR r_1) - (toR r_2))::a
-//     | _ -> error "Expected only scalar equations"
-//   };
-
-//   work e []
-// }
-
 def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
   def f(a: Equations, ij: Pos) -> Equations = { a; find ij l = find ij r };
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
-
-// def elaborateDots(e: Equations, ukm: Vector3UkMap) -> Equations  = {
-//   match e with
-//   | e_1; e_2 -> (elaborateDots e_1 ukm); (elaborateDots e_2 ukm)
-//   | r_1 = r_2 -> applyDots r_1 ukm = applyDots r_2 ukm
-//   | r_1 <- r_2 -> applyDots r_1 ukm <- applyDots r_2 ukm
-//   | r_1 <~ r_2 -> applyDots r_1 ukm <~ applyDots r_2 ukm
-//   | r_1 ~= r_2 -> applyDots r_1 ukm ~= applyDots r_2 ukm
-//   | NoEqn -> NoEqn
-//   | _ -> error "Expected only scalar equations"
-// }
 
 def toScalarEquations(e: Equations) -> Equations = {
   def ukm = mkVector3UkMap e;
