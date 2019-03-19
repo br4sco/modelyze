@@ -264,9 +264,6 @@ def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = 
   def I = vec3 I_xx I_yy I_zz;
   def r_m, v_m, F_m, om_m, T_m: Vector3;
   def q_m: Quaternion;
-  // def vx, vy, vz: Real;
-  // def v_m = vec3 vx vy vz;
-  // vx <- 5.;
   norm2 q_m ~= 1.;
   translationEdge DATUM f r_m F_m;
   rotationEdge DATUM f om_m T_m;
@@ -284,11 +281,20 @@ def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
   TranslationActuator zero f_1 f_2
 }
 
+def RotationDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
+  def om_d, T_d: Vector3;
+  def q_d: Quaternion;
+  norm2 q_d ~= 1.;
+  rotationEdge f_1 f_2 om_d T_d;
+  q_d' ==. 0.5 * (q_ om_d) * q_d;
+  T_d == D * om_d
+}
+
 def RigidArm(r: (Real, Real, Real), DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def (rx, ry, rz) = r;
   def r_r1, F_r1, om_r1, T_r1, om_r2, T_r2: Vector3;
   def q_r1, q_r2: Quaternion;
-  norm2 q_r1 ~= 1.;
+  // norm2 q_r1 ~= 1.;
   norm2 q_r2 ~= 1.;
   translationEdge f_2 f_1 r_r1 F_r1;
   rotationEdge f_2 f_1 om_r1 T_r1;

@@ -28,6 +28,7 @@ def qsprod: Real -> Quaternion -> Quaternion
 def qconj: Quaternion -> Quaternion
 def qder: Quaternion -> Quaternion
 def qim: Quaternion -> Vector3
+def qre: Quaternion -> Real
 def qnorm2: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
 
@@ -100,6 +101,7 @@ def applyQnorm(e: <>, ukm: QuaternionUkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
     | qnorm2 q -> fst (quat2scalarVec3 (qprod (qconj q) q) ukm)
+    | qre q -> fst (quat2scalarVec3 q)
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
