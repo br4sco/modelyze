@@ -18,8 +18,7 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include MbmlangExports
-include MbmlangCore
+include ExportModelica2
 
 def SCENE_FILENAME = "/tmp/scene.json"
 
@@ -46,10 +45,10 @@ type ModelFun1 = Frame -> ModelElement
 type ModelFun2 = Frame -> Frame -> ModelElement
 type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
 
-def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+def inParallel(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
   l f_1 f_2 ++ r f_1 f_2
 }
-def (||) = inParalell
+def (||) = inParallel
 
 def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
   r l
@@ -102,11 +101,11 @@ def real2JSONstring(r: Real) -> String = {
 
 def geometry2JSON(g: Geometry3D) -> String = {
   match g with
-  | cuboid (sval h: Real) (sval w: Real) (sval d: Real) -> "{ " ++
+  | cuboid (sval x: Real) (sval y: Real) (sval z: Real) -> "{ " ++
                                     "\"type\": \"Cuboid\", " ++
-                                    "\"height\": " ++ real2JSONstring h ++ ", " ++
-                                    "\"width\": " ++ real2JSONstring w ++ ", " ++
-                                    "\"depth\": " ++ real2JSONstring d ++
+                                    "\"x\": " ++ real2JSONstring x ++ ", " ++
+                                    "\"y\": " ++ real2JSONstring y ++ ", " ++
+                                    "\"z\": " ++ real2JSONstring z ++
                                     " }"
 
   | sphere (sval r: Real) -> "{ " ++
@@ -150,7 +149,9 @@ def visualElement2Json(o: ModelElement) -> String = {
   def work(o: ModelElement) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
-    | visualElement (vec3 x y z) (quat w i j k) vd -> {
+    | visualElement v q vd -> {
+        match (v, q) with
+        | (vec3 x y z, quat w i j k) -> {
                                       "{ " ++
                                       "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
                                       "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
@@ -160,8 +161,14 @@ def visualElement2Json(o: ModelElement) -> String = {
                                       "\"jLabel\": \"" ++ symstr(j) ++ "\", " ++
                                       "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
                                       "\"data\": " ++ visualData2Json vd ++
-                                      " }"}
-    | _ -> error "Expected only visualElement"
+                                      " }" }
+        // | (sym: Vector3, q) -> { def x, y, z: Real;
+                                 // work (visualElement (vec3 x y z) q vd) }
+        // | (v, sym: Quaternion) -> { def w, i, j, k: Real;
+                                    // work (visualElement v (quat w i j k) vd) }
+        | _ -> error "Expected unknowns of types Vector3 and Quaternion"
+      }
+    | _ -> { def _ = dprintln o; error "Expected only visualElement" }
   };
   "{ \"scene\": [ " ++ work o ++ " ] }"
 }
@@ -214,8 +221,8 @@ def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m DATUM f)
 }
 
-def RigidArm1(x: Real, y: Real, z: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RigidArm x y z DATUM f_1 f_2)
+def RigidArm1(r: (Real, Real, Real), DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RigidArm r DATUM f_1 f_2)
 }
 
 def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
@@ -234,9 +241,9 @@ def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (ie; TranslationController rr f_1 f_2)
 // }
 
-// def TranslationSensor1(rr: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
-//   equationsElement (TranslationSensor rr f_1 f_2)
-// }
+def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (TranslationSensor r f_1 f_2)
+}
 
 // def RotationController1(qth: Quaternion, ie: Equations, f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (ie; RotationController qth f_1 f_2)
@@ -254,9 +261,9 @@ def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (RotationActuator f f_1 f_2)
 // }
 
-// def RotationSensor1(qth: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
-//   equationsElement (RotationSensor qth f_1 f_2)
-// }
+def RotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (RotationSensor q f_1 f_2)
+}
 
 // def RotationVelocityController1(om: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (RotationVelocityController om f_1 f_2)
@@ -266,17 +273,16 @@ def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (RotationalDamper D f_1 f_2)
 // }
 
-// def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
-//   def x, y, z: Real;
-//   def w, i, j, k: Real;
-//   def rr = vec3 x y z;
-//   def qth = quat w i j k;
-//   DATUM -- (TranslationSensor1(rr) || RotationSensor1(qth)) -- f ++
-//   visualElement rr qth (visualSolid g (stdMaterial c opacity))
-// }
+def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+  def x, y, z, w, i, j, k: Real;
+  def r = vec3 x y z;
+  def q = quat w i j k;
+  DATUM -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
+  visualElement r q (visualSolid g (stdMaterial c opacity))
+}
 
-// def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
-//   def I = h * l * (h^2. + l^2.) / 12.;
-//   DATUM -- (Body1 m I || Gravity1 m ) -- c ++
-//   we -- RigidArm1 (l / 2.) DATUM -.- c -.- RigidArm1 (l / 2.) DATUM -- ea
-// }
+def Bar1(m: Real, x: Real, y: Real, z: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+  def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
+  DATUM -- (Body1 m I || Gravity1 m ) -- c ++
+  we -- RigidArm1 (x / 2., 0., 0.) DATUM -.- c -.- RigidArm1 (x / 2., 0., 0.) DATUM -- ea
+}

@@ -37,6 +37,8 @@ def (') = qder
 def q_ = pquat
 def norm2 = qnorm2
 
+def unitq = quat 1. 0. 0. 0.
+
 type QuaternionUkMap = (Quaternion => Quaternion)
 
 def L(q: Quaternion, v: Vector3) -> Vector3 = {
