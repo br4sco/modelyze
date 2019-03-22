@@ -44,6 +44,7 @@ def (---): Vector3 -> Vector3
 def (*): Real -> Vector3 -> Vector3
 def (*.): Vector3 -> Vector3 -> Vector3
 def dot: Vector3 -> Vector3 -> Real
+def norm2: Vector3 -> Real
 def cross: Vector3 -> Vector3 -> Vector3
 def ('): Vector3 -> Vector3
 
@@ -95,10 +96,11 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
   work v
 }
 
-def applyDots(e: <>, ukm: Vector3UkMap) -> <> = {
+def applyVec2RealOptrs(e: <>, ukm: Vector3UkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
     | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm))))
+    | norm2 (vec3 x y z) -> x^2. + y^2. + z^2.
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
@@ -127,12 +129,12 @@ def toScalarEquations(e: Equations) -> Equations = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1 ukm) (vector32Matrix v_2 ukm) a
-    | r_1 = r_2 -> a; (applyDots r_1 ukm) = (applyDots r_2 ukm)
-    | r_1 <- r_2 -> a; (applyDots r_1 ukm) <- (applyDots r_2 ukm)
-    | r_1 <~ r_2 -> a; (applyDots r_1 ukm) <~ (applyDots r_2 ukm)
-    | r_1 ~= r_2 -> a; (applyDots r_1 ukm) ~= (applyDots r_2 ukm)
+    | r_1 = r_2 -> a; (applyVec2RealOptrs r_1 ukm) = (applyVec2RealOptrs r_2 ukm)
+    | r_1 <- r_2 -> a; (applyVec2RealOptrs r_1 ukm) <- (applyVec2RealOptrs r_2 ukm)
+    | r_1 <~ r_2 -> a; (applyVec2RealOptrs r_1 ukm) <~ (applyVec2RealOptrs r_2 ukm)
+    | r_1 ~= r_2 -> a; (applyVec2RealOptrs r_1 ukm) ~= (applyVec2RealOptrs r_2 ukm)
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}
   };
-  applyDots (work e NoEqn) ukm
+  applyVec2RealOptrs (work e NoEqn) ukm
 }
