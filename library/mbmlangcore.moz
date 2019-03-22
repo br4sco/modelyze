@@ -37,7 +37,8 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
   mapi f l
 }
 
-def scalarEdge: Node -> Node -> <Real> -> <Real> -> Equations
+def electricalEdge: Node -> Node -> <Real> -> <Real> -> Equations
+def planarRotationEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def translationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
 def rotationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
 
@@ -53,11 +54,22 @@ def mkVarsList(mes: [ModelEdge]) -> [(Dyn, Dyn)] = {
   map (fun me: ModelEdge -> snd me) mes
 }
 
-def getScalarEdges(e: Equations) -> ([ScalarEdge], Equations) = {
+def getElectricalEdges(e: Equations) -> ([ScalarEdge], Equations) = {
   def work(e: Equations, a: ([ScalarEdge], Equations)) -> ([ScalarEdge], Equations)  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | scalarEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | eletricalEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def getPlanarRotationEdges(e: Equations) -> ([ScalarEdge], Equations) = {
+  def work(e: Equations, a: ([ScalarEdge], Equations)) -> ([ScalarEdge], Equations)  = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | planarRotationEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -199,10 +211,12 @@ def mkTopolEquations(f_a: ResidualFunction, f_t: ResidualFunction, mes: [ModelEd
 }
 
 def elaborate(e: Equations) -> Equations = {
-  def (ses, e) = getScalarEdges e;
+  def (ees, e) = getElectricalEdges e;
+  def (pres, e) = getPlanarRotationEdges e;
   def (tes, e) = getTranslationEdges e;
   def (res, e) = getRotationEdges e;
-  def e = (if isEmpty ses then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ses e);
+  def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
+  def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
   def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
   def e = (if isEmpty res then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations res e);
   e
