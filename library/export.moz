@@ -74,7 +74,6 @@ type InitValMap = (<Real> => (Real, Bool))
   }
 
 def export2Modelica(name: String, e: Equations) -> String = {
-
   def e = toScalarEquations (toVector3Equations (elaborate e));
 
   def r2mr(r: Real) -> String = {

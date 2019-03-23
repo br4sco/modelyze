@@ -118,12 +118,20 @@ def (==): Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
 def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
-  def f(a: Equations, ij: Pos) -> Equations = { a; find ij l = find ij r };
+  def f(a: Equations, ij: Pos) -> Equations = {
+      def le = find ij l;
+      def re = find ij r;
+      match (le, re) with
+      | (sval lr: Real, sval rr: Real) -> { if lr == rr then a
+                                            else error (real2string lr ++ " != " ++ real2string rr) }
+      | _ -> a; find ij l = find ij r
+    };
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
 
 def toScalarEquations(e: Equations) -> Equations = {
   def ukm = mkVector3UkMap e;
+  def e = subs e ukm;
 
   def work(e: Equations, a: Equations) -> Equations  = {
     match e with

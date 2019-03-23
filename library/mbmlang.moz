@@ -41,48 +41,60 @@ def visualElement: Vector3 -> Quaternion -> VisualData -> ModelElement
 def equationsElement: Equations -> ModelElement
 def NoElement: ModelElement
 
-type ModelFun1 = Frame -> ModelElement
-type ModelFun2 = Frame -> Frame -> ModelElement
-type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
+def visualElementPlanar(r: Vector3, th: <Real>, vd: VisualData) -> ModelElement = {
+  def w, i, j, k: Real;
+  def q = quat w i j k;
+  equationsElement (w = cos(th / 2.); i = 0.; j = 0.; k = sin(th / 2.))
+  ++ visualElement r q vd
+}
 
-def inParallel(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+def visualElementNoRotation(r: Vector3, vd: VisualData) -> ModelElement = {
+  def w, i, j, k: Real;
+  def q = quat w i j k;
+  equationsElement (q ==. unitq) ++ visualElement r q vd
+}
+
+type FrameFun1 = Frame -> ModelElement
+type FrameFun2 = Frame -> Frame -> ModelElement
+
+def inParallel(l: FrameFun2, r: FrameFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
   l f_1 f_2 ++ r f_1 f_2
 }
 def (||) = inParallel
 
-def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
+def inSeries(l: Frame, r: FrameFun1) -> ModelElement = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: ModelFun1, r: Frame) -> ModelElement = {
+def inSeries(l: FrameFun1, r: Frame) -> ModelElement = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
+def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: ModelFun1, r: ModelFun2) = {
+def inSeries(l: FrameFun1, r: FrameFun2) = {
   def f_1: Frame;
   fun f_2: Frame -> l f_1 ++ r f_1 f_2
 }
 def (--) = inSeries
 
-def inSeriesExposeFrame(l: ModelFun2, f_2: Frame) = {
+def inSeriesExposeFrame(l: FrameFun2, f_2: Frame) = {
   (l, f_2)
 }
 def (-.-) = inSeriesExposeFrame
 
-def inSeriesExposeFrame(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
+def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
   def (l, f_2) = lf_2;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
 def (-.-) = inSeriesExposeFrame
 
-def inSeries(l: ModelFun2, r: ModelFun2) = {
+def inSeries(l: FrameFun2, r: FrameFun2) = {
   def f_2: Frame;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
@@ -213,44 +225,44 @@ def elaborateToFile(o: ModelElement) -> () = {
   writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
-def Body1(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> ModelElement = {
-  equationsElement (Body m I DATUM f)
-}
+// def Body1(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> ModelElement = {
+//   equationsElement (Body m I DATUM f)
+// }
 
-def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
-  equationsElement (Gravity m DATUM f)
-}
+// def Gravity1(m: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+//   equationsElement (Gravity m DATUM f)
+// }
 
-def RigidArm1(r: (Real, Real, Real), DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RigidArm r DATUM f_1 f_2)
-}
+// def RigidArm1(r: (Real, Real, Real), DATUM: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RigidArm r DATUM f_1 f_2)
+// }
 
-def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (SphericalJoint f_1 f_2)
-}
+// def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (SphericalJoint f_1 f_2)
+// }
 
-def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (TranslationSensor r f_1 f_2)
-}
+// def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (TranslationSensor r f_1 f_2)
+// }
 
-def RotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RotationSensor q f_1 f_2)
-}
+// def RotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RotationSensor q f_1 f_2)
+// }
 
-def RotationDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RotationDamper D f_1 f_2)
-}
+// def RotationDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RotationDamper D f_1 f_2)
+// }
 
-def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
-  def x, y, z, w, i, j, k: Real;
-  def r = vec3 x y z;
-  def q = quat w i j k;
-  DATUM -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
-  visualElement r q (visualSolid g (stdMaterial c opacity))
-}
+// def VisSolid1(g: Geometry3D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+//   def x, y, z, w, i, j, k: Real;
+//   def r = vec3 x y z;
+//   def q = quat w i j k;
+//   DATUM -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
+//   visualElement r q (visualSolid g (stdMaterial c opacity))
+// }
 
-def Bar1(m: Real, x: Real, y: Real, z: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
-  DATUM -- (Body1 m I || Gravity1 m ) -- c ++
-  we -- RigidArm1 (x / 2., 0., 0.) DATUM -.- c -.- RigidArm1 (x / 2., 0., 0.) DATUM -- ea
-}
+// def Bar1(m: Real, x: Real, y: Real, z: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+//   def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
+//   DATUM -- (Body1 m I || Gravity1 m ) -- c ++
+//   we -- RigidArm1 (x / 2., 0., 0.) DATUM -.- c -.- RigidArm1 (x / 2., 0., 0.) DATUM -- ea
+// }
