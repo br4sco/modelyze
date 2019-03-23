@@ -233,7 +233,6 @@ def elaborate(e: Equations) -> Equations = {
   def e = (if isEmpty ees then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
   def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
   def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
-  // def e = (if isEmpty tes then e else mkVector3TopolEquationss tes e);
   def e = (if isEmpty res then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations res e);
   e
 }
