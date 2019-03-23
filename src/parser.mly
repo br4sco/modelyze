@@ -105,6 +105,7 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 /* Operators */
 %token <unit Ast.tokendata> EQ              /* "="  */
 %token <unit Ast.tokendata> APXEQ           /* "~=" */
+%token <unit Ast.tokendata> DOTEQ           /* "=." */
 %token <unit Ast.tokendata> LEFTARROW       /* "<-" */
 %token <unit Ast.tokendata> APXLEFTARROW    /* "<~" */
 %token <unit Ast.tokendata> MOD             /* "mod"*/
@@ -175,7 +176,7 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %nonassoc MYAPP
 %left OR  /*prec 2*/
 %left AND  /*prec 3*/
-%left EQ APXEQ LEFTARROW APXLEFTARROW PLUSPLUS /*prec 5*/
+%left EQ DOTEQ APXEQ LEFTARROW APXLEFTARROW PLUSPLUS /*prec 5*/
 %left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW DOUBLEARROW BARARROWS DOUBLEDASH /*prec 6*/
 %left DOTLESS DOTLESSEQUAL DOTGREAT DOTGREATEQUAL DOTEQUAL DOTNOTEQUAL DOTDOUBLEARROW DOUBLEDASHDOT /*prec 7*/
 %nonassoc NOT /*prec8 */
@@ -426,6 +427,8 @@ pat_op:
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<-)" $1 $3 }
   | pat_op APXLEFTARROW pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<~)" $1 $3 }
+  | pat_op DOTEQ pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(=.)" $1 $3 }
   | pat_op APXEQ pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(~=)" $1 $3 }
   | pat_op MOD pat_op
@@ -603,6 +606,8 @@ op:
       { mk_binop (mktminfo $1 $3) $2.l "(=)" $1 $3 }
   | op APXEQ op
       { mk_binop (mktminfo $1 $3) $2.l "(~=)" $1 $3 }
+  | op DOTEQ op
+      { mk_binop (mktminfo $1 $3) $2.l "(=.)" $1 $3 }
   | op LEFTARROW op
       { mk_binop (mktminfo $1 $3) $2.l "(<-)" $1 $3 }
   | op APXLEFTARROW op

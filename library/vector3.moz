@@ -36,7 +36,7 @@ type Vector3UkMap = (Vector3 => Vector3)
 def ii: Vector3
 def jj: Vector3
 def kk: Vector3
-def zero: Vector3
+def zero3: Vector3
 def vec3: Real -> Real -> Real -> Vector3
 def (+): Vector3 -> Vector3 -> Vector3
 def (-): Vector3 -> Vector3 -> Vector3
@@ -74,7 +74,7 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
     | ii -> mkVector3 1. 0. 0.
     | jj -> mkVector3 0. 1. 0.
     | kk -> mkVector3 0. 0. 1.
-    | zero -> mkVector3 0. 0. 0.
+    | zero3 -> mkVector3 0. 0. 0.
     | sym: Vector3 -> {
         if Map.mem v ukm then work (Map.find v ukm)
         else error "Unkown of Vector3 type not in Vector3 uknown map"

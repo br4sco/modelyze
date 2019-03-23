@@ -189,7 +189,7 @@ def mkVector3TopolEquations(C: MatrixMapInt, pvs: [Vector3], svs: [Vector3], a: 
     match rs with
     | [] -> a
     // | r::rs -> work rs (a; x_ r = 0.; y_ r = 0.; z_ r = 0.)
-    | r::rs -> work rs (a; r == zero)
+    | r::rs -> work rs (a; r == zero3)
     | _ -> error "Unmatched"
   };
 
