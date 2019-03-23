@@ -131,7 +131,6 @@ def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Eq
 
 def toScalarEquations(e: Equations) -> Equations = {
   def ukm = mkVector3UkMap e;
-  def e = subs e ukm;
 
   def work(e: Equations, a: Equations) -> Equations  = {
     match e with
