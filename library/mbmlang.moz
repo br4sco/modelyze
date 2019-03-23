@@ -45,7 +45,6 @@ def NoElement: ModelElement
 
 type ModelFun1 = Frame -> ModelElement
 type ModelFun2 = Frame -> Frame -> ModelElement
-type ModelFun3 = Frame -> Frame -> Frame -> ModelElement
 
 def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
   l f_1 f_2 ++ r f_1 f_2

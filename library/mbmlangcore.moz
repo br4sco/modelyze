@@ -54,8 +54,8 @@ def v2prod: Real -> Vector2 -> Vector2
 def v2eq: Vector2 -> Vector2 -> Equations
 
 def v2zero = vec 0. 0.
-
-
+def ii = vec 1. 0.
+def jj = vec 0. 1.
 
 def electricEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def rotationEdge: Node -> Node -> <Real> -> <Real> -> Equations
@@ -417,105 +417,45 @@ def AcrossActuator(f: <Real>, n_1: Node, n_2: Node) -> Equations = {
 }
 
 def AcrossController(aa: Vector2, n_1: Node, n_2: Node) -> Equations = {
-  ThroughActuator (vec 0. 0.) aa n_1 n_2
+  ThroughActuator v2zero aa n_1 n_2
 }
 
 def AcrossController(a: <Real>, n_1: Node, n_2: Node) -> Equations = {
   ThroughActuator 0. a n_1 n_2
 }
 
-def Body(m: Real, I: Real,
-         rr: Vector2,
-         vv: Vector2,
-         FF: Vector2,
-         th: <Real>,
-         om: <Real>,
-         T: <Real>,
-         DATUM: Frame, f: Frame) -> Equations = {
-
+def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
+  def rr, vv, FF: Vector2;
+  def th, om, T: Real;
   rotationEdge DATUM f th T;
   translationEdge DATUM f rr FF;
-  // (i_ rr)' = i_ vv;
-  // (j_ rr)' = j_ vv;
   rr' == vv;
-  i_ FF = m * (i_ vv)';
-  j_ FF = m * (j_ vv)';
+  FF == m * vv';
   th' = om;
   T = I * om'
 }
 
-def Body(m: Real, I: Real, rr: Vector2, th: <Real>, DATUM: Frame, f: Frame) -> Equations = {
-  def vx_m, vy_m, Fx_m, Fy_m, om_m, T_m: Real;
-  Body m I rr (vec vx_m vy_m) (vec Fx_m Fy_m) th om_m T_m DATUM f
-}
-
-def Body(m: Real, I: Real, DATUM: Frame, f: Frame) -> Equations = {
-  def x_m, y_m, th_m: Real;
-  Body m I (vec x_m y_m) th_m DATUM f
-}
-
 def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
-  ThroughActuator (vec 0. (m * GRAVITATIONAL_CONSTANT)) DATUM f
+  ThroughActuator (m * GRAVITATIONAL_CONSTANT * jj) DATUM f
 }
 
-def RigidArm(l: Real,
-             rr: Vector2,
-             FF: Vector2,
-             th_1: <Real>,
-             T_1: <Real>,
-             th_2: <Real>,
-             T_2: <Real>,
-             DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-
+def RigidArm(l: Real, DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def x, y, Fx, Fy: Real;
+  def rr = vec x y;
+  def FF = vec Fx Fy;
+  def th_1, T_1: Real;
+  def th_2, T_2: Real;
   rotationEdge f_2 f_1 th_1 T_1;
   rotationEdge DATUM f_2 th_2 T_2;
   translationEdge f_2 f_1 rr FF;
-  i_ rr = -l * cos th_2;
-  j_ rr = -l * sin th_2;
+  x = -l * cos th_2;
+  y = -l * sin th_2;
   th_1 = 0.;
-  T_2 = l * (i_ FF * -sin th_2 + j_ FF * cos th_2)
-}
-
-def RigidArm(l: Real, f_1: Frame, f_2: Frame, f_3: Frame) -> Equations = {
-  def x_r1, y_r1, Fx_r1, Fy_r1, th_r1, T_r1, th_r2, T_r2: Real;
-  RigidArm l (vec x_r1 y_r1) (vec Fx_r1 Fy_r1) th_r1 T_r1 th_r2 T_r2 f_1 f_2 f_3
-}
-
-def NoAcceleration(rr: Vector2, vv: Vector2, f_1: Frame, f_2: Frame) -> Equations = {
-  def Fx_i, Fy_i, th_i, T_i: Real;
-  translationEdge f_1 f_2 rr (vec Fx_i Fy_i);
-  rotationEdge f_1 f_2 th_i T_i;
-  (i_ rr)' = i_ vv;
-  (j_ rr)' = j_ vv;
-  (i_ vv)' = 0.;
-  (j_ vv)' = 0.;
-  th_i = 0.
-}
-
-def NoAcceleration(f_1: Frame, f_2: Frame) -> Equations = {
-  def x_i, y_i, vx_i, vy_i: Real;
-  NoAcceleration (vec x_i y_i) (vec vx_i vy_i) f_1 f_2
+  T_2 = l * (Fx * -sin th_2 + Fy * cos th_2)
 }
 
 def RevoluteJoint(f_1: Frame, f_2: Frame) -> Equations = {
   AcrossActuator (vec 0. 0.) f_1 f_2
-}
-
-def Bar(m: Real, h: Real, l: Real, DATUM: Frame, we: Frame, c: Frame, ea: Frame) -> Equations = {
-  def I = h * l * (h^2. + l^2.) / 12.;
-  RigidArm (l / 2.) DATUM we c;
-  RigidArm (l / 2.) DATUM c ea;
-  Body m I DATUM c;
-  Gravity m DATUM c
-}
-
-def Bar(m: Real, h: Real, l: Real, rr: Vector2, th: <Real>, DATUM: Frame, we: Frame, ea: Frame) -> Equations = {
-  def c: Frame;
-  def I = h * l * (h^2. + l^2.) / 12.;
-  RigidArm (l / 2.) DATUM we c;
-  RigidArm (l / 2.) DATUM c ea;
-  Body m I rr th DATUM c;
-  Gravity m DATUM c
 }
 
 def Translation(x: Real, y: Real, f_1: Frame, f_2: Frame) -> Equations = {
