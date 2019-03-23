@@ -254,6 +254,14 @@ def VisSolid1(g: Geometry2D, c: Color, opacity: Real, DATUM: Frame, f: Frame) ->
   visualElement rr th (visualSolid g (stdMaterial c opacity))
 }
 
+def VisSolidNonRotating1(g: Geometry2D, c: Color, opacity: Real, DATUM: Frame, f: Frame) -> ModelElement = {
+  def x, y, th: Real;
+  def rr = vec x y;
+  equationsElement (th = 0.) ++
+  DATUM -- TranslationController1(rr) -- f ++
+  visualElement rr th (visualSolid g (stdMaterial c opacity))
+}
+
 def Bar1(m: Real, h: Real, l: Real, DATUM: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
   def I = h * l * (h^2. + l^2.) / 12.;
   DATUM -- (Body1 m I || Gravity1 m ) -- c ++
