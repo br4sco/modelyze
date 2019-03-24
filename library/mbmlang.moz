@@ -43,51 +43,51 @@ def visualElement: Vector2 -> <Real> -> VisualData -> ModelElement
 def equationsElement: Equations -> ModelElement
 def NoElement: ModelElement
 
-type ModelFun1 = Frame -> ModelElement
-type ModelFun2 = Frame -> Frame -> ModelElement
+type FrameFun1 = Frame -> ModelElement
+type FrameFun2 = Frame -> Frame -> ModelElement
 
-def inParalell(l: ModelFun2, r: ModelFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+def inParalell(l: FrameFun2, r: FrameFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
   l f_1 f_2 ++ r f_1 f_2
 }
 def (||) = inParalell
 
-def inSeries(l: Frame, r: ModelFun1) -> ModelElement = {
+def inSeries(l: Frame, r: FrameFun1) -> ModelElement = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: ModelFun1, r: Frame) -> ModelElement = {
+def inSeries(l: FrameFun1, r: Frame) -> ModelElement = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: Frame, r: ModelFun2) -> ModelFun1 = {
+def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: ModelFun1, r: ModelFun2) = {
+def inSeries(l: FrameFun1, r: FrameFun2) = {
   def f_1: Frame;
   fun f_2: Frame -> l f_1 ++ r f_1 f_2
 }
 def (--) = inSeries
 
-def inSeriesExposeFrame(l: ModelFun2, f_2: Frame) = {
-  (l, f_2)
-}
-def (-.-) = inSeriesExposeFrame
-
-def inSeriesExposeFrame(lf_2: (ModelFun2, Frame), r: ModelFun2) = {
-  def (l, f_2) = lf_2;
-  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
-}
-def (-.-) = inSeriesExposeFrame
-
-def inSeries(l: ModelFun2, r: ModelFun2) = {
+def inSeries(l: FrameFun2, r: FrameFun2) = {
   def f_2: Frame;
   fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
 }
 def (--) = inSeries
+
+def inSeriesExposeFrame(l: FrameFun2, f_2: Frame) = {
+  (l, f_2)
+}
+def (-.-) = inSeriesExposeFrame
+
+def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
+  def (l, f_2) = lf_2;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (-.-) = inSeriesExposeFrame
 
 def WHITE = "#ffffff"
 def RED = "#ff0000"
@@ -102,10 +102,10 @@ def real2JSONstring(r: Real) -> String = {
 
 def geometry2JSON(g: Geometry2D) -> String = {
   match g with
-  | rectangle (sval h: Real) (sval w: Real) -> "{ " ++
+  | rectangle (sval l: Real) (sval h: Real) -> "{ " ++
                                     "\"type\": \"Rectangle\", " ++
                                     "\"height\": " ++ real2JSONstring h ++ ", " ++
-                                    "\"width\": " ++ real2JSONstring w ++
+                                    "\"length\": " ++ real2JSONstring l ++
                                     " }"
 
   | circle (sval r: Real) -> "{ " ++
@@ -199,7 +199,9 @@ def elaborateToFile(o: ModelElement) -> () = {
   def vo = getVisualElements o;
   def vo = cleanupModelElements vo;
   def _ = writeFile MODEL_FILENAME (exportDill2Modelica "Model" m ++ "\n");
-  writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
+  match vo with
+  | NoElement -> ()
+  | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
 def Body1(m: Real, I: Real, DATUM: Frame, f: Frame) -> ModelElement = {
