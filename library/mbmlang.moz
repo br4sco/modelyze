@@ -236,10 +236,6 @@ def RotationController1(th: <Real>, ie: Equations, f_1: Frame, f_2: Frame) -> Mo
   equationsElement (ie; AcrossController th f_1 f_2)
 }
 
-def Rotation1(th: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (Translation 0. 0. f_1 f_2)
-}
-
 def RotationController1(th: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (AcrossController th f_1 f_2)
 }
