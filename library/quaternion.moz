@@ -25,6 +25,7 @@ def quat: Real -> Real -> Real -> Real -> Quaternion
 def pquat: Vector3 -> Quaternion
 def qprod: Quaternion -> Quaternion -> Quaternion
 def qsprod: Real -> Quaternion -> Quaternion
+def qadd: Quaternion -> Quaternion -> Quaternion
 def qconj: Quaternion -> Quaternion
 def qder: Quaternion -> Quaternion
 def qim: Quaternion -> Vector3
@@ -79,6 +80,11 @@ def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = 
         def (p_0, pp) = work p;
         def (q_0, qq) = work q;
         (p_0 * q_0 - dot pp qq, p_0 * qq + q_0 * pp + cross pp qq)
+      }
+    | qadd p q -> {
+        def (p_0, pp) = work p;
+        def (q_0, qq) = work q;
+        (p_0 + q_0, pp + qq)
       }
     | _ -> { def _ = dprintln q; error "Unmatched" }
   };
