@@ -245,92 +245,108 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
-// def TorqueActuator(f: Vector3, q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-//   def T_a, om_a: Vector3;
-//   norm2 q ~= 1.;
-//   rotationEdge f_1 f_2 om_a T_a;
-//   q' ==. 0.5 * (q_ om_a) * q;
-//   T_a == f
-// }
+def TorqueActuator(f: Vector3, q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+  def T_a, om_a: Vector3;
+  rotationEdge f_1 f_2 om_a T_a;
 
-// def TorqueActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def q_a: Quaternion;
-//   TorqueActuator f q_a f_1 f_2
-// }
+  // norm2 q ~= 1.;
+  // q' ==. 0.5 * (q_ om_a) * q;
+  om_a == qim (2. * q' * (qconj q));
+  norm2 q = 1.;
 
-// def ForceActuator(f: Vector3, r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def F_a: Vector3;
-//   translationEdge f_1 f_2 r F_a;
-//   F_a == f
-// }
+  T_a == f
+}
 
-// def ForceActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def r_a: Vector3;
-//   ForceActuator f r_a f_1 f_2
-// }
+def TorqueActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def q_a: Quaternion;
+  TorqueActuator f q_a f_1 f_2
+}
 
-// def TranslationActuator(f: Vector3, F: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def r_a: Vector3;
-//   translationEdge f_1 f_2 r_a F;
-//   r_a == f
-// }
+def ForceActuator(f: Vector3, r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def F_a: Vector3;
+  translationEdge f_1 f_2 r F_a;
+  F_a == f
+}
 
-// def TranslationActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def F_a: Vector3;
-//   TranslationActuator f F_a f_1 f_2
-// }
+def ForceActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def r_a: Vector3;
+  ForceActuator f r_a f_1 f_2
+}
 
-// def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-//   TorqueActuator zero q f_1 f_2
-// }
+def TranslationActuator(f: Vector3, F: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def r_a: Vector3;
+  translationEdge f_1 f_2 r_a F;
+  r_a == f
+}
 
-// def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   ForceActuator zero r f_1 f_2
-// }
+def TranslationActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def F_a: Vector3;
+  TranslationActuator f F_a f_1 f_2
+}
 
-// def Body(m: Real, I: (Real, Real, Real), DATUM: Frame, f: Frame) -> Equations = {
-//   def (I_xx, I_yy, I_zz) = I;
-//   def I = vec3 I_xx I_yy I_zz;
-//   def r_m, v_m, F_m, om_m, T_m: Vector3;
-//   def q_m: Quaternion;
-//   norm2 q_m ~= 1.;
-//   translationEdge DATUM f r_m F_m;
-//   rotationEdge DATUM f om_m T_m;
-//   r_m' == v_m;
-//   F_m == m * v_m';
-//   q_m' ==. 0.5 * (q_ om_m) * q_m;
-//   T_m == I *. om_m' + cross om_m (I *. om_m)
-// }
+def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+  TorqueActuator zero3 q f_1 f_2
+}
 
-// def Gravity(m: Real, DATUM: Frame, f: Frame) -> Equations = {
-//   ForceActuator (m * GRAVITATIONAL_CONSTANT * jj) DATUM f
-// }
+def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  ForceActuator zero3 r f_1 f_2
+}
 
-// def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
-//   TranslationActuator zero f_1 f_2
-// }
+def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = {
+  def (I_xx, I_yy, I_zz) = I;
+  def I = vec3 I_xx I_yy I_zz;
+  def r, v, F, om, T: Vector3;
+  def q: Quaternion;
+  translationEdge world f r F;
+  rotationEdge world f om T;
 
-// def RotationDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
-//   def om_d, T_d: Vector3;
-//   def q_d: Quaternion;
-//   norm2 q_d ~= 1.;
-//   rotationEdge f_1 f_2 om_d T_d;
-//   q_d' ==. 0.5 * (q_ om_d) * q_d;
-//   T_d == D * om_d
-// }
+  // norm2 q ~= 1.;
+  // q' ==. 0.5 * (q_ om_a) * q;
+  om == qim (2. * q' * (qconj q));
+  norm2 q = 1.;
 
-// def RigidArm(r: (Real, Real, Real), DATUM: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-//   def (rx, ry, rz) = r;
-//   def r_r1, F_r1, om_r1, T_r1, om_r2, T_r2: Vector3;
-//   def q_r1, q_r2: Quaternion;
-//   // norm2 q_r1 ~= 1.;
-//   norm2 q_r2 ~= 1.;
-//   translationEdge f_2 f_1 r_r1 F_r1;
-//   rotationEdge f_2 f_1 om_r1 T_r1;
-//   rotationEdge DATUM f_2 om_r2 T_r2;
-//   r_r1 == L q_r2 (vec3 rx ry rz);
-//   q_r1' ==. 0.5 * (q_ om_r1) * q_r1;
-//   om_r1 == zero;
-//   q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
-//   T_r2 == cross (-r_r1) F_r1
-// }
+  r' == v;
+  F == m * v';
+  T == I *. om' + cross om (I *. om)
+}
+
+def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
+  ForceActuator (m * GRAVITATIONAL_CONSTANT * jj) world f
+}
+
+def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
+  TranslationActuator zero3 f_1 f_2
+}
+
+def RotationDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
+  def om_d, T_d: Vector3;
+  def q_d: Quaternion;
+  norm2 q_d ~= 1.;
+  rotationEdge f_1 f_2 om_d T_d;
+  q_d' ==. 0.5 * (q_ om_d) * q_d;
+  T_d == D * om_d
+}
+
+def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def (rx, ry, rz) = r;
+  def r_1, F_1, om_1, T_1, om_2, T_2: Vector3;
+  def q_1, q_2: Quaternion;
+  norm2 q_2 ~= 1.;
+  translationEdge f_2 f_1 r_1 F_1;
+  rotationEdge f_2 f_1 om_1 T_1;
+  rotationEdge world f_2 om_2 T_2;
+
+  norm2 q_1 ~= 1.;
+  // q_1' ==. 0.5 * (q_ om_1) * q_1;
+  om_1 == qim (2. * q_1' * (qconj q_1));
+  norm2 q_1 = 1.;
+
+  norm2 q_2 ~= 1.;
+  q_2' ==. 0.5 * (q_ om_2) * q_2;
+  // om_2 == qim (2. * q_2' * (qconj q_2));
+  // norm2 q_2 = 1.;
+
+  r_1 == L q_2 (vec3 rx ry rz);
+  om_1 == zero3;
+  T_2 == cross (-r_1) F_1
+}

@@ -1,4 +1,4 @@
-include ExportModelica2
+include MBMLANG
 
 def r_m, v_m, F_m, om_m, T_m: Vector3
 def q_m: Quaternion
@@ -16,7 +16,7 @@ def model = {
   om_m' == T_m;
   q_m' ==. 0.5 * (q_ om_m) * q_m;
   F_g == 9.81 * jj;
-  r_h == zero;
+  r_h == zero3;
   r_r1 == L q_r2 (vec3 (-1.) 0. (-1.));
   q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
   T_r2 == cross (-r_r1) F_r1;
@@ -31,4 +31,4 @@ def model = {
   norm2 q_r2 ~= 1.
 }
 
-def _ = (export2ModelicaFile "Test" model)
+def main = { elaborateToFile (equationsElement model) }
