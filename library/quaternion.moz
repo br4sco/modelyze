@@ -35,6 +35,7 @@ def (==.): Quaternion -> Quaternion -> Equations
 
 def (*) = qprod
 def (*) = qsprod
+def (+) = qadd
 def (') = qder
 def q_ = pquat
 def norm2 = qnorm2

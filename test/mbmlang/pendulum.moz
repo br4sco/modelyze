@@ -1,4 +1,4 @@
-include ExportModelica2
+include MBMLANG
 
 def world, f_1, f_2: Frame
 
@@ -12,5 +12,4 @@ def model = {
   RigidArm (-1., 0., -1.) world f_1 f_2
 }
 
-def _ = export2ModelicaFile "Test" model
-// def _ = dprintln (elaborate model)
+def main = { elaborateToFile (equationsElement model) }
