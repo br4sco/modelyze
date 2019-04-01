@@ -40,11 +40,13 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
 def electricalEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def planarRotationEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def translationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
-def rotationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
+def angularVelocityEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
+def rotationEdge: Node -> Node -> Quaternion -> Vector3 -> Equations
 
 type ModelEdge = (Edge, (Dyn, Dyn))
 type ScalarEdge = (Edge, (<Real>, <Real>))
 type Vector3Edge = (Edge, (Vector3, Vector3))
+type QuaternionVector3Edge = (Edge, (Quaternion, Vector3))
 
 def mkGraph(mes: [ModelEdge]) -> [Edge] = {
   map (fun me: ModelEdge -> fst me) mes
@@ -87,8 +89,19 @@ def getTranslationEdges(e: Equations) -> ([Vector3Edge], Equations) = {
   work e ([], NoEqn)
 }
 
-def getRotationEdges(e: Equations) -> ([Vector3Edge], Equations) = {
+def getAngularVelocityEdges(e: Equations) -> ([Vector3Edge], Equations) = {
   def work(e: Equations, a: ([Vector3Edge], Equations)) -> ([Vector3Edge], Equations) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | angularVelocityEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def getRotationEdges(e: Equations) -> ([QuaternionVector3Edge], Equations) = {
+  def work(e: Equations, a: ([QuaternionVector3Edge], Equations)) -> ([QuaternionVector3Edge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | rotationEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
@@ -180,7 +193,6 @@ def mkVector3TopolEquations(C: MatrixMapInt, pvs: [Vector3], svs: [Vector3], a: 
   -> Equations = {
   def bop(c: Int, l: Vector3, r: Vector3) -> Vector3 = {
     def c = int2real c;
-    // vec3 (x_ l + c * x_ r) (y_ l + c * y_ r) (z_ l + c * z_ r)
     l + c * r
   };
   def rs = mkTopolRes bop C pvs svs;
@@ -188,8 +200,29 @@ def mkVector3TopolEquations(C: MatrixMapInt, pvs: [Vector3], svs: [Vector3], a: 
   def work(rs: [Vector3], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    // | r::rs -> work rs (a; x_ r = 0.; y_ r = 0.; z_ r = 0.)
     | r::rs -> work rs (a; r == zero3)
+    | _ -> error "Unmatched"
+  };
+
+  work rs a
+}
+
+def mkQuaternionTopolEquations(C: MatrixMapInt, pvs: [Quaternion], svs: [Quaternion], a: Equations)
+  -> Equations = {
+  def bop(c: Int, l: Quaternion, r: Quaternion) -> Quaternion = {
+    // def c = int2real c;
+    // l + c * r
+    if c == 1 then l * r
+    else if c == -1 then l * (qconj r)
+    else if c == 0 then l
+    else error "Expected matrix elements to be -1, 0, or 1 "
+  };
+  def rs = mkTopolRes bop C pvs svs;
+
+  def work(rs: [Quaternion], a: Equations) -> Equations = {
+    match rs with
+    | [] -> a
+    | r::rs -> work rs (a; r ==. unitq)
     | _ -> error "Unmatched"
   };
 
@@ -210,30 +243,15 @@ def mkTopolEquations(f_a: ResidualFunction, f_t: ResidualFunction, mes: [ModelEd
   f_t A y_t y_c (f_a (- (tr A)) x_c x_t a)
 }
 
-// def mkVector3TopolEquationss(mes: [Vector3Edge], a: Equations) -> Equations = {
-//   def f_a = mkVector3TopolEquations;
-//   def f_t = mkVector3TopolEquations;
-//   def (A, (T, C)) = mkCutsetMatrix mes;
-//   def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
-
-//   def (x_t, y_t) = unzip T;
-//   def (x_c, y_c) = unzip C;
-
-//   def _ = logg 2 "x_t" (loggprint x_t);
-//   def _ = logg 2 "x_c" (loggprint x_c);
-
-//   f_t A y_t y_c (f_a (- (tr A)) x_c x_t a)
-// }
-
 def elaborate(e: Equations) -> Equations = {
   def (ees, e) = getElectricalEdges e;
   def (pres, e) = getPlanarRotationEdges e;
   def (tes, e) = getTranslationEdges e;
-  def (res, e) = getRotationEdges e;
+  def (aves, e) = getAngularVelocityEdges e;
   def e = (if isEmpty ees then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
   def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
   def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
-  def e = (if isEmpty res then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations res e);
+  def e = (if isEmpty aves then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e);
   e
 }
 
@@ -247,7 +265,7 @@ def Clock(t_0: Real, t: <Real>) = {
 
 def TorqueActuator(f: Vector3, q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def T_a, om_a: Vector3;
-  rotationEdge f_1 f_2 om_a T_a;
+  angularVelocityEdge f_1 f_2 om_a T_a;
 
   // norm2 q ~= 1.;
   // q' ==. 0.5 * (q_ om_a) * q;
@@ -298,16 +316,17 @@ def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = 
   def r, v, F, om, T: Vector3;
   def q: Quaternion;
   translationEdge world f r F;
-  rotationEdge world f om T;
+  angularVelocityEdge world f om T;
 
-  // norm2 q ~= 1.;
-  // q' ==. 0.5 * (q_ om_a) * q;
-  om == qim (2. * q' * (qconj q));
-  norm2 q = 1.;
+  q' ==. 0.5 * (q_ om) * q;
+  // om == qim (2. * q' * (qconj q));
+  // norm2 q = 1.;
 
   r' == v;
   F == m * v';
-  T == I *. om' + cross om (I *. om)
+  T == I *. om' + cross om (I *. om);
+
+  norm2 q ~= 1.
 }
 
 def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
@@ -322,7 +341,7 @@ def RotationDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
   def om_d, T_d: Vector3;
   def q_d: Quaternion;
   norm2 q_d ~= 1.;
-  rotationEdge f_1 f_2 om_d T_d;
+  angularVelocityEdge f_1 f_2 om_d T_d;
   q_d' ==. 0.5 * (q_ om_d) * q_d;
   T_d == D * om_d
 }
@@ -333,8 +352,8 @@ def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equ
   def q_1, q_2: Quaternion;
   norm2 q_2 ~= 1.;
   translationEdge f_2 f_1 r_1 F_1;
-  rotationEdge f_2 f_1 om_1 T_1;
-  rotationEdge world f_2 om_2 T_2;
+  angularVelocityEdge f_2 f_1 om_1 T_1;
+  angularVelocityEdge world f_2 om_2 T_2;
 
   norm2 q_1 ~= 1.;
   // q_1' ==. 0.5 * (q_ om_1) * q_1;
