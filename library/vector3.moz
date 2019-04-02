@@ -161,8 +161,14 @@ def toScalarEquations(e: Equations) -> Equations = {
     | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1) (vector32Matrix v_2) a
     | r_1 = r_2 -> a; r_1 = r_2
     | v3init v_1 v_2 -> matrices2Inits (vector32Matrix v_1) (vector32Matrix v_2) a
-    | r_1 <- r_2 -> a; r_1 <- r_2
-    | r_1 <~ r_2 -> a; r_1 <~ r_2
+    | r_1 <- r_2 -> {
+        if isRealUk r_1 then a; r_1 <- evalReal r_2
+        else error ("Expected lhs " ++ symstr(r_1)  ++  " to be an uknown")
+      }
+    | r_1 <~ r_2 -> {
+        if isRealUk r_1 then a; r_1 <~ evalReal r_2
+        else error ("Expected lhs " ++ symstr(r_1)  ++  " to be an uknown")
+      }
     | r_1 ~= r_2 -> a; r_1 ~= r_2
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}
