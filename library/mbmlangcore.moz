@@ -21,6 +21,8 @@ written by Oscar Eriksson oerikss@kth.se
 include Graph
 include Quaternion
 
+def ERROR_UNIT_QUATERNION = "Expected unit quaternion"
+
 type Frame = Node
 
 def sw(a: {Dyn}, i: Int, j: Int) -> () = {
@@ -220,7 +222,7 @@ def mkQuaternionTopolEquations(C: MatrixMapInt, pvs: [Quaternion], svs: [Quatern
   def work(rs: [Quaternion], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; r ==. unitq)
+    | r::rs -> work rs (a; r ==. idq)
     | _ -> error "Unmatched"
   };
 
@@ -257,32 +259,17 @@ def elaborate(e: Equations) -> Equations = {
 
 def GRAVITATIONAL_CONSTANT = 9.81
 def CORRECTION_SPEED = 1.
+def EPSILON = 1.e-10
 
-type InitVector3 = (Real, Real, Real)
-type InitQuaternion = (Real, Real, Real, Real)
+def norm2(v: (Real, Real, Real)) = {
+  def (x, y, z) = v;
+  x^2. + y^2. + z^2.
+}
 
-// def v3init(x: <Real>, y: <Real>, z: <Real>, v_0: InitVector3) = {
-//   def (x_0, y_0, z_0) = v_0;
-//   x <~ x_0;
-//   y <~ y_0;
-//   z <~ z_0
-// }
-
-def norm2(q: InitQuaternion) = {
+def norm2(q: (Real, Real, Real, Real)) = {
   def (w, i, j, k) = q;
   w^2. + i^2. + j^2. + k^2.
 }
-
-// def qinit(w: <Real>, i: <Real>, j: <Real>, k: <Real>, q_0: InitQuaternion) = {
-//   def (w_0, i_0, j_0, k_0) = q_0;
-//   def e = 1.e-10;
-//   if abs (norm2 q_0 - 1.) < e then {
-//     w <~ w_0;
-//     i <~ i_0;
-//     j <~ j_0;
-//     k <~ k_0
-//   } else error "Expected unit quaternion"
-// }
 
 def Clock(t_0: Real, t: <Real>) = {
   t <- t_0;
@@ -337,78 +324,78 @@ def Clock(t_0: Real, t: <Real>) = {
 //   ForceActuator zero3 r f_1 f_2
 // }
 
-// def Body(m: Real, I: InitVector3, r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
-//   def (I_xx, I_yy, I_zz) = I;
-//   def I = vec3 I_xx I_yy I_zz;
-//   def v, F, om, T: Vector3;
-//   translationEdge world f r F;
-//   // angularVelocityEdge world f om T;
-//   rotationEdge world f q T;
+def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
+  def (I_xx, I_yy, I_zz) = I;
+  def I = vec3 I_xx I_yy I_zz;
+  def v, F, om, T: Vector3;
+  translationEdge world f r F;
+  // angularVelocityEdge world f om T;
+  rotationEdge world f q T;
 
-//   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+  q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
 
-//   r' == v;
-//   F == m * v';
-//   T == I *. om' + cross om (I *. om)
-// }
+  r' == v;
+  F == m * v';
+  T == I *. om' + cross om (I *. om)
+}
 
-// def Body(m: Real, I: InitVector3, r_0: InitVector3, q_0: InitQuaternion, world: Frame, f: Frame) -> Equations = {
-//   def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
-//   def r = vec3 x_m y_m z_m;
-//   def q = quat w_m i_m j_m k_m;
-//   v3init x_m y_m z_m r_0;
-//   qinit w_m i_m j_m k_m q_0;
-//   Body m I r q world f
-// }
+def Body(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> Equations = {
+  def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
+  def r = vec3 x_m y_m z_m;
+  def q = quat w_m i_m j_m k_m;
 
-// def Body(m: Real, I: InitVector3, world: Frame, f: Frame) -> Equations = {
-//   Body m I (0., 0., 0.) (1., 0., 0., 0.) world f
-// }
+  if abs (norm2 q_0 - 1.) < EPSILON then {
+    r <~~ mkVec3 r_0;
+    q <~~. mkQuat q_0;
+    _Body m I r q world f
+  } else error ERROR_UNIT_QUATERNION
+}
 
-// def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
-//   ForceActuator (m * GRAVITATIONAL_CONSTANT * jj) world f
-// }
+def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = {
+  Body m I (0., 0., 0.) (1., 0., 0., 0.) world f
+}
 
-// def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
-//   TranslationActuator zero3 f_1 f_2
-// }
+def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
+  def r, F: Vector3;
+  translationEdge world f r F;
+  F == m * GRAVITATIONAL_CONSTANT * jj
+}
 
-// def RotationDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
-//   def om_d, T_d: Vector3;
-//   def q_d: Quaternion;
-//   norm2 q_d ~= 1.;
-//   angularVelocityEdge f_1 f_2 om_d T_d;
-//   q_d' ==. 0.5 * (q_ om_d) * q_d;
-//   T_d == D * om_d
-// }
+def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
+  def r, F: Vector3;
+  translationEdge f_1 f_2 r F;
+  r <~~ zero3;
+  r == zero3
+}
 
-// def RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-//   def (rx, ry, rz) = r;
-//   def w_r1, i_r1, j_r1, k_r1: Real;
-//   def F_1, om_1, T_1, om_2, T_2: Vector3;
-//   def q_1 = quat w_r1 i_r1 j_r1 k_r1;
-//   // qinit w_r1 i_r1 j_r1 k_r1 (1., 0., 0., 0.);
+def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def F_1, om_1, om_2, T_1, T_2: Vector3;
+  def q_1: Quaternion;
 
-//   translationEdge f_2 f_1 r_1 F_1;
-//   // angularVelocityEdge f_2 f_1 om_1 T_1;
-//   // angularVelocityEdge world f_2 om_2 T_2;
+  translationEdge f_2 f_1 r_1 F_1;
+  // angularVelocityEdge f_2 f_1 om_1 T_1;
+  // angularVelocityEdge world f_2 om_2 T_2;
+  // om_1 == 2. * qim (q_1' * (qconj q_1));
+  // q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
+  rotationEdge f_2 f_1 q_1 T_1;
+  rotationEdge world f_2 q_2 T_2;
 
-//   // om_1 == 2. * qim (q_1' * (qconj q_1));
-//   // q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
+  q_1 ==. idq;
+  r_1 == L q_2 (mkVec3 r);
+  T_2 == cross (-r_1) F_1
+}
 
-//   rotationEdge f_2 f_1 q_1 T_1;
-//   rotationEdge world f_2 q_2 T_2;
+def RigidArm(r: (Real, Real, Real), q_2_0: (Real, Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def r_1: Vector3;
+  def q_2: Quaternion;
+  if abs (norm2 q_2_0 - 1.) < EPSILON then {
+    def q_2_0 = mkQuat q_2_0;
+    r_1 <~~ L q_2_0 (mkVec3 r);
+    q_2 <~~. q_2_0;
+    _RigidArm r r_1 q_2 world f_1 f_2
+  } else error ERROR_UNIT_QUATERNION
+}
 
-//   q_1 ==. unitq;
-//   r_1 == L q_2 (vec3 rx ry rz);
-//   T_2 == cross (-r_1) F_1
-// }
-
-// def RigidArm(r: (Real, Real, Real), r_1_0: InitVector3, q_2_0: InitQuaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-//   def x_r1, y_r1, z_r1, w_r2, i_r2, j_r2, k_r2: Real;
-//   def r = vec3 x_r1 y_r1 z_r1;
-//   def q = quat w_r2 i_r2 j_r2 k_r2;
-//   v3init x_r1 y_r1 z_r1 r_1_0;
-//   qinit w_r1 i_r1 j_r1 k_r1 q_1_0;
-
-// }
+def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  RigidArm r (1., 0., 0., 0.) world f_1 f_2
+}

@@ -51,7 +51,7 @@ def visualElementPlanar(r: Vector3, th: <Real>, vd: VisualData) -> ModelElement 
 def visualElementNoRotation(r: Vector3, vd: VisualData) -> ModelElement = {
   def w, i, j, k: Real;
   def q = quat w i j k;
-  equationsElement (q ==. unitq) ++ visualElement r q vd
+  equationsElement (q ==. idq) ++ visualElement r q vd
 }
 
 type FrameFun1 = Frame -> ModelElement

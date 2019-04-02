@@ -53,7 +53,7 @@ def model = {
   r_m == r_g;
   F_r1 == F_g + F_m;
   // om_r2 == om_m;
-  q_r2 * (qconj q_m) ==. unitq;
+  q_r2 * (qconj q_m) ==. idq;
   T_m == -T_r2;
 
   norm2 q_m ~= 1.;
