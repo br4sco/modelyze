@@ -258,7 +258,7 @@ def elaborate(e: Equations) -> Equations = {
 }
 
 def GRAVITATIONAL_CONSTANT = 9.81
-def CORRECTION_SPEED = 1.
+def CORRECTION_SPEED = 0.5
 def EPSILON = 1.e-10
 
 def norm2(v: (Real, Real, Real)) = {
@@ -269,6 +269,11 @@ def norm2(v: (Real, Real, Real)) = {
 def norm2(q: (Real, Real, Real, Real)) = {
   def (w, i, j, k) = q;
   w^2. + i^2. + j^2. + k^2.
+}
+
+def ea2quat(th: Real, x: Real, y: Real, z: Real) = {
+  def n = sqrt(x^2. + y^2. + z^2.);
+  (cos (th / 2.), x / n * sin (th / 2.), y / n * sin (th / 2.), z / n * sin (th / 2.))
 }
 
 def Clock(t_0: Real, t: <Real>) = {
@@ -316,13 +321,19 @@ def Clock(t_0: Real, t: <Real>) = {
 //   TranslationActuator f F_a f_1 f_2
 // }
 
-// def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-//   TorqueActuator zero3 q f_1 f_2
-// }
+def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+  def om, T: Vector3;
+  rotationEdge f_1 f_2 q T;
+  // angularVelocityEdge f_1 f_2 om T;
+  // q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+  T == zero3
+}
 
-// def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   ForceActuator zero3 r f_1 f_2
-// }
+def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def F: Vector3;
+  translationEdge f_1 f_2 r F;
+  F == zero3
+}
 
 def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
   def (I_xx, I_yy, I_zz) = I;
@@ -332,9 +343,8 @@ def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Fram
   // angularVelocityEdge world f om T;
   rotationEdge world f q T;
 
-  q' ==. 0.5 * (q_ om) * q
-  // + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
-;
+  q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+
   r' == v;
   F == m * v';
   T == I *. om' + cross om (I *. om)
