@@ -93,7 +93,7 @@ def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = 
   work q
 }
 
-def applyQim(e: <>, ukm: QuaternionUkMap) -> <> = {
+def applyQuatToVector3Ops(e: <>, ukm: QuaternionUkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
     | qim q -> snd (quat2scalarVec3 q ukm)
@@ -104,7 +104,7 @@ def applyQim(e: <>, ukm: QuaternionUkMap) -> <> = {
   work e
 }
 
-def applyQnorm(e: <>, ukm: QuaternionUkMap) -> <> = {
+def applyQuatToRealOps(e: <>, ukm: QuaternionUkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
     | qnorm2 q -> fst (quat2scalarVec3 (qprod (qconj q) q) ukm)
@@ -130,5 +130,5 @@ def toVector3Equations(e: Equations) -> Equations = {
     | _ -> a; e
   };
 
-  applyQnorm (applyQim (work e NoEqn) ukm) ukm
+  applyQuatToRealOps (applyQuatToVector3Ops (work e NoEqn) ukm) ukm
 }

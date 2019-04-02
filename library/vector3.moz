@@ -33,10 +33,6 @@ def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
 type Vector3
 type Vector3UkMap = (Vector3 => Vector3)
 
-def ii: Vector3
-def jj: Vector3
-def kk: Vector3
-def zero3: Vector3
 def vec3: Real -> Real -> Real -> Vector3
 def (+): Vector3 -> Vector3 -> Vector3
 def (-): Vector3 -> Vector3 -> Vector3
@@ -48,8 +44,23 @@ def norm2: Vector3 -> Real
 def cross: Vector3 -> Vector3 -> Vector3
 def ('): Vector3 -> Vector3
 
+def ii = vec3 1. 0. 0.
+def jj = vec3 0. 1. 0.
+def kk = vec3 0. 0. 1.
+def zero3 = vec3 0. 0. 0.
+
 def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
+}
+
+def evalReal(r: <Real>) -> Real = {
+  def work(e: <?>) -> ? = {
+    match e with
+    | f e -> (work f) (work e)
+    | sval v: ? -> v
+    | _ -> error ("Unable to evaluate: " ++ symstr(e))
+  };
+  work r
 }
 
 def mkVector3UkMap(e: <>) -> Vector3UkMap = {
@@ -71,10 +82,6 @@ def mkVector3UkMap(e: <>) -> Vector3UkMap = {
 def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
   def work(v: Vector3) -> MatrixMapSReal = {
     match v with
-    | ii -> mkVector3 1. 0. 0.
-    | jj -> mkVector3 0. 1. 0.
-    | kk -> mkVector3 0. 0. 1.
-    | zero3 -> mkVector3 0. 0. 0.
     | sym: Vector3 -> {
         if Map.mem v ukm then work (Map.find v ukm)
         else error "Unkown of Vector3 type not in Vector3 uknown map"
@@ -99,8 +106,8 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
 def applyVec2RealOptrs(e: <>, ukm: Vector3UkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | dot l r -> hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm))))
-    | norm2 (vec3 x y z) -> x^2. + y^2. + z^2.
+    | dot l r -> work (hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm)))))
+    | norm2 (vec3 x y z) -> (work x)^2. + (work y)^2. + (work z)^2.
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
@@ -114,7 +121,9 @@ def (=): Real -> Real -> Equations
 def (<-): Real -> Real -> Equations
 def (<~): Real -> Real -> Equations
 def (~=): Real -> Real -> Equations
+
 def (==): Vector3 -> Vector3 -> Equations
+def v3init: Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
 def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
