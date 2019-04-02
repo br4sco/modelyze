@@ -49,9 +49,11 @@ def jj = vec3 0. 1. 0.
 def kk = vec3 0. 0. 1.
 def zero3 = vec3 0. 0. 0.
 
-def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
+def _mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
+
+def mkVec3(v: (Real, Real, Real)) -> Vector3 = { def (x, y, z) = v; vec3 x y z }
 
 def isRealUk(e: <Real>) -> Bool = {
   match e with
@@ -89,7 +91,7 @@ def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
   def work(v: Vector3) -> MatrixMapSReal = {
     match v with
     | sym: Vector3 -> error "Unkown of Vector3 type not in Vector3 uknown map"
-    | vec3 x y z -> mkVector3 x y z
+    | vec3 x y z -> _mkVector3 x y z
     | l + r -> (work l) + (work r)
     | l - r -> (work l) - (work r)
     | r * v -> r *. (work v)

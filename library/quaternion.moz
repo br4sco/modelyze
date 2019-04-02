@@ -43,6 +43,8 @@ def norm2 = qnorm2
 
 def unitq = quat 1. 0. 0. 0.
 
+def mkQuat(q: (Real, Real, Real, Real)) -> Quaternion = { def (w, i, j, k) = q; quat w i j k }
+
 type QuaternionUkMap = (Quaternion => Quaternion)
 
 def L(q: Quaternion, v: Vector3) -> Vector3 = {
