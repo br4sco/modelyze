@@ -386,7 +386,7 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
   translationEdge f_2 f_1 r_1 F_1;
   // angularVelocityEdge f_2 f_1 om_1 T_1;
   // angularVelocityEdge world f_2 om_2 T_2;
-  // om_1 == 2. * qim (q_1' * (qconj q_1));
+  // q_1' ==. 0.5 * (q_ om_1) * q_1 + CORRECTION_SPEED * (1. - sqrt(norm2 q_1)) * q_1;
   // q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
   rotationEdge f_2 f_1 q_1 T_1;
   rotationEdge world f_2 q_2 T_2;
