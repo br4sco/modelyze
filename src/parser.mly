@@ -108,6 +108,8 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %token <unit Ast.tokendata> DOTEQ           /* "=." */
 %token <unit Ast.tokendata> LEFTARROW       /* "<-" */
 %token <unit Ast.tokendata> APXLEFTARROW    /* "<~" */
+%token <unit Ast.tokendata> APXLEFTLONGARROW    /* "<~~" */
+%token <unit Ast.tokendata> DOTAPXLEFTLONGARROW    /* "<~~." */
 %token <unit Ast.tokendata> MOD             /* "mod"*/
 %token <unit Ast.tokendata> ADD             /* "+"  */
 %token <unit Ast.tokendata> SUB             /* "-"  */
@@ -176,7 +178,7 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %nonassoc MYAPP
 %left OR  /*prec 2*/
 %left AND  /*prec 3*/
-%left EQ DOTEQ APXEQ LEFTARROW APXLEFTARROW PLUSPLUS /*prec 5*/
+%left EQ DOTEQ APXEQ LEFTARROW APXLEFTARROW APXLEFTLONGARROW DOTAPXLEFTLONGARROW PLUSPLUS /*prec 5*/
 %left LESS LESSEQUAL GREAT GREATEQUAL EQUAL POLYEQUAL EQUAL NOTEQUAL LONGARROW DOUBLEARROW BARARROWS DOUBLEDASH /*prec 6*/
 %left DOTLESS DOTLESSEQUAL DOTGREAT DOTGREATEQUAL DOTEQUAL DOTNOTEQUAL DOTDOUBLEARROW DOUBLEDASHDOT /*prec 7*/
 %nonassoc NOT /*prec8 */
@@ -425,6 +427,10 @@ pat_op:
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(=)" $1 $3 }
   | pat_op LEFTARROW pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<-)" $1 $3 }
+  | pat_op APXLEFTLONGARROW pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<~~)" $1 $3 }
+  | pat_op DOTAPXLEFTLONGARROW pat_op
+      { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<~~.)" $1 $3 }
   | pat_op APXLEFTARROW pat_op
       { mk_binpat_op (mkpatinfo $1 $3) $2.l "(<~)" $1 $3 }
   | pat_op DOTEQ pat_op
@@ -612,6 +618,10 @@ op:
       { mk_binop (mktminfo $1 $3) $2.l "(<-)" $1 $3 }
   | op APXLEFTARROW op
       { mk_binop (mktminfo $1 $3) $2.l "(<~)" $1 $3 }
+  | op APXLEFTLONGARROW op
+      { mk_binop (mktminfo $1 $3) $2.l "(<~~)" $1 $3 }
+  | op DOTAPXLEFTLONGARROW op
+      { mk_binop (mktminfo $1 $3) $2.l "(<~~.)" $1 $3 }
   | op MOD op
       { mk_binop (mktminfo $1 $3) $2.l "(mod)" $1 $3 }
   | op ADD op

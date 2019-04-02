@@ -16,15 +16,7 @@ def r_h, F_h: Vector3
 
 def w_r2, i_r2, j_r2, k_r2: Real
 def r_r1, F_r1, om_r2, T_r2: Vector3
-def q_r2 = quat w_r2 i_r2 j_r2 k_r2
-
-def x_s, y_s, z_s: Real
-def r_s = vec3 x_s y_s z_s
-def F_s: Vector3
-def omx_s, omy_s, omz_s: Real
-def om_s = vec3 omx_s omy_s omz_s
-def w_s, i_s, j_s, k_s: Real
-def q_s = quat w_s i_s j_s k_s
+def q_r2: Quaternion
 
 def qn1: Real
 def qn2: Real
@@ -37,7 +29,7 @@ def model = {
   q_m' ==. 0.5 * (q_ om_m) * q_m + (1. - sqrt(norm2 q_m)) * q_m;
   F_g == 9.81 * jj;
   r_h == zero3;
-  r_r1 == L (q_r2) (vec3 (-1.) 0. (0.));
+  r_r1 == L (q_r2) (vec3 (-1.) 0. 0.);
   T_r2 == cross (-r_r1) F_r1;
   r_m == r_h - r_r1;
   r_m == r_g;
@@ -47,8 +39,9 @@ def model = {
   norm2 q_m ~= 1.;
   norm2 q_r2 ~= 1.;
   w_m <~ 1.;
-  w_r2 <~ 1.;
-  v3init r_m (10. * zero3)
+  r_m <~~ (10. * zero3);
+  r_r1 <~~ (L unitq (vec3 (-1.) 0. 0.));
+  q_r2 <~~. unitq
 }
 
 def main = dprintln (toScalarEquations (toVector3Equations model))

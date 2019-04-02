@@ -32,6 +32,7 @@ def qim: Quaternion -> Vector3
 def qre: Quaternion -> Real
 def qnorm2: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
+def (<~~.): Quaternion -> Quaternion -> Equations
 
 def (*) = qprod
 def (*) = qsprod
@@ -64,14 +65,11 @@ def mkQuaternionUkMap(e: <>) -> QuaternionUkMap = {
   work e (Map.empty)
 }
 
-def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = {
+def quat2scalarVec3(q: Quaternion) -> (<Real>, Vector3) = {
   def z: <Real> = 0.;
   def work(q: Quaternion) -> (<Real>, Vector3) = {
     match q with
-    | sym: Quaternion -> {
-        if Map.mem q ukm then work (Map.find q ukm)
-        else error "Unkown of Quaternion type not in Quaternion uknown map"
-      }
+    | sym: Quaternion -> error "Unkown of Quaternion type not in Quaternion uknown map"
     | quat w i j k -> (w, vec3 i j k)
     | pquat v -> (z, v)
     | qconj q -> { def (q_0, qq) = work q; (q_0, -qq) }
@@ -93,10 +91,10 @@ def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = 
   work q
 }
 
-def applyQuatToVector3Ops(e: <>, ukm: QuaternionUkMap) -> <> = {
+def applyQuatToVector3Ops(e: <>) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | qim q -> snd (quat2scalarVec3 (work q) ukm)
+    | qim q -> snd (quat2scalarVec3 (work q))
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };
@@ -104,10 +102,10 @@ def applyQuatToVector3Ops(e: <>, ukm: QuaternionUkMap) -> <> = {
   work e
 }
 
-def applyQuatToRealOps(e: <>, ukm: QuaternionUkMap) -> <> = {
+def applyQuatToRealOps(e: <>) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | qnorm2 q -> fst (quat2scalarVec3 (qprod (qconj q) q) ukm)
+    | qnorm2 q -> fst (quat2scalarVec3 (qprod (qconj q) q))
     | qre q -> fst (quat2scalarVec3 q)
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
@@ -118,17 +116,23 @@ def applyQuatToRealOps(e: <>, ukm: QuaternionUkMap) -> <> = {
 
 def toVector3Equations(e: Equations) -> Equations = {
   def ukm = mkQuaternionUkMap e;
+  def e = subs e ukm;
 
   def work(e: Equations, a: Equations) -> Equations = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | l ==. r -> {
-        def (l_0, ll) = quat2scalarVec3 l ukm;
-        def (r_0, rr) = quat2scalarVec3 r ukm;
-        a; l_0 = r_0; ll == rr
+    | p ==. q-> {
+        def (p_0, pp) = quat2scalarVec3 p;
+        def (q_0, qq) = quat2scalarVec3 q;
+        a; p_0 = q_0; pp == qq
+      }
+    | p <~~. q -> {
+        def (p_0, pp) = quat2scalarVec3 p;
+        def (q_0, qq) = quat2scalarVec3 q;
+        a; p_0 <~ q_0; pp <~~ qq
       }
     | _ -> a; e
   };
 
-  applyQuatToRealOps (applyQuatToVector3Ops (work e NoEqn) ukm) ukm
+  applyQuatToRealOps (applyQuatToVector3Ops (work e NoEqn))
 }

@@ -126,7 +126,7 @@ def (<~): Real -> Real -> Equations
 def (~=): Real -> Real -> Equations
 
 def (==): Vector3 -> Vector3 -> Equations
-def v3init: Vector3 -> Vector3 -> Equations
+def (<~~): Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
 def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
@@ -160,7 +160,7 @@ def toScalarEquations(e: Equations) -> Equations = {
     | e_1; e_2 -> work e_2 (work e_1 a)
     | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1) (vector32Matrix v_2) a
     | r_1 = r_2 -> a; r_1 = r_2
-    | v3init v_1 v_2 -> matrices2Inits (vector32Matrix v_1) (vector32Matrix v_2) a
+    | v_1 <~~ v_2 -> matrices2Inits (vector32Matrix v_1) (vector32Matrix v_2) a
     | r_1 <- r_2 -> {
         if isRealUk r_1 then a; r_1 <- evalReal r_2
         else error ("Expected lhs " ++ symstr(r_1)  ++  " to be an uknown")
@@ -173,5 +173,6 @@ def toScalarEquations(e: Equations) -> Equations = {
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}
   };
-  applyVec2RealOptrs (work e NoEqn)
+
+  work e NoEqn
 }
