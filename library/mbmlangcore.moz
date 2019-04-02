@@ -332,8 +332,9 @@ def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Fram
   // angularVelocityEdge world f om T;
   rotationEdge world f q T;
 
-  q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
-
+  q' ==. 0.5 * (q_ om) * q
+  // + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+;
   r' == v;
   F == m * v';
   T == I *. om' + cross om (I *. om)
