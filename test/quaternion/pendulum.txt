@@ -43,4 +43,7 @@ Tz_m_1 = -(z_6);
 w_m_1 * w_m_1 - -(i_m_1) * i_m_1 + -(j_m_1) * j_m_1 + -(k_m_1) * k_m_1 ~= sval(1);
 w_r2_1 * w_r2_1 - -(i_r2_1) * i_r2_1 + -(j_r2_1) * j_r2_1 + -(k_r2_1) * k_r2_1 ~= sval(1);
 w_m_1 <~ sval(1);
-w_r2_1 <~ sval(1)
+w_r2_1 <~ sval(1);
+x_m_1 <~ sval(0);
+y_m_1 <~ sval(0);
+z_m_1 <~ sval(0)

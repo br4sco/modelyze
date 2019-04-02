@@ -47,7 +47,8 @@ def model = {
   norm2 q_m ~= 1.;
   norm2 q_r2 ~= 1.;
   w_m <~ 1.;
-  w_r2 <~ 1.
+  w_r2 <~ 1.;
+  v3init r_m (10. * zero3)
 }
 
 def main = dprintln (toScalarEquations (toVector3Equations model))
