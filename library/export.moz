@@ -51,8 +51,11 @@ type InitValMap = (<Real> => (Real, Bool))
       | u <- r -> {
           match (u, r) with
           | (sym: Real, sval r: Real) -> {
-              if Map.mem u a then error ("Initial value defined twice for unknown: " ++ symstr(u))
-              else Map.add u (r, true) a
+              if Map.mem u a then {
+                  def r_old = fst (Map.find u a);
+                  if r == r_old then a
+                  else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
+              } else Map.add u (r, true) a
             }
           | _ -> error "Invalid initial value assignment"
         }
@@ -61,7 +64,11 @@ type InitValMap = (<Real> => (Real, Bool))
           | (sym: Real, sval r: Real) -> {
               if Map.mem u a then {
                 if snd (Map.find u a) then a
-                else error ("Initial guess defined twice for unknown: " ++ symstr(u))
+                else {
+                  def r_old = fst (Map.find u a);
+                  if r == r_old then a
+                  else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
+                }
               }
               else Map.add u (r, false) a
             }
