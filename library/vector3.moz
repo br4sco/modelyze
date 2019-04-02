@@ -53,6 +53,12 @@ def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
 
+def isSym(e: <?>) -> Bool = {
+  match e with
+  | sym: ? -> true
+  | _ -> false
+}
+
 def evalReal(r: <Real>) -> Real = {
   def work(e: <?>) -> ? = {
     match e with
@@ -79,13 +85,10 @@ def mkVector3UkMap(e: <>) -> Vector3UkMap = {
   work e (Map.empty)
 }
 
-def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
+def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
   def work(v: Vector3) -> MatrixMapSReal = {
     match v with
-    | sym: Vector3 -> {
-        if Map.mem v ukm then work (Map.find v ukm)
-        else error "Unkown of Vector3 type not in Vector3 uknown map"
-      }
+    | sym: Vector3 -> error "Unkown of Vector3 type not in Vector3 uknown map"
     | vec3 x y z -> mkVector3 x y z
     | l + r -> (work l) + (work r)
     | l - r -> (work l) - (work r)
@@ -103,10 +106,10 @@ def vector32Matrix(v: Vector3, ukm: Vector3UkMap) -> MatrixMapSReal = {
   work v
 }
 
-def applyVec2RealOptrs(e: <>, ukm: Vector3UkMap) -> <> = {
+def applyVec2RealOptrs(e: <>) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | dot l r -> work (hd (concat (matrixToList ((tr (vector32Matrix l ukm)) * (vector32Matrix r ukm)))))
+    | dot l r -> work (hd (concat (matrixToList ((tr (vector32Matrix l)) * (vector32Matrix r)))))
     | norm2 (vec3 x y z) -> (work x)^2. + (work y)^2. + (work z)^2.
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
@@ -133,24 +136,34 @@ def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Eq
       match (le, re) with
       | (sval lr: Real, sval rr: Real) -> { if lr == rr then a
                                             else error (real2string lr ++ " != " ++ real2string rr) }
-      | _ -> a; find ij l = find ij r
+      | _ -> a; le = re
+    };
+  if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
+}
+
+def matrices2Inits(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
+  def f(a: Equations, ij: Pos) -> Equations = {
+      def le = find ij l;
+      def re = evalReal (find ij r);
+      if isSym le then { a; le <~ re } else error "Expected lhs to be an uknown"
     };
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
 
 def toScalarEquations(e: Equations) -> Equations = {
   def ukm = mkVector3UkMap e;
+  def e = subs e ukm;
 
   def work(e: Equations, a: Equations) -> Equations  = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1 ukm) (vector32Matrix v_2 ukm) a
-    | r_1 = r_2 -> a; (applyVec2RealOptrs r_1 ukm) = (applyVec2RealOptrs r_2 ukm)
-    | r_1 <- r_2 -> a; (applyVec2RealOptrs r_1 ukm) <- (applyVec2RealOptrs r_2 ukm)
-    | r_1 <~ r_2 -> a; (applyVec2RealOptrs r_1 ukm) <~ (applyVec2RealOptrs r_2 ukm)
-    | r_1 ~= r_2 -> a; (applyVec2RealOptrs r_1 ukm) ~= (applyVec2RealOptrs r_2 ukm)
+    | v_1 == v_2 -> matrices2Equations (vector32Matrix v_1) (vector32Matrix v_2) a
+    | r_1 = r_2 -> a; (applyVec2RealOptrs r_1) = (applyVec2RealOptrs r_2)
+    | r_1 <- r_2 -> a; (applyVec2RealOptrs r_1) <- (applyVec2RealOptrs r_2)
+    | r_1 <~ r_2 -> a; (applyVec2RealOptrs r_1) <~ (applyVec2RealOptrs r_2)
+    | r_1 ~= r_2 -> a; (applyVec2RealOptrs r_1) ~= (applyVec2RealOptrs r_2)
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}
   };
-  applyVec2RealOptrs (work e NoEqn) ukm
+  applyVec2RealOptrs (work e NoEqn)
 }

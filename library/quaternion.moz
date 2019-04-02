@@ -96,7 +96,7 @@ def quat2scalarVec3(q: Quaternion, ukm: QuaternionUkMap) -> (<Real>, Vector3) = 
 def applyQuatToVector3Ops(e: <>, ukm: QuaternionUkMap) -> <> = {
   def work(e: <>) -> <> = {
     match e with
-    | qim q -> snd (quat2scalarVec3 q ukm)
+    | qim q -> snd (quat2scalarVec3 (work q) ukm)
     | e_1 e_2 -> (work e_1) (work e_2)
     | _ -> e
   };

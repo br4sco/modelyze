@@ -1,0 +1,6 @@
+include Vector3
+
+def x, y: Real
+def xx, yy: Vector3
+
+def _ = dprintln (toScalarEquations (xx == yy; x = y; 10. * xx' == x * yy))
