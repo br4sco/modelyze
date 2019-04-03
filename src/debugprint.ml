@@ -118,6 +118,8 @@ let opMap str =
   match Ustring.to_utf8 str with
     | "(=)"   -> (InfixSpace,us"=",5)
     | "(~=)"  -> (InfixSpace,us"~=",5)
+    | "(~==)"  -> (InfixSpace,us"~==",5)
+    | "(~==.)" -> (InfixSpace,us"~==.",5)
     | "(=.)"  -> (InfixSpace,us"=.",5)
     | "(<-)"  -> (InfixSpace,us"<-",5)
     | "(<~)"  -> (InfixSpace,us"<~",5)
