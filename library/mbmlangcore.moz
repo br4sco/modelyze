@@ -157,72 +157,75 @@ def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
   }
 }
 
-def mkTopolRes(bop: (Int -> Dyn -> Dyn -> Dyn), C: MatrixMapInt,
-  pvs: [Dyn], svs: [Dyn]) -> [Dyn] = {
-
+def mkTopolRes(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: Dyn, C: MatrixMapInt, pvs: [Dyn], svs: [Dyn]) -> [(Dyn, Dyn)] = {
   def ipvs = zip (mapToIdx pvs) pvs;
   def jsvs = zip (mapToIdx svs) svs;
 
   map (fun ipv: (Int, Dyn) -> {
         def (i, pv) = ipv;
 
-        def f(a: Dyn, jsv: (Int, Dyn)) -> Dyn = {
-          def (j, sv) = jsv;
-          def c = find (i + 1, j + 1) C;
+        def csvs = map (fun jsv: (Int, Dyn) -> { def (j, sv) = jsv; (find (i + 1, j + 1) C, sv) }) jsvs;
+        def csvs = filter (fun jsv: (Int, Dyn) -> fst jsv != 0) csvs;
+
+        def f(a: Dyn, csv: (Int, Dyn)) -> Dyn = {
+          def (c, sv) = csv;
           if c == 0 then a else bop c a sv
         };
 
-        foldLeft f pv jsvs
+        match csvs with
+        | (c, sv)::csvs -> (pv, foldLeft f (uop c sv) csvs)
+        | [] -> (pv, zero)
 
       }) ipvs
 }
 
 def mkScalarTopolEquations(C: MatrixMapInt, pvs: [<Real>], svs: [<Real>], a: Equations) -> Equations = {
-  def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l + (int2real c) * r };
-  def rs = mkTopolRes bop C pvs svs;
+  def uop(c: Int, r: <Real>) -> <Real> = { - (int2real c) * r };
+  def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l - (int2real c) * r };
+  def rs = mkTopolRes uop bop 0. C pvs svs;
 
-  def work(rs: [<Real>], a: Equations) -> Equations = {
+  def work(rs: [(<Real>, <Real>)], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; r = 0.)
+    | r::rs -> work rs (a; fst r = snd r)
     | _ -> error "Unmatched"
   };
 
   work rs a
 }
 
-def mkVector3TopolEquations(C: MatrixMapInt, pvs: [Vector3], svs: [Vector3], a: Equations)
-  -> Equations = {
-  def bop(c: Int, l: Vector3, r: Vector3) -> Vector3 = {
-    def c = int2real c;
-    l + c * r
-  };
-  def rs = mkTopolRes bop C pvs svs;
+def mkVector3TopolEquations(C: MatrixMapInt, pvs: [Vector3], svs: [Vector3], a: Equations) -> Equations = {
+  def uop(c: Int, v: Vector3) -> Vector3 = { - (int2real c) * v };
+  def bop(c: Int, l: Vector3, r: Vector3) -> Vector3 = { l - (int2real c) * r };
+  def rs = mkTopolRes uop bop zero3 C pvs svs;
 
-  def work(rs: [Vector3], a: Equations) -> Equations = {
+  def work(rs: [(Vector3, Vector3)], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; r == zero3)
+    | r::rs -> work rs (a; fst r == snd r)
     | _ -> error "Unmatched"
   };
 
   work rs a
 }
 
-def mkQuaternionTopolEquations(C: MatrixMapInt, pvs: [Quaternion], svs: [Quaternion], a: Equations)
-  -> Equations = {
+def mkQuaternionTopolEquations(C: MatrixMapInt, pvs: [Quaternion], svs: [Quaternion], a: Equations) -> Equations = {
+  def uop(c: Int, q: Quaternion) -> Quaternion = {
+    if c == 1 then (qconj q)
+    else if c == -1 then q
+    else error "Expected matrix elements to be -1, or 1"
+  };
   def bop(c: Int, l: Quaternion, r: Quaternion) -> Quaternion = {
-    if c == 1 then l * r
-    else if c == -1 then l * (qconj r)
-    else if c == 0 then l
-    else error "Expected matrix elements to be -1, 0, or 1 "
+    if c == 1 then l * (qconj r)
+    else if c == -1 then l * r
+    else error "Expected matrix elements to be -1, or 1"
   };
-  def rs = mkTopolRes bop C pvs svs;
+  def rs = mkTopolRes uop bop idq C pvs svs;
 
-  def work(rs: [Quaternion], a: Equations) -> Equations = {
+  def work(rs: [(Quaternion, Quaternion)], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; r ==. idq)
+    | r::rs -> work rs (a; fst r ==. snd r)
     | _ -> error "Unmatched"
   };
 
