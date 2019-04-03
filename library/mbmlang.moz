@@ -223,20 +223,12 @@ def elaborateToFile(o: ModelElement) -> () = {
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
-def Body1(m: Real, I: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
-  equationsElement (Body m I q_0 world f)
-}
-
 def Body1(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Body m I world f)
 }
 
 def Gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m world f)
-}
-
-def RigidArm1(r: (Real, Real, Real), q_2_0: (Real, Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RigidArm r q_2_0 world f_1 f_2)
 }
 
 def RigidArm1(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
@@ -271,13 +263,13 @@ def VisAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
   def x, y, z, w, i, j, k: Real;
   def r = vec3 x y z;
   def q = quat w i j k;
-  equationsElement (w <~ 1.; w <~ 1.) ++
   world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
   visualElement r q (visualAxes l)
 }
 
-def Bar1(m: Real, x: Real, y: Real, z: Real, q_0: (Real, Real, Real, Real), world: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+def Bar1(m: Real, x: Real, y: Real, z: Real, world: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
   def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
+  // def I = (1., 1., 1.);
   world -- (Body1 m I || Gravity1 m ) -- c ++
-  we -- RigidArm1 (x / 2., 0., 0.) q_0 world -.- c -.- RigidArm1 (x / 2., 0., 0.) (conj q_0) world -- ea
+  we -- RigidArm1 (x / 2., 0., 0.) world -.- c -.- RigidArm1 (x / 2., 0., 0.) world -- ea
 }

@@ -232,8 +232,8 @@ def mkQuaternionTopolEquations(C: MatrixMapInt, svs: [Quaternion], pvs: [Quatern
   work rs a
 }
 
-type ResidualFunction = MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations
-def mkTopolEquations(f_a: ResidualFunction, f_t: ResidualFunction, mes: [ModelEdge], a: Equations) -> Equations = {
+type MkEqsFun = MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations
+def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equations) -> Equations = {
   def (A, (T, C)) = mkCutsetMatrix mes;
   def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
 
@@ -332,8 +332,7 @@ def Clock(t_0: Real, t: <Real>) = {
 def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def om, T: Vector3;
   rotationEdge f_1 f_2 q T;
-  // angularVelocityEdge f_1 f_2 om T;
-  // q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+  norm2 q ~= 1.;
   T == zero3
 }
 
@@ -348,41 +347,20 @@ def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Fram
   def I = vec3 I_xx I_yy I_zz;
   def v, F, om, T: Vector3;
   translationEdge world f r F;
-  // angularVelocityEdge world f om T;
   rotationEdge world f q T;
 
   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
-
   r' == v;
   F == m * v';
   T == I *. om' + cross om (I *. om)
 }
 
-def Body(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> Equations = {
-  def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
-  def r = vec3 x_m y_m z_m;
-  def q = quat w_m i_m j_m k_m;
-
-  if abs (norm2 q_0 - 1.) < EPSILON then {
-    r <~~ mkVec3 r_0;
-    q <~~. mkQuat q_0;
-    _Body m I r q world f
-  } else error ERROR_UNIT_QUATERNION
-}
-
-def Body(m: Real, I: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> Equations = {
-  def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
-  def r = vec3 x_m y_m z_m;
-  def q = quat w_m i_m j_m k_m;
-
-  if abs (norm2 q_0 - 1.) < EPSILON then {
-    q <~~. mkQuat q_0;
-    _Body m I r q world f
-  } else error ERROR_UNIT_QUATERNION
-}
-
 def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = {
-  Body m I (1., 0., 0., 0.) world f
+  def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
+  def r = vec3 x_m y_m z_m;
+  def q = quat w_m i_m j_m k_m;
+  norm2 q ~= 1.;
+  _Body m I r q world f
 }
 
 def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
@@ -394,7 +372,6 @@ def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
 def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge f_1 f_2 r F;
-  r <~~ zero3;
   r == zero3
 }
 
@@ -403,10 +380,6 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
   def q_1: Quaternion;
 
   translationEdge f_2 f_1 r_1 F_1;
-  // angularVelocityEdge f_2 f_1 om_1 T_1;
-  // angularVelocityEdge world f_2 om_2 T_2;
-  // q_1' ==. 0.5 * (q_ om_1) * q_1 + CORRECTION_SPEED * (1. - sqrt(norm2 q_1)) * q_1;
-  // q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
   rotationEdge f_2 f_1 q_1 T_1;
   rotationEdge world f_2 q_2 T_2;
 
@@ -415,17 +388,9 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
   T_2 == cross (-r_1) F_1
 }
 
-def RigidArm(r: (Real, Real, Real), q_2_0: (Real, Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def r_1: Vector3;
   def q_2: Quaternion;
-  if abs (norm2 q_2_0 - 1.) < EPSILON then {
-    def q_2_0 = mkQuat q_2_0;
-    r_1 <~~ L q_2_0 (mkVec3 r);
-    q_2 <~~. q_2_0;
-    _RigidArm r r_1 q_2 world f_1 f_2
-  } else error ERROR_UNIT_QUATERNION
-}
-
-def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-  RigidArm r (1., 0., 0., 0.) world f_1 f_2
+  norm2 q_2 ~= 1.;
+  _RigidArm r r_1 q_2 world f_1 f_2
 }
