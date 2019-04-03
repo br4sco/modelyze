@@ -1,4 +1,4 @@
-include Quaternion
+include MBMLANG
 
 def x_m, y_m, z_m: Real
 def r_m = vec3 x_m y_m z_m
@@ -22,7 +22,7 @@ def qn1: Real
 def qn2: Real
 def tol, e1, e2: Real
 
-def model = {
+def terminals = {
   r_m' == v_m;
   v_m' == F_m;
   om_m' == T_m;
@@ -31,18 +31,21 @@ def model = {
   r_h == zero3;
   r_r1 == L (q_r2) (vec3 (-1.) 0. 0.);
   T_r2 == cross (-r_r1) F_r1;
-  r_m == r_h - r_r1;
-  r_m == r_g;
-  F_r1 == F_g + F_m;
-  q_r2 * (qconj q_m) ==. idq;
-  T_m == -T_r2;
-  norm2 q_m ~= 1.;
-  norm2 q_r2 ~= 1.;
-  w_m <~ 1.;
-  r_m <~~ (10. * zero3);
-  r_r1 <~~ (L idq (vec3 (-1.) 0. 0.));
-  q_r2 <~~. idq;
-  q_m ~==. idq
+  // norm2 q_m ~= 1.;
+  // norm2 q_r2 ~= 1.;
+  q_r2 <~~. idq
 }
 
-def main = dprintln (toScalarEquations (toVector3Equations model))
+def v3map = listToMap [
+                        (r_h, r_r1 + r_m),
+                        (r_g, r_m),
+                        (F_m, -F_h - F_g),
+                        (F_r1, -F_h),
+                        (T_m, -T_r2)
+                       ]
+
+def qmap = listToMap [(q_r2, q_m)]
+
+def model = subs (subs terminals v3map) qmap
+
+def main = { elaborateToFile (equationsElement model) }

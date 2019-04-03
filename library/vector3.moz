@@ -136,6 +136,7 @@ def (<~): Real -> Real -> Equations
 def (~=): Real -> Real -> Equations
 
 def (==): Vector3 -> Vector3 -> Equations
+def (~==): Vector3 -> Vector3 -> Equations
 def (<~~): Vector3 -> Vector3 -> Equations
 def NoEqn: Equations
 
@@ -150,6 +151,19 @@ def matrices2Equations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Eq
     };
   if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
 }
+
+def matrices2InitEquations(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
+  def f(a: Equations, ij: Pos) -> Equations = {
+      def le = find ij l;
+      def re = find ij r;
+      match (le, re) with
+      | (sval lr: Real, sval rr: Real) -> { if lr == rr then a
+                                            else error (real2string lr ++ " != " ++ real2string rr) }
+      | _ -> a; le ~= re
+    };
+  if dim l == dim r then foldij f a l else error DIMENSION_MISSMATCH
+}
+
 
 def matrices2Inits(l: MatrixMapSReal, r: MatrixMapSReal, a: Equations) -> Equations = {
   def f(a: Equations, ij: Pos) -> Equations = {
@@ -179,6 +193,7 @@ def toScalarEquations(e: Equations) -> Equations = {
         if isRealUk r_1 then a; r_1 <~ evalReal r_2
         else error ("Expected lhs " ++ symstr(r_1)  ++  " to be an uknown")
       }
+    | v_1 ~== v_2 -> matrices2InitEquations (vector32Matrix v_1) (vector32Matrix v_2) a
     | r_1 ~= r_2 -> a; r_1 ~= r_2
     | NoEqn -> a
     | _ -> { def _ = dprintln e; error "Unexpected construct"}

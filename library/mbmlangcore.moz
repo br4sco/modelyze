@@ -258,7 +258,7 @@ def elaborate(e: Equations) -> Equations = {
 }
 
 def GRAVITATIONAL_CONSTANT = 9.81
-def CORRECTION_SPEED = 0.5
+def CORRECTION_SPEED = 1.0
 def EPSILON = 1.e-10
 
 def norm2(v: (Real, Real, Real)) = {
@@ -271,9 +271,14 @@ def norm2(q: (Real, Real, Real, Real)) = {
   w^2. + i^2. + j^2. + k^2.
 }
 
+def conj(q: (Real, Real, Real, Real)) = {
+  def (w, i, j, k) = q;
+  (w, -i, -j, -k)
+}
+
 def ea2quat(th: Real, x: Real, y: Real, z: Real) = {
   def n = sqrt(x^2. + y^2. + z^2.);
-  (cos (th / 2.), x / n * sin (th / 2.), y / n * sin (th / 2.), z / n * sin (th / 2.))
+  (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
 }
 
 def Clock(t_0: Real, t: <Real>) = {
@@ -362,8 +367,19 @@ def Body(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), q_0: (Real, Re
   } else error ERROR_UNIT_QUATERNION
 }
 
+def Body(m: Real, I: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> Equations = {
+  def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
+  def r = vec3 x_m y_m z_m;
+  def q = quat w_m i_m j_m k_m;
+
+  if abs (norm2 q_0 - 1.) < EPSILON then {
+    q <~~. mkQuat q_0;
+    _Body m I r q world f
+  } else error ERROR_UNIT_QUATERNION
+}
+
 def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = {
-  Body m I (0., 0., 0.) (1., 0., 0., 0.) world f
+  Body m I (1., 0., 0., 0.) world f
 }
 
 def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {

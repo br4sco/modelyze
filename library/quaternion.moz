@@ -32,6 +32,7 @@ def qim: Quaternion -> Vector3
 def qre: Quaternion -> Real
 def qnorm2: Quaternion -> Real
 def (==.): Quaternion -> Quaternion -> Equations
+def (~==.): Quaternion -> Quaternion -> Equations
 def (<~~.): Quaternion -> Quaternion -> Equations
 
 def (*) = qprod
@@ -133,6 +134,11 @@ def toVector3Equations(e: Equations) -> Equations = {
         def (p_0, pp) = quat2scalarVec3 p;
         def (q_0, qq) = quat2scalarVec3 q;
         a; p_0 = q_0; pp == qq
+      }
+    | p ~==. q-> {
+        def (p_0, pp) = quat2scalarVec3 p;
+        def (q_0, qq) = quat2scalarVec3 q;
+        a; p_0 ~= q_0; pp ~== qq
       }
     | p <~~. q -> {
         def (p_0, pp) = quat2scalarVec3 p;

@@ -52,4 +52,8 @@ z_5 <~ sval(0);
 w_1 <~ sval(1);
 i_1 <~ sval(0);
 j_1 <~ sval(0);
-k_1 <~ sval(0)
+k_1 <~ sval(0);
+w_m_1 ~= sval(1);
+i_m_1 ~= sval(0);
+j_m_1 ~= sval(0);
+k_m_1 ~= sval(0)

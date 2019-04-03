@@ -4,3 +4,4 @@ def x, y: Real
 def xx, yy: Vector3
 
 def _ = dprintln (toScalarEquations (xx == yy; x = y; 10. * xx' == x * yy))
+def _ = dprintln (toScalarEquations (xx == yy; x = y; yy ~== vec3 1. 2. 3.; 10. * xx' == x * yy))
