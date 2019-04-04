@@ -157,7 +157,7 @@ def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
   }
 }
 
-def mkTopolRes(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: Dyn, C: MatrixMapInt, svs: [Dyn], pvs: [Dyn]) -> [(Dyn, Dyn)] = {
+def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: Dyn, C: MatrixMapInt, svs: [Dyn], pvs: [Dyn]) -> [(Dyn, Dyn)] = {
   def isvs = zip (mapToIdx svs) svs;
   def jpvs = zip (mapToIdx pvs) pvs;
 
@@ -179,10 +179,34 @@ def mkTopolRes(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: 
       }) isvs
 }
 
-def mkScalarTopolEquations(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>], a: Equations) -> Equations = {
+def mkPriScndVarsRel(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>]) -> [(<Real>, <Real>)] = {
   def uop(c: Int, r: <Real>) -> <Real> = { - (int2real c) * r };
   def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l - (int2real c) * r };
-  def rs = mkTopolRes uop bop 0. C svs pvs;
+  mkPriScndVarsRel uop bop 0. C svs pvs
+}
+
+def mkPriScndVarsRel(C: MatrixMapInt, svs: [Vector3], pvs: [Vector3]) -> [(Vector3, Vector3)] = {
+  def uop(c: Int, v: Vector3) -> Vector3 = { - (int2real c) * v };
+  def bop(c: Int, l: Vector3, r: Vector3) -> Vector3 = { l - (int2real c) * r };
+  mkPriScndVarsRel uop bop zero3 C svs pvs
+}
+
+def mkPriScndVarsRel(C: MatrixMapInt, svs: [Quaternion], pvs: [Quaternion]) -> [(Quaternion, Quaternion)] = {
+  def uop(c: Int, q: Quaternion) -> Quaternion = {
+    if c == 1 then (qconj q)
+    else if c == -1 then q
+    else error "Expected matrix elements to be -1, or 1"
+  };
+  def bop(c: Int, l: Quaternion, r: Quaternion) -> Quaternion = {
+    if c == 1 then l * (qconj r)
+    else if c == -1 then l * r
+    else error "Expected matrix elements to be -1, or 1"
+  };
+  mkPriScndVarsRel uop bop idq C svs pvs
+}
+
+def mkScalarTopolEquations(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>], a: Equations) -> Equations = {
+  def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(<Real>, <Real>)], a: Equations) -> Equations = {
     match rs with
@@ -195,9 +219,7 @@ def mkScalarTopolEquations(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>], a: Equ
 }
 
 def mkVector3TopolEquations(C: MatrixMapInt, svs: [Vector3], pvs: [Vector3], a: Equations) -> Equations = {
-  def uop(c: Int, v: Vector3) -> Vector3 = { - (int2real c) * v };
-  def bop(c: Int, l: Vector3, r: Vector3) -> Vector3 = { l - (int2real c) * r };
-  def rs = mkTopolRes uop bop zero3 C svs pvs;
+  def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(Vector3, Vector3)], a: Equations) -> Equations = {
     match rs with
@@ -210,17 +232,7 @@ def mkVector3TopolEquations(C: MatrixMapInt, svs: [Vector3], pvs: [Vector3], a: 
 }
 
 def mkQuaternionTopolEquations(C: MatrixMapInt, svs: [Quaternion], pvs: [Quaternion], a: Equations) -> Equations = {
-  def uop(c: Int, q: Quaternion) -> Quaternion = {
-    if c == 1 then (qconj q)
-    else if c == -1 then q
-    else error "Expected matrix elements to be -1, or 1"
-  };
-  def bop(c: Int, l: Quaternion, r: Quaternion) -> Quaternion = {
-    if c == 1 then l * (qconj r)
-    else if c == -1 then l * r
-    else error "Expected matrix elements to be -1, or 1"
-  };
-  def rs = mkTopolRes uop bop idq C svs pvs;
+  def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(Quaternion, Quaternion)], a: Equations) -> Equations = {
     match rs with
@@ -391,6 +403,6 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
 def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def r_1: Vector3;
   def q_2: Quaternion;
-  norm2 q_2 ~= 1.;
+  // norm2 q_2 ~= 1.;
   _RigidArm r r_1 q_2 world f_1 f_2
 }
