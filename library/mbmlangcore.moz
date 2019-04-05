@@ -205,7 +205,8 @@ def mkPriScndVarsRel(C: MatrixMapInt, svs: [Quaternion], pvs: [Quaternion]) -> [
   mkPriScndVarsRel uop bop idq C svs pvs
 }
 
-def mkScalarTopolEquations(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>], a: Equations) -> Equations = {
+def mkScalarTopolEquations(Cvs: (MatrixMapInt, ([<Real>], [<Real>])), a: Equations) -> Equations = {
+  def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(<Real>, <Real>)], a: Equations) -> Equations = {
@@ -218,7 +219,8 @@ def mkScalarTopolEquations(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>], a: Equ
   work rs a
 }
 
-def mkVector3TopolEquations(C: MatrixMapInt, svs: [Vector3], pvs: [Vector3], a: Equations) -> Equations = {
+def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([Vector3], [Vector3])), a: Equations) -> Equations = {
+  def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(Vector3, Vector3)], a: Equations) -> Equations = {
@@ -231,7 +233,8 @@ def mkVector3TopolEquations(C: MatrixMapInt, svs: [Vector3], pvs: [Vector3], a: 
   work rs a
 }
 
-def mkQuaternionTopolEquations(C: MatrixMapInt, svs: [Quaternion], pvs: [Quaternion], a: Equations) -> Equations = {
+def mkQuaternionTopolEquations(Cvs: (MatrixMapInt, ([Quaternion], [Quaternion])), a: Equations) -> Equations = {
+  def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(Quaternion, Quaternion)], a: Equations) -> Equations = {
@@ -244,9 +247,9 @@ def mkQuaternionTopolEquations(C: MatrixMapInt, svs: [Quaternion], pvs: [Quatern
   work rs a
 }
 
-type MkEqsFun = MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations
-def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equations) -> Equations = {
+def mkCutsetCircuitData(mes: [ModelEdge]) -> ((MatrixMapInt, ([Dyn], [Dyn])), (MatrixMapInt, ([Dyn], [Dyn]))) = {
   def (A, (T, C)) = mkCutsetMatrix mes;
+  def B = -tr A;
   def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
 
   def (x_t, y_t) = unzip T;
@@ -254,8 +257,23 @@ def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equation
 
   def _ = logg 2 "x_t" (loggprint x_t);
   def _ = logg 2 "x_c" (loggprint x_c);
+  ((A, (y_t, y_c)), (B, (x_t, x_c)))
+}
 
-  f_t A y_t y_c (f_a (- (tr A)) x_c x_t a)
+type MkEqsFun = MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations
+def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equations) -> Equations = {
+  if isEmpty mes then a else {
+    def (A, (T, C)) = mkCutsetMatrix mes;
+    def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
+
+    def (x_t, y_t) = unzip T;
+    def (x_c, y_c) = unzip C;
+
+    def _ = logg 2 "x_t" (loggprint x_t);
+    def _ = logg 2 "x_c" (loggprint x_c);
+
+    f_t A y_t y_c (f_a (- (tr A)) x_c x_t a)
+  }
 }
 
 def elaborate(e: Equations) -> Equations = {
@@ -264,11 +282,12 @@ def elaborate(e: Equations) -> Equations = {
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
   def (res, e) = getRotationEdges e;
-  def e = (if isEmpty ees then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
-  def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
-  def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
-  def e = (if isEmpty aves then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e);
-  def e = (if isEmpty res then e else mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e);
+  // def e = (if isEmpty ees then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
+  // def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
+  // def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
+  // def e = (if isEmpty aves then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e);
+  // def e = (if isEmpty res then e else mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e);
+  def e = (if isEmpty ees then e else (mkCutsetCircuitData ees) )
   e
 }
 
