@@ -207,6 +207,31 @@ def mkPriScndVarsRel(C: MatrixMapInt, svs: [Quaternion], pvs: [Quaternion]) -> [
   mkPriScndVarsRel uop bop idq C svs pvs
 }
 
+def mkRealCutsetRelation(Ays: (MatrixMapInt, ([<Real>], [<Real>]))) -> [(<Real>, <Real>)] = {
+  def (A, (y_t, y_c)) = Ays;
+  mkPriScndVarsRel A y_t y_c
+}
+
+def mkRealCircuitRelation(Bxs: (MatrixMapInt, ([<Real>], [<Real>]))) -> [(<Real>, <Real>)] = {
+  def (B, (x_t, x_c)) = Bxs;
+  mkPriScndVarsRel B x_c x_t
+}
+
+def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([Vector3], [Vector3]))) -> [(Vector3, Vector3)] = {
+  def (A, (y_t, y_c)) = Ays;
+  mkPriScndVarsRel A y_t y_c
+}
+
+def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([Vector3], [Vector3]))) -> [(Vector3, Vector3)] = {
+  def (B, (x_t, x_c)) = Bxs;
+  mkPriScndVarsRel B x_c x_t
+}
+
+def mkQuaternionCircuitRelation(Bxs: (MatrixMapInt, ([Quaternion], [Quaternion]))) -> [(Quaternion, Quaternion)] = {
+  def (B, (x_t, x_c)) = Bxs;
+  mkPriScndVarsRel B x_c x_t
+}
+
 def mkScalarTopolEquations(Cvs: (MatrixMapInt, ([<Real>], [<Real>])), a: Equations) -> Equations = {
   def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRel C svs pvs;
@@ -282,6 +307,41 @@ def elaborate(e: Equations) -> Equations = {
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
   def e = mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e;
   e
+}
+
+def mkSubsMap(mes: [ScalarEdge], a: (<Real> => <Real>)) -> (<Real> => <Real>) = {
+  if isEmpty mes then a else {
+    def (Ays, Bxs) = mkCutsetCircuitData mes;
+    Union [listToMap (mkRealCutsetRelation Ays), listToMap (mkRealCircuitRelation Bxs), a];
+  }
+}
+
+def mkSubsMap(mes: [Vector3Edge], a: (Vector3 => Vector3)) -> (Vector3 => Vector3) = {
+  if isEmpty mes then a else {
+    def (Ays, Bxs) = mkCutsetCircuitData mes;
+    Union [listToMap (mkVector3CutsetRelation Ays), listToMap (mkVector3CircuitRelation Bxs), a];
+  }
+}
+
+def mkSubsMap(mes: [QuaternionVector3Edge], a: ((Quaternion => Quaternion), (Vector3 => Vector3))) -> ((Quaternion => Quaternion), (Vector3 => Vector3)) = {
+  if isEmpty mes then a else {
+    def (qm, vm) = a;
+    def (Ays, Bxs) = mkCutsetCircuitData mes;
+    (union (listToMap (mkQuaternionCircuitRelation Bxs)) qm, union (listToMap (mkVector3CutsetRelation Ays)) vm)
+  }
+}
+
+def elaborateWithSubstitutions(e: Equations) -> Equations = {
+  def (ees, e) = getElectricalEdges e;
+  def (pres, e) = getPlanarRotationEdges e;
+  def (tes, e) = getTranslationEdges e;
+  def (aves, e) = getAngularVelocityEdges e;
+  def (res, e) = getRotationEdges e;
+
+  def sm = (mkSubsMap pres (mkSubsMap ees (Map.empty)));
+  def vm = (mkSubsMap aves (mkSubsMap tes (Map.empty)));
+  def (qm, vm) = (mkSubsMap res (Map.empty, vm));
+  subs (subs (subs e sm) vm) qm
 }
 
 def GRAVITATIONAL_CONSTANT = 9.81
@@ -415,6 +475,6 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
 def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def r_1: Vector3;
   def q_2: Quaternion;
-  // norm2 q_2 ~= 1.;
+  norm2 q_2 ~= 1.;
   _RigidArm r r_1 q_2 world f_1 f_2
 }

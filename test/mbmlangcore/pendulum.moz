@@ -23,4 +23,4 @@ def model = {
 }
 
 def main = { elaborateToFile (equationsElement model) }
-// def _ = dprintln (elaborate model)
+// def _ = dprintln (elaborateWithSubstitutions model)
