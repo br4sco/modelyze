@@ -81,7 +81,7 @@ type InitValMap = (<Real> => (Real, Bool))
   }
 
 def export2Modelica(name: String, e: Equations) -> String = {
-  def e = toScalarEquations (toVector3Equations (elaborate e));
+  def e = toScalarEquations (toVector3Equations e);
 
   def r2mr(r: Real) -> String = {
       if r < 0. then "(" ++ real2string r  ++ ")"
@@ -165,7 +165,7 @@ def export2ModelicaFile(name: String, e: Equations) -> () = {
 
 def export2Matlab(e: Equations) -> String = {
 
-  def e = toScalarEquations (toVector3Equations (elaborate e));
+  def e = toScalarEquations (toVector3Equations e);
 
   def r2mr(r: Real) -> String = {
       if r < 0. then "(" ++ real2string r  ++ ")"

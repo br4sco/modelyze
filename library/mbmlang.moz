@@ -174,7 +174,7 @@ def visualElement2Json(o: ModelElement) -> String = {
                                       "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
                                       "\"data\": " ++ visualData2Json vd ++
                                       " }" }
-        | _ -> error "Expected scalar unknowns"
+        | _ -> { error ("Expected scalar unknowns, not: " ++ symstr(v) ++ ", " ++ symstr(q)) }
       }
     | _ -> { def _ = dprintln o; error "Expected only visualElement" }
   };
@@ -214,62 +214,107 @@ def getModel(o: ModelElement) -> Equations = {
 }
 
 def elaborateToFile(o: ModelElement) -> () = {
-  def m = getModel o;
+  def ukm = mkQuaternionUkMap o;
+  def o = subs o ukm;
+  def ukm = mkVector3UkMap o;
+  def o = subs o ukm;
+
+  // def ((sm, vm, qm), m) = elaborateWithSubstitutions (getModel o);
+  // def vo = getVisualElements o;
+  // def vo = cleanupModelElements (subs (subs vo qm) vm);
+
+  def m = elaborate (getModel o);
   def vo = getVisualElements o;
   def vo = cleanupModelElements vo;
+
   def _ = export2ModelicaFile "Model" m;
   match vo with
   | NoElement -> ()
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
-def Body1(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
-  equationsElement (Body m I world f)
+def _Body1(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, vd: VisualData, world: Frame, f: Frame) -> ModelElement = {
+  equationsElement (_Body m I r q world f) ++ visualElement r q vd
 }
+
+def Body1(m: Real, I: (Real, Real, Real), vd: VisualData, world: Frame, f: Frame) -> ModelElement = {
+  def r: Vector3;
+  def q: Quaternion;
+  _Body1 m I r q vd world f ++ equationsElement (norm2 q ~= 1.)
+}
+
+def Body1(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), vd: VisualData, world: Frame, f: Frame) -> ModelElement = {
+  def r: Vector3;
+  def q: Quaternion;
+  _Body1 m I r q vd world f ++ equationsElement (norm2 q ~= 1.; r ~== mkVec3 r_0)
+}
+
+def Body1(m: Real, I: (Real, Real, Real), q_0: (Real, Real, Real, Real), vd: VisualData, world: Frame, f: Frame) -> ModelElement = {
+  def (w_0, i_0, j_0, k_0) = q_0;
+  def w, i, j, k: Real;
+  def r: Vector3;
+  def q = quat w i j k;
+  _Body1 m I r q vd world f ++ equationsElement (i <- i_0; j <- j_0; k <- k_0)
+}
+
+def Body1(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), q_0: (Real, Real, Real, Real), vd: VisualData, world: Frame, f: Frame) -> ModelElement = {
+  def r: Vector3;
+  def q: Quaternion;
+  _Body1 m I r q vd world f ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
+}
+
+// def Body1(m: Real, I: (Real, Real, Real), world: Frame, f_m: Frame) -> ModelElement = {
+  // equationsElement (Body m I world f_m)
+// }
 
 def Gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m world f)
 }
 
 def RigidArm1(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RigidArm r world f_1 f_2)
+  def r_1: Vector3;
+  def q_2: Quaternion;
+  equationsElement (_RigidArm r r_1 q_2 world f_1 f_2; norm2 q_2 ~= 1.)
 }
 
 def SphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (SphericalJoint f_1 f_2)
 }
 
-def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (TranslationSensor r f_1 f_2)
-}
+// def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
+  // equationsElement (TranslationSensor r f_1 f_2)
+// }
 
-def RotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
-  equationsElement (RotationSensor q f_1 f_2)
-}
+// def RotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (RotationSensor q f_1 f_2)
+// }
+
+// def InitialValue1(fi: <Real>, th: <Real>, ps: <Real>, f_1: Frame, f_2: Frame) -> ModelElement = {
+//   equationsElement (InitialValue fi th ps f_1 f_2)
+// }
 
 // def RotationDamper1(D: Real, f_1: Frame, f_2: Frame) -> ModelElement = {
 //   equationsElement (RotationDamper D f_1 f_2)
 // }
 
-def VisSolid1(g: Geometry3D, c: Color, opacity: Real, world: Frame, f: Frame) -> ModelElement = {
-  def x, y, z, w, i, j, k: Real;
-  def r = vec3 x y z;
-  def q = quat w i j k;
-  world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
-  visualElement r q (visualSolid g (stdMaterial c opacity))
-}
+// def VisSolid1(g: Geometry3D, c: Color, opacity: Real, world: Frame, f: Frame) -> ModelElement = {
+//   def r: Vector3;
+//   def q: Quaternion;
+//   world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
+//   visualElement r q (visualSolid g (stdMaterial c opacity))
+// }
 
-def VisAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
-  def x, y, z, w, i, j, k: Real;
-  def r = vec3 x y z;
-  def q = quat w i j k;
-  world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
-  visualElement r q (visualAxes l)
-}
+// def VisAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
+//   def x, y, z, w, i, j, k: Real;
+//   def r = vec3 x y z;
+//   def q = quat w i j k;
+//   world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
+//   visualElement r q (visualAxes l)
+// }
 
-def Bar1(m: Real, x: Real, y: Real, z: Real, world: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
-  def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
-  // def I = (1., 1., 1.);
-  world -- (Body1 m I || Gravity1 m ) -- c ++
-  we -- RigidArm1 (x / 2., 0., 0.) world -.- c -.- RigidArm1 (x / 2., 0., 0.) world -- ea
-}
+// def Bar1(m: Real, x: Real, y: Real, z: Real, world: Frame, c: Frame, we: Frame, ea: Frame) -> ModelElement = {
+//   def I = (m * (y^2. + z^2.) / 12., m * (x^2. + z^2.) / 12., m * (x^2. + y^2.) / 12.);
+//   // def I = (1., 1., 1.);
+//   world -- (Body1 m I || Gravity1 m ) -- c ++
+//   we -- RigidArm1 (-x / 2., 0., 0.) world -.- c -.- RigidArm1 (-x / 2., 0., 0.) world -- ea
+// }
