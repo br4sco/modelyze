@@ -114,45 +114,47 @@ def getRotationEdges(e: Equations) -> ([QuaternionVector3Edge], Equations) = {
 }
 
 def mkCutsetMatrix(mes: [ModelEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
-  def G = mkGraph mes;
-  if hasSelfLoop G then error "Model graph contains self loop"
-  else {
-    def IM = mkIncidenceMatrix G;
-    def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
-    def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
-
-    def vs = listToArray (mkVarsList mes);
-
-    def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
-      if i > rdim a then a
-      else {
-        def j_max = snd (argfind (fun v: Int -> v != 0)
-                      (sub (i, 1) (i, cdim a) a));
-        if i == j_max then work (i + 1) a
-        else {
-          def _ = sw vs (i - 1) (j_max - 1);
-          work (i + 1) (swcols i j_max a)
-        }
-      }
-    };
-
-    def IMrr = rowreduce IM;
-    def _ = logg 2 "IMrr" (fun t: () -> def _ = dp IMrr; ());
-
-    def IMrrt = trimrows IMrr;
-    def _ = logg 2 "IMrrt" (fun t: () -> def _ = dp IMrrt; ());
-
-    if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+  if isEmpty mes then error "Edge list empty" else {
+    def G = mkGraph mes;
+    if hasSelfLoop G then error "Model graph contains self loop"
     else {
-      def IA = work 1 (real2int IMrrt);
-      def _ = logg 2 "IA" (fun t: () -> def _ = dp IA; ());
+      def IM = mkIncidenceMatrix G;
+      def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
+      def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
 
-      def (I, A) = vsplit (rdim IA) IA;
-      def T = (if dim A < (1, 1) then arrayToList vs
-               else arrayToList (sub vs 0 (rdim A)));
-      def C = (if dim A < (1, 1) then []
-               else arrayToList (sub vs (rdim A) (Array.length vs)));
-      (A, (T, C))
+      def vs = listToArray (mkVarsList mes);
+
+      def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
+        if i > rdim a then a
+        else {
+          def j_max = snd (argfind (fun v: Int -> v != 0)
+                        (sub (i, 1) (i, cdim a) a));
+          if i == j_max then work (i + 1) a
+          else {
+            def _ = sw vs (i - 1) (j_max - 1);
+            work (i + 1) (swcols i j_max a)
+          }
+        }
+      };
+
+      def IMrr = rowreduce IM;
+      def _ = logg 2 "IMrr" (fun t: () -> def _ = dp IMrr; ());
+
+      def IMrrt = trimrows IMrr;
+      def _ = logg 2 "IMrrt" (fun t: () -> def _ = dp IMrrt; ());
+
+      if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+      else {
+        def IA = work 1 (real2int IMrrt);
+        def _ = logg 2 "IA" (fun t: () -> def _ = dp IA; ());
+
+        def (I, A) = vsplit (rdim IA) IA;
+        def T = (if dim A < (1, 1) then arrayToList vs
+                 else arrayToList (sub vs 0 (rdim A)));
+        def C = (if dim A < (1, 1) then []
+                 else arrayToList (sub vs (rdim A) (Array.length vs)));
+        (A, (T, C))
+      }
     }
   }
 }
@@ -260,19 +262,11 @@ def mkCutsetCircuitData(mes: [ModelEdge]) -> ((MatrixMapInt, ([Dyn], [Dyn])), (M
   ((A, (y_t, y_c)), (B, (x_t, x_c)))
 }
 
-type MkEqsFun = MatrixMapInt -> [Dyn] -> [Dyn] -> Equations -> Equations
+type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
 def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equations) -> Equations = {
   if isEmpty mes then a else {
-    def (A, (T, C)) = mkCutsetMatrix mes;
-    def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
-
-    def (x_t, y_t) = unzip T;
-    def (x_c, y_c) = unzip C;
-
-    def _ = logg 2 "x_t" (loggprint x_t);
-    def _ = logg 2 "x_c" (loggprint x_c);
-
-    f_t A y_t y_c (f_a (- (tr A)) x_c x_t a)
+    def ((A, (y_t, y_c)), (B, (x_t, x_c))) = mkCutsetCircuitData mes;
+    f_t (A, (y_t, y_c)) (f_a (B, (x_c, x_t)) a)
   }
 }
 
@@ -282,12 +276,11 @@ def elaborate(e: Equations) -> Equations = {
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
   def (res, e) = getRotationEdges e;
-  // def e = (if isEmpty ees then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e);
-  // def e = (if isEmpty pres then e else mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e);
-  // def e = (if isEmpty tes then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e);
-  // def e = (if isEmpty aves then e else mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e);
-  // def e = (if isEmpty res then e else mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e);
-  def e = (if isEmpty ees then e else (mkCutsetCircuitData ees) )
+  def e = mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e;
+  def e = mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e;
+  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
+  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
+  def e = mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e;
   e
 }
 

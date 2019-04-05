@@ -211,7 +211,7 @@ def cdim(M: Matrix) -> Int = { snd (dim M) }
 def mmFind(z: Dyn, ij: Pos, M: MatrixMap) -> Dyn = {
   def (Mm, d) = M;
   def (i, j) = ij;
-  if (ij <= (0, 0) || ij > d) then {def _ = dprint(M); error DIMENSION_MISSMATCH}
+  if (ij <= (0, 0) || ij > d) then { error DIMENSION_MISSMATCH }
   else {
     if (_mem ij Mm) then (_find ij Mm)
     else z
