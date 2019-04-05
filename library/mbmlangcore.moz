@@ -369,92 +369,25 @@ def ea2quat(th: Real, x: Real, y: Real, z: Real) = {
   (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
 }
 
-def ea2quat(fi: <Real>, th: <Real>, ps: <Real>) -> Quaternion = {
- quat (cos (fi / 2.) * cos (th / 2.) * cos (ps / 2.) + sin (fi / 2.) * sin (th / 2.) * sin (fi / 2.))
-      (sin (fi / 2.) * cos (th / 2.) * cos (ps / 2.) - cos (fi / 2.) * sin (th / 2.) * sin (fi / 2.))
-      (cos (fi / 2.) * sin (th / 2.) * cos (ps / 2.) + sin (fi / 2.) * cos (th / 2.) * sin (fi / 2.))
-      (cos (fi / 2.) * cos (th / 2.) * sin (ps / 2.) - sin (fi / 2.) * cos (th / 2.) * cos (fi / 2.))
-}
-
-def ea2initQuat(q: Quaternion, fi: <Real>, th: <Real>, ps: <Real>) -> Equations = {
-  fi' = 0.;
-  th' = 0.;
-  ps' = 0.;
-  q ~==. ea2quat fi th ps
-}
-
-def ea2initQuat(q: Quaternion) -> Equations = {
-  def fi, th, ps: Real;
-  ea2initQuat q fi th ps
-}
-
 def Clock(t_0: Real, t: <Real>) = {
   t <- t_0;
   t' <- 1.;
   t' = 1.
 }
 
-// def TorqueActuator(f: Vector3, q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-//   def T_a, om_a: Vector3;
-//   angularVelocityEdge f_1 f_2 om_a T_a;
+def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+  def T: Vector3;
+  rotationEdge f_1 f_2 q T;
+  T == zero3
+}
 
-//   // norm2 q ~= 1.;
-//   // q' ==. 0.5 * (q_ om_a) * q;
-//   om_a == qim (2. * q' * (qconj q));
-//   norm2 q = 1.;
+def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def F: Vector3;
+  translationEdge f_1 f_2 r F;
+  F == zero3
+}
 
-//   T_a == f
-// }
-
-// def TorqueActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def q_a: Quaternion;
-//   TorqueActuator f q_a f_1 f_2
-// }
-
-// def ForceActuator(f: Vector3, r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def F_a: Vector3;
-//   translationEdge f_1 f_2 r F_a;
-//   F_a == f
-// }
-
-// def ForceActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def r_a: Vector3;
-//   ForceActuator f r_a f_1 f_2
-// }
-
-// def TranslationActuator(f: Vector3, F: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def r_a: Vector3;
-//   translationEdge f_1 f_2 r_a F;
-//   r_a == f
-// }
-
-// def TranslationActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def F_a: Vector3;
-//   TranslationActuator f F_a f_1 f_2
-// }
-
-// def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
-//   def T: Vector3;
-//   rotationEdge f_1 f_2 q T;
-//   ea2initQuat q;
-//   T == zero3
-// }
-
-// def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-//   def F: Vector3;
-//   translationEdge f_1 f_2 r F;
-//   F == zero3
-// }
-
-// def InitialValue(fi: <Real>, th: <Real>, ps: <Real>, f_1: Frame, f_2: Frame) -> Equations = {
-//   def q: Quaternion;
-//   def T: Vector3;
-//   rotationEdge f_1 f_2 q T;
-//   ea2initQuat q fi th ps;
-//   T == zero3
-// }
-
-def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
+def Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
   def (I_xx, I_yy, I_zz) = I;
   def I = vec3 I_xx I_yy I_zz;
   def v, F, om, T: Vector3;
@@ -468,21 +401,13 @@ def _Body(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Fram
   T == I *. om' + cross om (I *. om)
 }
 
-// def Body(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> Equations = {
-//   def x_m, y_m, z_m, w_m, i_m, j_m, k_m: Real;
-//   def r = vec3 x_m y_m z_m;
-//   def q = quat w_m i_m j_m k_m;
-//   ea2initQuat q;
-//   _Body m I r q world f
-// }
-
 def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge world f r F;
   F == m * GRAVITATIONAL_CONSTANT * jj
 }
 
-def _SphericalJoint(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def SphericalJoint(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def F: Vector3;
   translationEdge f_1 f_2 r F;
   r == zero3
@@ -490,10 +415,10 @@ def _SphericalJoint(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
 
 def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
   def r: Vector3;
-  _SphericalJoint r f_1 f_2
+  SphericalJoint r f_1 f_2
 }
 
-def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+def RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def F_1, om_1, om_2, T_1, T_2: Vector3;
   def q_1: Quaternion;
 
@@ -505,11 +430,3 @@ def _RigidArm(r: (Real, Real, Real), r_1: Vector3, q_2: Quaternion, world: Frame
   r_1 == L q_2 (mkVec3 r);
   T_2 == cross (-r_1) F_1
 }
-
-// def RigidArm(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-//   def r_1: Vector3;
-//   def q_2: Quaternion;
-//   // ea2initQuat q_2;
-//   norm2 q_2 ~= 1.;
-//   _RigidArm r r_1 q_2 world f_1 f_2
-// }
