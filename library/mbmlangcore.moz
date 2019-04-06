@@ -352,7 +352,7 @@ def GRAVITATIONAL_CONSTANT = 9.81
 def CORRECTION_SPEED = 1.0
 def EPSILON = 1.e-10
 
-def Clock(t_0: Real, t: <Real>) = {
+def clock(t_0: Real, t: <Real>) = {
   t <- t_0;
   t' <- 1.;
   t' = 1.
@@ -363,19 +363,19 @@ def mkCuboidInertia(m: Real, xyz: RealVector3) -> RealVector3 = {
   ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
 }
 
-def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
+def rotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def T: Vector3;
   rotationEdge f_1 f_2 q T;
   T == zero3
 }
 
-def TranslationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+def translationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   def F: Vector3;
   translationEdge f_1 f_2 r F;
   F == zero3
 }
 
-def Body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
+def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: Frame) -> Equations = {
   def (I_xx, I_yy, I_zz) = I;
   def I = vec3 I_xx I_yy I_zz;
   def v, F, om, T: Vector3;
@@ -389,19 +389,19 @@ def Body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: Fr
   T == I *. om' + cross om (I *. om)
 }
 
-def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
+def gravity(m: Real, world: Frame, f: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge world f r F;
   F == m * GRAVITATIONAL_CONSTANT * jj
 }
 
-def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
+def sphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge f_1 f_2 r F;
   r == zero3
 }
 
-def RigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
   def F_1, om_1, om_2, T_1, T_2: Vector3;
   def q_1: Quaternion;
 
