@@ -310,7 +310,7 @@ def elaborate(e: Equations) -> Equations = {
 }
 
 type RealMap = (<Real> => <Real>)
-def mkSubsMap(mes: [ScalarEdge], a: RealMap -> RealMap = {
+def mkSubsMap(mes: [ScalarEdge], a: RealMap) -> RealMap = {
   if isEmpty mes then a else {
     def (Ays, Bxs) = mkCutsetCircuitData mes;
     Union [listToMap (mkRealCutsetRelation Ays), listToMap (mkRealCircuitRelation Bxs), a];
@@ -326,7 +326,7 @@ def mkSubsMap(mes: [Vector3Edge], a: Vector3Map) -> Vector3Map = {
 }
 
 type QuaternionMap = (Quaternion => Quaternion)
-def mkSubsMap(mes: [QuaternionVector3Edge], a: (QuaternionMap, Vector3Map) -> (QuaternionMap, Vector3Map) = {
+def mkSubsMap(mes: [QuaternionVector3Edge], a: (QuaternionMap, Vector3Map)) -> (QuaternionMap, Vector3Map) = {
   if isEmpty mes then a else {
     def (qm, vm) = a;
     def (Ays, Bxs) = mkCutsetCircuitData mes;
@@ -408,12 +408,6 @@ def Gravity(m: Real, world: Frame, f: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge world f r F;
   F == m * GRAVITATIONAL_CONSTANT * jj
-}
-
-def SphericalJoint(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
-  def F: Vector3;
-  translationEdge f_1 f_2 r F;
-  r == zero3
 }
 
 def SphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
