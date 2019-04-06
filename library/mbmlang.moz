@@ -241,29 +241,29 @@ def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (TranslationSensor r f_1 f_2)
 }
 
-def _Body1(m: Real, I: (Real, Real, Real), r: Vector3, q: Quaternion, world: Frame, f: Frame) -> ModelElement = {
+def _Body1(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Body m I r q world f)
 }
 
-def Body1(m: Real, I: (Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.)
 }
 
-def Body1(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, r_0: RealVector3, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.; r ~== mkVec3 r_0)
 }
 
-def Body1(m: Real, I: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0)
 }
 
-def Body1(m: Real, I: (Real, Real, Real), r_0: (Real, Real, Real), q_0: (Real, Real, Real, Real), world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, r_0: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
@@ -273,7 +273,7 @@ def Gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Gravity m world f)
 }
 
-def RigidArm1(r: (Real, Real, Real), world: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
+def RigidArm1(r: RealVector3, world: Frame, f_1: Frame, f_2: Frame) -> ModelElement = {
   def r_1: Vector3;
   def q_2: Quaternion;
   equationsElement (RigidArm r r_1 q_2 world f_1 f_2)
@@ -296,3 +296,7 @@ def VisAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
   world -- (TranslationSensor1 r || RotationSensor1 q ) -- f ++
   visualElement r q (visualAxes l)
 }
+
+// def Bar1(m: Real, xyz: RealVector3, r_0: RealVector3, q_0: RealQuaternion)  = {
+
+// }

@@ -42,9 +42,26 @@ def (') = qder
 def q_ = pquat
 def norm2 = qnorm2
 
+type RealQuaternion = (Real, Real, Real, Real)
+
+def norm2(q: RealQuaternion) = {
+  def (w, i, j, k) = q;
+  w^2. + i^2. + j^2. + k^2.
+}
+
+def conj(q: RealQuaternion) = {
+  def (w, i, j, k) = q;
+  (w, -i, -j, -k)
+}
+
+def ea2quat(th: Real, x: Real, y: Real, z: Real) = {
+  def n = sqrt(x^2. + y^2. + z^2.);
+  (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
+}
+
 def idq = quat 1. 0. 0. 0.
 
-def mkQuat(q: (Real, Real, Real, Real)) -> Quaternion = { def (w, i, j, k) = q; quat w i j k }
+def mkQuat(q: RealQuaternion) -> Quaternion = { def (w, i, j, k) = q; quat w i j k }
 
 type QuaternionUkMap = (Quaternion => Quaternion)
 
@@ -117,7 +134,7 @@ def applyQuatToRealOps(e: <>) -> <> = {
   work e
 }
 
-def evalQuat(q: Quaternion) -> (Real, Real, Real, Real) = {
+def evalQuat(q: Quaternion) -> RealQuaternion = {
   def q = applyQuatToRealOps (applyQuatToVector3Ops q);
   def (w, (i, j, k)) = quat2scalarVec3 q;
   (evalReal w, evalReal i, evalReal j, evalReal k)

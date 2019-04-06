@@ -49,11 +49,18 @@ def jj = vec3 0. 1. 0.
 def kk = vec3 0. 0. 1.
 def zero3 = vec3 0. 0. 0.
 
+type RealVector3 = (Real, Real, Real)
+
+def norm2(v: RealVector3) = {
+  def (x, y, z) = v;
+  x^2. + y^2. + z^2.
+}
+
 def _mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
 
-def mkVec3(v: (Real, Real, Real)) -> Vector3 = { def (x, y, z) = v; vec3 x y z }
+def mkVec3(v: RealVector3) -> Vector3 = { def (x, y, z) = v; vec3 x y z }
 
 def isRealUk(e: <Real>) -> Bool = {
   match e with
@@ -120,7 +127,7 @@ def applyVec2RealOptrs(e: <>) -> <> = {
   work e
 }
 
-def evalVector3(v: Vector3) -> (Real, Real, Real) = {
+def evalVector3(v: Vector3) -> RealVector3 = {
   def v = vector32Matrix (applyVec2RealOptrs v);
   def x = evalReal (find (1, 1) v);
   def y = evalReal (find (2, 1) v);
