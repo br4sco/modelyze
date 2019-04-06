@@ -325,4 +325,8 @@ def bar1(q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = 
   _bar1 (body1 q_0) m xyz world
 }
 
+def bar1(r_0: RealVector3, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+  _bar1 (body1 r_0) m xyz world
+}
+
 def bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = { _bar1 body1 m xyz world }
