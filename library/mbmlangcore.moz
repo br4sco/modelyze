@@ -413,3 +413,9 @@ def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: F
   r_1 == L q_2 (mkVec3 r);
   T_2 == cross (-r_1) F_1
 }
+
+def translation(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def r, F: Vector3;
+  translationEdge f_1 f_2 r F;
+  r == f
+}

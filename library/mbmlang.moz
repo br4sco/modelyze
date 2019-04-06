@@ -291,10 +291,21 @@ def sphericalJoint1(f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (sphericalJoint f_1 f_2)
 }
 
+def translation1(f: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (translation f f_1 f_2)
+}
+
 def visSolid1(g: Geometry3D, c: Color, opacity: Real, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   world -- (translationSensor1 r || rotationSensor1 q ) -- f ++
+  visualElement r q (visualSolid g (stdMaterial c opacity))
+}
+
+def visSolidNonRot1(g: Geometry3D, c: Color, opacity: Real, world: Frame, f: Frame) -> ModelElement = {
+  def r: Vector3;
+  def q: Quaternion;
+  world -- translationSensor1 r -- f ++ equationsElement (q ==. idq) ++
   visualElement r q (visualSolid g (stdMaterial c opacity))
 }
 
