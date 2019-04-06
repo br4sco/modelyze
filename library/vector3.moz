@@ -86,7 +86,6 @@ def evalReal(r: <Real>) -> Real = {
     | f e -> (work f) (work e)
     | sval v: ? -> v
     | _ -> e
-    // | _ -> error ("Unable to evaluate: " ++ symstr(e))
   };
   work r
 }
