@@ -307,7 +307,7 @@ def visAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
 
 type Arm = Frame -> Frame -> Frame -> ModelElement
 
-def Arm1(r_l: RealVector3, r_r: RealVector3, body: FrameFun2, world: Frame) -> Arm = {
+def arm1(r_l: RealVector3, r_r: RealVector3, body: FrameFun2, world: Frame) -> Arm = {
   fun f_m: Frame -> fun f_l: Frame -> fun f_r: Frame -> {
     f_l -- rigidArm1 (r_l) world -.- f_m -.- rigidArm1 (-r_r) world -- f_r ++
     world -- body -- f_m
@@ -316,13 +316,13 @@ def Arm1(r_l: RealVector3, r_r: RealVector3, body: FrameFun2, world: Frame) -> A
 
 type Bar = Real -> RealVector3 -> Frame -> Arm
 
-def _Bar1(body: Body, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+def _bar1(body: Body, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
   def (x, y, z) = xyz;
-  Arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (body m (mkCuboidInertia m xyz) || gravity1 m) world
+  arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (body m (mkCuboidInertia m xyz) || gravity1 m) world
 }
 
-def Bar1(q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
-  _Bar1 (body1 q_0) m xyz world
+def bar1(q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+  _bar1 (body1 q_0) m xyz world
 }
 
-def Bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = { _Bar1 body1 m xyz world }
+def bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = { _bar1 body1 m xyz world }
