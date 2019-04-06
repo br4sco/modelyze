@@ -309,21 +309,24 @@ def elaborate(e: Equations) -> Equations = {
   e
 }
 
-def mkSubsMap(mes: [ScalarEdge], a: (<Real> => <Real>)) -> (<Real> => <Real>) = {
+type RealMap = (<Real> => <Real>)
+def mkSubsMap(mes: [ScalarEdge], a: RealMap -> RealMap = {
   if isEmpty mes then a else {
     def (Ays, Bxs) = mkCutsetCircuitData mes;
     Union [listToMap (mkRealCutsetRelation Ays), listToMap (mkRealCircuitRelation Bxs), a];
   }
 }
 
-def mkSubsMap(mes: [Vector3Edge], a: (Vector3 => Vector3)) -> (Vector3 => Vector3) = {
+type Vector3Map = (Vector3 => Vector3)
+def mkSubsMap(mes: [Vector3Edge], a: Vector3Map) -> Vector3Map = {
   if isEmpty mes then a else {
     def (Ays, Bxs) = mkCutsetCircuitData mes;
     Union [listToMap (mkVector3CutsetRelation Ays), listToMap (mkVector3CircuitRelation Bxs), a];
   }
 }
 
-def mkSubsMap(mes: [QuaternionVector3Edge], a: ((Quaternion => Quaternion), (Vector3 => Vector3))) -> ((Quaternion => Quaternion), (Vector3 => Vector3)) = {
+type QuaternionMap = (Quaternion => Quaternion)
+def mkSubsMap(mes: [QuaternionVector3Edge], a: (QuaternionMap, Vector3Map) -> (QuaternionMap, Vector3Map) = {
   if isEmpty mes then a else {
     def (qm, vm) = a;
     def (Ays, Bxs) = mkCutsetCircuitData mes;
@@ -331,7 +334,7 @@ def mkSubsMap(mes: [QuaternionVector3Edge], a: ((Quaternion => Quaternion), (Vec
   }
 }
 
-type SubsMaps = (<Real> => <Real>, Vector3 => Vector3, Quaternion => Quaternion)
+type SubsMaps = (RealMap, Vector3Map, QuaternionMap)
 def elaborateWithSubstitutions(e: Equations) -> (SubsMaps, Equations) = {
   def (ees, e) = getElectricalEdges e;
   def (pres, e) = getPlanarRotationEdges e;
