@@ -30,6 +30,25 @@ def mmSRealDer(M: MatrixMapSReal) -> MatrixMapSReal = {
 }
 // def (') = mmSRealDer
 
+type RealVector3 = (Real, Real, Real)
+
+def norm2(v: RealVector3) = {
+  def (x, y, z) = v;
+  x^2. + y^2. + z^2.
+}
+
+def chsgn(v: RealVector3) -> RealVector3 = {
+  def (x, y, z) = v;
+  (-x, -y, -z)
+}
+def (---) = chsgn
+
+def multiply(s: Real, v: RealVector3) -> RealVector3 = {
+  def (x, y, z) = v;
+  (s * x, s * y, s * z)
+}
+def (*) = multiply
+
 type Vector3
 type Vector3UkMap = (Vector3 => Vector3)
 
@@ -48,13 +67,6 @@ def ii = vec3 1. 0. 0.
 def jj = vec3 0. 1. 0.
 def kk = vec3 0. 0. 1.
 def zero3 = vec3 0. 0. 0.
-
-type RealVector3 = (Real, Real, Real)
-
-def norm2(v: RealVector3) = {
-  def (x, y, z) = v;
-  x^2. + y^2. + z^2.
-}
 
 def _mkVector3(x: <Real>, y: <Real>, z: <Real>) -> MatrixMapSReal = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))

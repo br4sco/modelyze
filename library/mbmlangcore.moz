@@ -358,6 +358,11 @@ def Clock(t_0: Real, t: <Real>) = {
   t' = 1.
 }
 
+def mkCuboidInertia(m: Real, xyz: RealVector3) -> RealVector3 = {
+  def (x, y, z) = xyz;
+  ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
+}
+
 def RotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def T: Vector3;
   rotationEdge f_1 f_2 q T;

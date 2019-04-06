@@ -245,10 +245,10 @@ def _Body1(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: 
   equationsElement (Body m I r q world f)
 }
 
-def Body1(m: Real, I: RealVector3, world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, r_0: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.)
+  _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
 }
 
 def Body1(m: Real, I: RealVector3, r_0: RealVector3, world: Frame, f: Frame) -> ModelElement = {
@@ -263,10 +263,10 @@ def Body1(m: Real, I: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) 
   _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0)
 }
 
-def Body1(m: Real, I: RealVector3, r_0: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, world: Frame, f: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
+  _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.)
 }
 
 def Gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {
@@ -297,6 +297,16 @@ def VisAxes1(l: Real, world: Frame, f: Frame) -> ModelElement = {
   visualElement r q (visualAxes l)
 }
 
-// def Bar1(m: Real, xyz: RealVector3, r_0: RealVector3, q_0: RealQuaternion)  = {
+type Arm = Frame -> Frame -> Frame -> ModelElement
 
-// }
+def Arm1(r_l: RealVector3, r_r: RealVector3, body: FrameFun2, world: Frame) -> Arm = {
+  fun f_m: Frame -> fun f_l: Frame -> fun f_r: Frame -> {
+    f_l -- RigidArm1 (r_l) world -.- f_m -.- RigidArm1 (-r_r) world -- f_r ++
+    world -- body -- f_m
+  }
+}
+
+def Bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+  def (x, y, z) = xyz;
+  Arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (Body1 m (mkCuboidInertia m xyz) || Gravity1 m) world
+}
