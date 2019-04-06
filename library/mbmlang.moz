@@ -219,13 +219,13 @@ def elaborateToFile(o: ModelElement) -> () = {
   def ukm = mkVector3UkMap o;
   def o = subs o ukm;
 
-  def ((sm, vm, qm), m) = elaborateWithSubstitutions (getModel o);
-  def vo = getVisualElements o;
-  def vo = cleanupModelElements (subs (subs vo qm) vm);
-
-  // def m = elaborate (getModel o);
+  // def ((sm, vm, qm), m) = elaborateWithSubstitutions (getModel o);
   // def vo = getVisualElements o;
-  // def vo = cleanupModelElements vo;
+  // def vo = cleanupModelElements (subs (subs vo qm) vm);
+
+  def m = elaborate (getModel o);
+  def vo = getVisualElements o;
+  def vo = cleanupModelElements vo;
 
   def _ = export2ModelicaFile "Model" m;
   match vo with
@@ -241,32 +241,40 @@ def TranslationSensor1(r: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (TranslationSensor r f_1 f_2)
 }
 
+type Body = Real -> RealVector3 -> FrameFun2
+
 def _Body1(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f: Frame) -> ModelElement = {
   equationsElement (Body m I r q world f)
 }
 
-def Body1(m: Real, I: RealVector3, r_0: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
-  def r: Vector3;
-  def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
+def Body1(r_0: RealVector3, q_0: RealQuaternion) -> Body = {
+  fun m: Real -> fun I: RealVector3 -> fun world: Frame -> fun f_m: Frame -> {
+    def r: Vector3;
+    def q: Quaternion;
+    _Body1 m I r q world f_m ++ equationsElement (q ~==. mkQuat q_0; r ~== mkVec3 r_0)
+  }
 }
 
-def Body1(m: Real, I: RealVector3, r_0: RealVector3, world: Frame, f: Frame) -> ModelElement = {
-  def r: Vector3;
-  def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.; r ~== mkVec3 r_0)
+def Body1(r_0: RealVector3) -> Body = {
+  fun m: Real -> fun I: RealVector3 -> fun world: Frame -> fun f_m: Frame -> {
+    def r: Vector3;
+    def q: Quaternion;
+    _Body1 m I r q world f_m ++ equationsElement (norm2 q ~= 1.; r ~== mkVec3 r_0)
+  }
 }
 
-def Body1(m: Real, I: RealVector3, q_0: RealQuaternion, world: Frame, f: Frame) -> ModelElement = {
-  def r: Vector3;
-  def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (q ~==. mkQuat q_0)
+def Body1(q_0: RealQuaternion) -> Body = {
+  fun m: Real -> fun I: RealVector3 -> fun world: Frame -> fun f_m: Frame -> {
+     def r: Vector3;
+     def q: Quaternion;
+     _Body1 m I r q world f_m ++ equationsElement (q ~==. mkQuat q_0)
+   }
 }
 
-def Body1(m: Real, I: RealVector3, world: Frame, f: Frame) -> ModelElement = {
+def Body1(m: Real, I: RealVector3, world: Frame, f_m: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
-  _Body1 m I r q world f ++ equationsElement (norm2 q ~= 1.)
+  _Body1 m I r q world f_m ++ equationsElement (norm2 q ~= 1.)
 }
 
 def Gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {
@@ -306,7 +314,15 @@ def Arm1(r_l: RealVector3, r_r: RealVector3, body: FrameFun2, world: Frame) -> A
   }
 }
 
-def Bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+type Bar = Real -> RealVector3 -> Frame -> Arm
+
+def _Bar1(body: Body, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
   def (x, y, z) = xyz;
-  Arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (Body1 m (mkCuboidInertia m xyz) || Gravity1 m) world
+  Arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (body m (mkCuboidInertia m xyz) || Gravity1 m) world
 }
+
+def Bar1(q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+  _Bar1 (Body1 q_0) m xyz world
+}
+
+def Bar1(m: Real, xyz: RealVector3, world: Frame) -> Arm = { _Bar1 Body1 m xyz world }
