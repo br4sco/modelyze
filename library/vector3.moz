@@ -85,7 +85,8 @@ def evalReal(r: <Real>) -> Real = {
     match e with
     | f e -> (work f) (work e)
     | sval v: ? -> v
-    | _ -> error ("Unable to evaluate: " ++ symstr(e))
+    | _ -> e
+    // | _ -> error ("Unable to evaluate: " ++ symstr(e))
   };
   work r
 }
@@ -139,12 +140,12 @@ def applyVec2RealOptrs(e: <>) -> <> = {
   work e
 }
 
-def evalVector3(v: Vector3) -> RealVector3 = {
+def evalVector3(v: Vector3) -> Vector3 = {
   def v = vector32Matrix (applyVec2RealOptrs v);
-  def x = evalReal (find (1, 1) v);
-  def y = evalReal (find (2, 1) v);
-  def z = evalReal (find (3, 1) v);
-  (x, y, z)
+  def x = (find (1, 1) v);
+  def y = (find (2, 1) v);
+  def z = (find (3, 1) v);
+  vec3 x y z
 }
 
 type Equations

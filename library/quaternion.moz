@@ -134,10 +134,20 @@ def applyQuatToRealOps(e: <>) -> <> = {
   work e
 }
 
-def evalQuat(q: Quaternion) -> RealQuaternion = {
+def evalQuat(q: Quaternion) -> Quaternion = {
   def q = applyQuatToRealOps (applyQuatToVector3Ops q);
-  def (w, (i, j, k)) = quat2scalarVec3 q;
-  (evalReal w, evalReal i, evalReal j, evalReal k)
+  def (q_0, qq) = quat2scalarVec3 q;
+  def w = applyVec2RealOptrs q_0;
+  def qq = evalVector3 qq;
+  match qq with
+  | vec3 i j k -> quat w i j k
+  | _ -> error ("Did not expect: " ++ symstr(qq))
+}
+
+def quat2RealQuat(q: Quaternion) -> RealQuaternion = {
+  match q with
+  | quat w i j k -> (evalReal w, evalReal i, evalReal j, evalReal k)
+  | _ -> error ("Did not expect: " ++ symstr(q))
 }
 
 def toVector3Equations(e: Equations) -> Equations = {
