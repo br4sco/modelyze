@@ -53,15 +53,22 @@ type Vector3
 type Vector3UkMap = (Vector3 => Vector3)
 
 def vec3: Real -> Real -> Real -> Vector3
-def (+): Vector3 -> Vector3 -> Vector3
-def (-): Vector3 -> Vector3 -> Vector3
-def (---): Vector3 -> Vector3
-def (*): Real -> Vector3 -> Vector3
-def (*.): Vector3 -> Vector3 -> Vector3
+def v3add : Vector3 -> Vector3 -> Vector3
+def v3sub: Vector3 -> Vector3 -> Vector3
+def v3chsgn: Vector3 -> Vector3
+def v3sprod: Real -> Vector3 -> Vector3
+def v3emprod: Vector3 -> Vector3 -> Vector3
+def v3der: Vector3 -> Vector3
+
+def (+) = v3add
+def (-) = v3sub
+def (---) = v3chsgn
+def (*) = v3emprod
+def (*) = v3sprod
+def (') = v3der
 def dot: Vector3 -> Vector3 -> Real
 def norm2: Vector3 -> Real
 def cross: Vector3 -> Vector3 -> Vector3
-def ('): Vector3 -> Vector3
 
 def ii = vec3 1. 0. 0.
 def jj = vec3 0. 1. 0.
@@ -111,10 +118,10 @@ def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
     match v with
     | sym: Vector3 -> error "Unkown of Vector3 type not in Vector3 uknown map"
     | vec3 x y z -> _mkVector3 x y z
-    | l + r -> (work l) + (work r)
-    | l - r -> (work l) - (work r)
-    | r * v -> r *. (work v)
-    | l *. r -> {
+    | v3add l r -> (work l) + (work r)
+    | v3sub l r -> (work l) - (work r)
+    | v3sprod r v -> r *. (work v)
+    | v3emprod l r -> {
         def l = work l;
         def r = work r;
         mapij (fun ij: Pos -> find ij l * find ij r) l
@@ -122,7 +129,7 @@ def vector32Matrix(v: Vector3) -> MatrixMapSReal = {
     | v' -> mmSRealDer (work v)
     | -v -> -(work v)
     | cross l r -> (ss (work l)) * (work r)
-    | _ -> error "Unmatched"
+    | _ -> { def _ = dprintln v; error "Unmatched" }
   };
   work v
 }

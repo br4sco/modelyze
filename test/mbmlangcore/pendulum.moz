@@ -3,13 +3,13 @@ include MBMLANG
 def world, f_1, f_2, f_3, f_4: Frame
 
 def m = 1.
-def I = (1., 1., 1.)
+def I = (1., 2., 3.)
 
-def th_1_0 = 0.
-def th_2_0 = 0. * PI / 4.
+def th_1_0 = (PI) / 2.
+def th_2_0 = (PI) / 2.
 
-def q_1_0 = (cos (th_1_0 / 2.), 0., sin (th_1_0 / 2.), 0.)
-def q_2_0 = (cos (th_2_0 / 2.), 0., sin (th_2_0 / 2.), 0.)
+def q_1_0 = (cos (th_1_0 / 2.), 0., 0., sin (th_1_0 / 2.))
+def q_2_0 = (cos (th_2_0 / 2.), 0., 0., sin (th_2_0 / 2.))
 
 def r_m_1: Vector3
 def q_m_1: Quaternion
@@ -17,17 +17,24 @@ def q_m_1: Quaternion
 def r_r1_1: Vector3
 def q_r2_1: Quaternion
 
+def r_m_2: Vector3
+def q_m_2: Quaternion
+
+def r_r1_2: Vector3
+def q_r2_2: Quaternion
+
 def model = {
   body m I r_m_1 q_m_1 world f_2;
   gravity m world f_2;
   sphericalJoint world f_1;
   rigidArm (-1., 0., 0.) r_r1_1 q_r2_1 world f_1 f_2;
-  rotationalDamper 10. world f_1;
-  // sphericalJoint f_2 f_3;
-  // rigidArm (-1., 0., 0.) world f_3 f_4;
-  // body m I world f_4;
-  // gravity m world f_4
-  norm2 q_m_1 ~= 1.
+  rotationalDamper 2. world f_1;
+  sphericalJoint f_2 f_3;
+  rigidArm (-1., 0., 0.) r_r1_2 q_r2_2 world f_3 f_4;
+  body m I r_m_2 q_m_2 world f_4;
+  gravity m world f_4;
+  q_m_2 ~==. mkQuat q_2_0;
+  q_m_1 ~==. mkQuat q_1_0
 }
 
 def main = { elaborateToFile (equationsElement model) }

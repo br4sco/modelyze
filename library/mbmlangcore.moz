@@ -394,10 +394,19 @@ def translationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
 }
 
 def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: Frame) -> Equations = {
-  def (I_xx, I_yy, I_zz) = I;
-  def I = vec3 I_xx I_yy I_zz;
-  def v, F, om, T: Vector3;
+  def mkI(om: Vector3) = {
+    def (I_xx, I_yy, I_zz) = I;
+    def x = dot r ii;
+    def y = dot r jj;
+    def z = dot r kk;
+    vec3
+      (dot om (vec3 (I_xx + m * (z^2. + y^2.)) (m * x * y) (m * x * z)))
+      (dot om (vec3 (m * x * y) (I_yy + m * (z^2. + x^2.)) (m * y * z)))
+      (dot om (vec3 (m * x * z) (m * y * z) (I_zz + m * (x^2. + y^2.))))
+  };
 
+  def I = mkI;
+  def v, F, om, T: Vector3;
   translationEdge world f_m r F;
   initialRotationEdge world f_m q;
   angularVelocityEdge world f_m om T;
@@ -405,7 +414,7 @@ def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: 
   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
   r' == v;
   F == m * v';
-  T == I *. om' + cross om (I *. om)
+  T == I (om') + cross om (I om)
 }
 
 def gravity(m: Real, world: Frame, f: Frame) -> Equations = {
@@ -435,11 +444,10 @@ def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: F
   translationEdge f_2 f_1 r_1 F_1;
   initialRotationEdge f_2 f_1 idq;
   initialRotationEdge world f_2 q_2;
-  angularVelocityEdge f_2 f_1 om_1 T_1;
+  angularVelocityEdge f_2 f_1 zero3 T_1;
   angularVelocityEdge world f_2 om_2 T_2;
 
   q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
-  om_1 == zero3;
   r_1 == L q_2 r;
   T_2 == cross (L q_2 (-r)) F_1
 }
