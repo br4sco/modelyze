@@ -43,12 +43,14 @@ def electricalEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def planarRotationEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def translationEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
 def angularVelocityEdge: Node -> Node -> Vector3 -> Vector3 -> Equations
-def initialRotationEdge: Node -> Node -> Quaternion -> Vector3 -> Equations
+def initialRotationEdge: Node -> Node -> Quaternion -> Equations
 
-type ModelEdge = (Edge, (Dyn, Dyn))
+type ModelEdge = (Edge, Dyn)
 type ScalarEdge = (Edge, (<Real>, <Real>))
 type Vector3Edge = (Edge, (Vector3, Vector3))
-type QuaternionVector3Edge = (Edge, (Quaternion, Vector3))
+
+type ModelInitEdge = (Edge, Dyn)
+type QuaternionVector3Edge = (Edge, Quaternion)
 
 def mkGraph(mes: [ModelEdge]) -> [Edge] = {
   map (fun me: ModelEdge -> fst me) mes
@@ -102,11 +104,11 @@ def getAngularVelocityEdges(e: Equations) -> ([Vector3Edge], Equations) = {
   work e ([], NoEqn)
 }
 
-def getRotationEdges(e: Equations) -> ([QuaternionVector3Edge], Equations) = {
+def getRotationInitEdges(e: Equations) -> ([QuaternionVector3Edge], Equations) = {
   def work(e: Equations, a: ([QuaternionVector3Edge], Equations)) -> ([QuaternionVector3Edge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | initialRotationEdge n_1 n_2 x y -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | initialRotationEdge n_1 n_2 x -> (((n_1, n_2), x)::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -260,14 +262,14 @@ def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([Vector3], [Vector3])), a: Equa
   work rs a
 }
 
-def mkQuaternionTopolEquations(Cvs: (MatrixMapInt, ([Quaternion], [Quaternion])), a: Equations) -> Equations = {
+def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt, ([Quaternion], [Quaternion])), a: Equations) -> Equations = {
   def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRel C svs pvs;
 
   def work(rs: [(Quaternion, Quaternion)], a: Equations) -> Equations = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; fst r ==. snd r)
+    | r::rs -> work rs (a; fst r ~==. snd r)
     | _ -> error "Unmatched"
   };
 
@@ -287,6 +289,13 @@ def mkCutsetCircuitData(mes: [ModelEdge]) -> ((MatrixMapInt, ([Dyn], [Dyn])), (M
   ((A, (y_t, y_c)), (B, (x_t, x_c)))
 }
 
+def mkCircuitData(mies: [ModelInitEdge]) -> (MatrixMapInt, ([Dyn], [Dyn])) = {
+  def (A, (t, c)) = mkCutsetMatrix mies;
+  def B = -tr A;
+
+  (B, (t, c))
+}
+
 type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
 def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equations) -> Equations = {
   if isEmpty mes then a else {
@@ -295,58 +304,65 @@ def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [ModelEdge], a: Equation
   }
 }
 
+def mkTopolInitEquations(f_a: MkEqsFun, mies: [ModelInitEdge], a: Equations) -> Equations = {
+  if isEmpty mies then a else {
+    def (B, (x_t, x_c)) = mkCircuitData mies;
+    f_a (B, (x_c, x_t)) a
+  }
+}
+
 def elaborate(e: Equations) -> Equations = {
   def (ees, e) = getElectricalEdges e;
   def (pres, e) = getPlanarRotationEdges e;
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
-  def (res, e) = getRotationEdges e;
+  def (res, e) = getRotationInitEdges e;
   def e = mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations ees e;
   def e = mkTopolEquations mkScalarTopolEquations mkScalarTopolEquations pres e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
-  def e = mkTopolEquations mkQuaternionTopolEquations mkVector3TopolEquations res e;
+  def e = mkTopolInitEquations mkQuaternionTopolInitEquations res e;
   e
 }
 
-type RealMap = (<Real> => <Real>)
-def mkSubsMap(mes: [ScalarEdge], a: RealMap) -> RealMap = {
-  if isEmpty mes then a else {
-    def (Ays, Bxs) = mkCutsetCircuitData mes;
-    Union [listToMap (mkRealCutsetRelation Ays), listToMap (mkRealCircuitRelation Bxs), a];
-  }
-}
+// type RealMap = (<Real> => <Real>)
+// def mkSubsMap(mes: [ScalarEdge], a: RealMap) -> RealMap = {
+//   if isEmpty mes then a else {
+//     def (Ays, Bxs) = mkCutsetCircuitData mes;
+//     Union [listToMap (mkRealCutsetRelation Ays), listToMap (mkRealCircuitRelation Bxs), a];
+//   }
+// }
 
-type Vector3Map = (Vector3 => Vector3)
-def mkSubsMap(mes: [Vector3Edge], a: Vector3Map) -> Vector3Map = {
-  if isEmpty mes then a else {
-    def (Ays, Bxs) = mkCutsetCircuitData mes;
-    Union [listToMap (mkVector3CutsetRelation Ays), listToMap (mkVector3CircuitRelation Bxs), a];
-  }
-}
+// type Vector3Map = (Vector3 => Vector3)
+// def mkSubsMap(mes: [Vector3Edge], a: Vector3Map) -> Vector3Map = {
+//   if isEmpty mes then a else {
+//     def (Ays, Bxs) = mkCutsetCircuitData mes;
+//     Union [listToMap (mkVector3CutsetRelation Ays), listToMap (mkVector3CircuitRelation Bxs), a];
+//   }
+// }
 
-type QuaternionMap = (Quaternion => Quaternion)
-def mkSubsMap(mes: [QuaternionVector3Edge], a: (QuaternionMap, Vector3Map)) -> (QuaternionMap, Vector3Map) = {
-  if isEmpty mes then a else {
-    def (qm, vm) = a;
-    def (Ays, Bxs) = mkCutsetCircuitData mes;
-    (union (listToMap (mkQuaternionCircuitRelation Bxs)) qm, union (listToMap (mkVector3CutsetRelation Ays)) vm)
-  }
-}
+// type QuaternionMap = (Quaternion => Quaternion)
+// def mkSubsMap(mes: [QuaternionVector3Edge], a: (QuaternionMap, Vector3Map)) -> (QuaternionMap, Vector3Map) = {
+//   if isEmpty mes then a else {
+//     def (qm, vm) = a;
+//     def (Ays, Bxs) = mkCutsetCircuitData mes;
+//     (union (listToMap (mkQuaternionCircuitRelation Bxs)) qm, union (listToMap (mkVector3CutsetRelation Ays)) vm)
+//   }
+// }
 
-type SubsMaps = (RealMap, Vector3Map, QuaternionMap)
-def elaborateWithSubstitutions(e: Equations) -> (SubsMaps, Equations) = {
-  def (ees, e) = getElectricalEdges e;
-  def (pres, e) = getPlanarRotationEdges e;
-  def (tes, e) = getTranslationEdges e;
-  def (aves, e) = getAngularVelocityEdges e;
-  def (res, e) = getRotationEdges e;
+// type SubsMaps = (RealMap, Vector3Map, QuaternionMap)
+// def elaborateWithSubstitutions(e: Equations) -> (SubsMaps, Equations) = {
+//   def (ees, e) = getElectricalEdges e;
+//   def (pres, e) = getPlanarRotationEdges e;
+//   def (tes, e) = getTranslationEdges e;
+//   def (aves, e) = getAngularVelocityEdges e;
+//   def (res, e) = getRotationInitEdges e;
 
-  def sm = (mkSubsMap pres (mkSubsMap ees (Map.empty)));
-  def vm = (mkSubsMap aves (mkSubsMap tes (Map.empty)));
-  def (qm, vm) = (mkSubsMap res (Map.empty, vm));
-  ((sm, vm, qm), subs (subs (subs e sm) vm) qm)
-}
+//   def sm = (mkSubsMap pres (mkSubsMap ees (Map.empty)));
+//   def vm = (mkSubsMap aves (mkSubsMap tes (Map.empty)));
+//   def (qm, vm) = (mkSubsMap res (Map.empty, vm));
+//   ((sm, vm, qm), subs (subs (subs e sm) vm) qm)
+// }
 
 def GRAVITATIONAL_CONSTANT = 9.81
 def CORRECTION_SPEED = 1.0
@@ -366,7 +382,7 @@ def mkCuboidInertia(m: Real, xyz: RealVector3) -> RealVector3 = {
 def rotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
   def T, om: Vector3;
   angularVelocityEdge f_1 f_2 om T;
-  initialRotationEdge f_1 f_2 q T;
+  initialRotationEdge f_1 f_2 q;
   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
   T == zero3
 }
@@ -377,18 +393,16 @@ def translationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
   F == zero3
 }
 
-def body(m: Real, I: RealVector3, world: Frame, f_m: Frame) -> Equations = {
+def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: Frame) -> Equations = {
   def (I_xx, I_yy, I_zz) = I;
   def I = vec3 I_xx I_yy I_zz;
-  def r, v, F, om, T: Vector3;
-  def q: Quaternion;
+  def v, F, om, T: Vector3;
 
   translationEdge world f_m r F;
-  initialRotationEdge world f_m q T;
+  initialRotationEdge world f_m q;
   angularVelocityEdge world f_m om T;
 
   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
-  q_ om ==. 2. * (q' * qconj q);
   r' == v;
   F == m * v';
   T == I *. om' + cross om (I *. om)
@@ -412,15 +426,15 @@ def rotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
   T == D * om
 }
 
-def rigidArm(r: RealVector3, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
-  def r_1, F_1, om_1, om_2, T_1, T_2: Vector3;
-  def q_1, q_2: Quaternion;
+def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: Frame, f_2: Frame) -> Equations = {
+  def F_1, om_1, om_2, T_1, T_2: Vector3;
+  def q_1: Quaternion;
   def om_r1, om_r2: Vector3;
   def r = mkVec3 r;
 
   translationEdge f_2 f_1 r_1 F_1;
-  initialRotationEdge f_2 f_1 idq T_1;
-  initialRotationEdge world f_2 q_2 T_2;
+  initialRotationEdge f_2 f_1 idq;
+  initialRotationEdge world f_2 q_2;
   angularVelocityEdge f_2 f_1 om_1 T_1;
   angularVelocityEdge world f_2 om_2 T_2;
 
