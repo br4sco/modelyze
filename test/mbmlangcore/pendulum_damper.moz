@@ -26,63 +26,99 @@ def qn1: Real
 def qn2: Real
 def tol, e1, e2: Real
 
-def model = {
-  r_m' == v_m;
-  v_m' == F_m;
-  om_m' == T_m;
-  // q_m' ==. 0.5 * (q_ om_m) * q_m
-  // ;
-  // + (1. - sqrt(norm2 q_m)) * q_m;
-  om_m == 2. * qim (q_m' * (qconj q_m));
-  norm2 q_m = 1.;
-  F_g == 9.81 * jj;
-  r_h == zero3;
-  r_r1 == L (q_r2) (vec3 (-1.) 0. 0.);
-  T_r2 == cross (-r_r1) F_r1;
-  q_r1 ==. idq;
+// def model = {
+//   r_m' == v_m;
+//   v_m' == F_m;
+//   om_m' == T_m;
 
-  r_h == r_r1 + r_m;
-  r_g == r_m;
-  F_m == -F_h - F_g;
-  F_r1 == -F_h;
-  T_m == -T_r2;
-  T_r1 == zero3;
-  q_r2 ==. q_m;
+//   F_g == 9.81 * jj;
 
-  // norm2 q_m ~= 1.;
-  // norm2 q_r2 ~= 1.;
-  w_m <~ 1.;
-  w_r2 <~ 1.
-}
+//   r_h == zero3;
+
+//   T_D == om_D;
+
+//   r_h == r_m;
+//   r_g == r_m;
+//   F_m == -F_h - F_g;
+
+//   T_m == -T_D;
+//   om_D == om_m;
+
+//   q_m' ==. 0.5 * (q_ om_m) * q_m;
+//   q_D' ==. 0.5 * (q_ om_D) * q_D;
+
+//   omz_m <- 10.;
+//   q_D ~==. q_m;
+//   w_m <~ cos (PI / 8.);
+//   i_m <~ 0.;
+//   j_m <~ 0.;
+//   k_m <~ sin (PI / 8.)
+// }
 
 // def model = {
 //   r_m' == v_m;
 //   v_m' == F_m;
 //   om_m' == T_m;
-//   q_m' ==. 0.5 * (q_ om_m) * q_m + (1. - sqrt(norm2 q_m)) * q_m;
+
 //   F_g == 9.81 * jj;
 //   r_h == zero3;
 //   r_r1 == L (q_r2) (vec3 (-1.) 0. 0.);
 //   T_r2 == cross (-r_r1) F_r1;
-//   // q_r1' ==. 0.5 * (q_ om_r1) * q_r1;
-//   // om_r1 == zero3;
-//   q_r1 ==. idq;
-
-//   // q_D' ==. 0.5 * (q_ om_D) * q_D;
-//   // T_D == 1. * om_D;
+//   om_r1 == zero3;
 
 //   r_h == r_r1 + r_m;
 //   r_g == r_m;
 //   F_m == -F_h - F_g;
 //   F_r1 == -F_h;
-//   T_m == -T_r2 - T_D;
-//   T_r1 == T_D;
-//   q_r2 ==. q_m;
-//   q_D ==. q_r1 * q_m;
+//   T_m == -T_r2;
+//   T_r1 == zero3;
+//   om_r2 == om_m;
 
-//   norm2 q_m ~= 1.;
-//   norm2 q_r2 ~= 1.;
-//   w_m <- 1.
+//   q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
+//   q_m' ==. 0.5 * (q_ om_m) * q_m;
+
+//   q_r2 ~==. q_m;
+//   w_m <- cos (PI / 8.);
+//   i_m <- 0.;
+//   j_m <- 0.;
+//   k_m <- sin (PI / 8.)
 // }
 
-def main = { elaborateToFile (equationsElement model) }
+def model = {
+  r_m' == v_m;
+  v_m' == F_m;
+  om_m' == T_m;
+
+  F_g == 9.81 * jj;
+  r_h == zero3;
+  r_r1 == L (q_r2) (vec3 (-1.) 0. (-0.));
+  T_r2 == cross (-r_r1) F_r1;
+  om_r1 == zero3;
+
+  T_D == om_D;
+
+  r_h == r_r1 + r_m;
+  r_g == r_m;
+
+  F_m == -F_h - F_g;
+  F_r1 == -F_h;
+  T_m == -T_D - T_r2;
+  T_r1 == -T_D;
+  om_r2 == om_m;
+  om_D == om_r1 + om_m;
+
+  q_r1 ==. idq;
+  q_m' ==. 0.5 * (q_ om_m) * q_m;
+  q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
+
+  q_r2 ~==. q_m;
+
+  // w_m <- cos (PI / 8.);
+  // i_m <- 0.;
+  // j_m <- 0.;
+  // k_m <- sin (PI / 8.)
+  norm2 q_m ~= 1.;
+  w_m <~ 1.
+}
+
+def main = { elaborateToFile ((equationsElement model) ++ visualElement r_m q_m (visualAxes 0.5)) }

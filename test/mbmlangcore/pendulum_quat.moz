@@ -1,0 +1,41 @@
+include MBMLANG
+
+def x_m, y_m, z_m: Real
+def r_m = vec3 x_m y_m z_m
+def v_m, F_m, om_m: Vector3
+def q_m, T_m: Quaternion
+
+def r_g, F_g: Vector3
+def r_h, F_h: Vector3
+
+def q_D, T_D, om_D: Quaternion
+
+def r_r1, F_r1: Vector3
+def q_r1, T_r1: Quaternion
+def q_r2, T_r2: Quaternion
+
+def model = {
+  r_m' == v_m;
+  q_m' ==. 0.5 * (q_ om_m) * q_m;
+  F_m == v_m';
+  // qre T_m = 0.;
+  om_m' == (qim T_m);
+
+  F_g == 9.81 * jj;
+  r_h == zero3;
+
+  r_r1 == L q_r2 (vec3 (-1.) 0. 0.);
+  q_r1 ==. idq;
+  qre T_r2 = 0.;
+  qim T_r2 == cross (-r_r1) F_r1;
+
+  r_h == r_r1 + r_m;
+  r_g == r_m;
+  F_m == -F_h - F_g;
+  F_r1 == -F_h;
+  T_m ==. (-1.) * T_r2;
+  T_r1 ==. quat 0. 0. 0. 0.;
+  q_r2 ==. q_m;
+}
+
+def main = { elaborateToFile (equationsElement model) }
