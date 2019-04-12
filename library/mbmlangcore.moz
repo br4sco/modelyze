@@ -377,6 +377,7 @@ def clock(t_0: Real, t: <Real>) = {
 def mkCuboidInertia(m: Real, xyz: RealVector3) -> RealVector3 = {
   def (x, y, z) = xyz;
   ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
+  // (1., 1., 1.)
 }
 
 def rotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
@@ -399,10 +400,11 @@ def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: 
     def x = dot r ii;
     def y = dot r jj;
     def z = dot r kk;
-    vec3
-      (dot om (vec3 (I_xx + m * (z^2. + y^2.)) (m * x * y) (m * x * z)))
-      (dot om (vec3 (m * x * y) (I_yy + m * (z^2. + x^2.)) (m * y * z)))
-      (dot om (vec3 (m * x * z) (m * y * z) (I_zz + m * (x^2. + y^2.))))
+    // vec3
+      // (dot om (vec3 (I_xx + m * (z^2. + y^2.)) (-m * x * y) (-m * x * z)))
+      // (dot om (vec3 (-m * x * y) (I_yy + m * (z^2. + x^2.)) (-m * y * z)))
+      // (dot om (vec3 (-m * x * z) (-m * y * z) (I_zz + m * (x^2. + y^2.))))
+    (vec3 I_xx I_yy I_zz) * om
   };
 
   def I = mkI;
