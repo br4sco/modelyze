@@ -395,34 +395,23 @@ def translationSensor(r: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
 }
 
 def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: Frame) -> Equations = {
-  def mkI(om: Vector3) = {
-    def (I_xx, I_yy, I_zz) = I;
-    def x = dot r ii;
-    def y = dot r jj;
-    def z = dot r kk;
-    // vec3
-      // (dot om (vec3 (I_xx + m * (z^2. + y^2.)) (-m * x * y) (-m * x * z)))
-      // (dot om (vec3 (-m * x * y) (I_yy + m * (z^2. + x^2.)) (-m * y * z)))
-      // (dot om (vec3 (-m * x * z) (-m * y * z) (I_zz + m * (x^2. + y^2.))))
-    (vec3 I_xx I_yy I_zz) * om
-  };
-
-  def I = mkI;
-  def v, F, om, T: Vector3;
+  def J = mkVec3 I;
+  def v, F, om, Om, T: Vector3;
   translationEdge world f_m r F;
   initialRotationEdge world f_m q;
   angularVelocityEdge world f_m om T;
 
+  om == L q Om;
   q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
   r' == v;
-  F == m * v';
-  T == I (om') + cross om (I om)
+  v' == (-1. / m) * F;
+  J * (Om') == -cross Om (J * Om) - L (qconj q) T
 }
 
 def gravity(m: Real, world: Frame, f: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge world f r F;
-  F == m * GRAVITATIONAL_CONSTANT * jj
+  F == -m * GRAVITATIONAL_CONSTANT * kk
 }
 
 def sphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
@@ -451,7 +440,7 @@ def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: F
 
   q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
   r_1 == L q_2 r;
-  T_2 == cross (L q_2 (-r)) F_1
+  T_2 == -cross (L q_2 (r)) F_1
 }
 
 def translation(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {

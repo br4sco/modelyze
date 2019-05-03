@@ -1,73 +1,83 @@
 include MBMLANG
 
+def I = vec3 2. 1. 1.
+
 def x_m, y_m, z_m: Real
 def r_m = vec3 x_m y_m z_m
-def v_m, F_m: Vector3
+def Fx_m, Fy_m, Fz_m: Real
+def F_m = vec3 Fx_m Fy_m Fz_m
+def v_m, a_m: Vector3
 def omx_m, omy_m, omz_m: Real
 def om_m = vec3 omx_m omy_m omz_m
 def Tx_m, Ty_m, Tz_m: Real
 def T_m = vec3 Tx_m Ty_m Tz_m
 def w_m, i_m, j_m, k_m: Real
 def q_m = quat w_m i_m j_m k_m
+def r_g, v_g, a_g, F_g: Vector3
 
-def r_g, F_g: Vector3
-
-def r_h, F_h: Vector3
+def r_h, v_h, a_h, F_h: Vector3
 
 def w_r2, i_r2, j_r2, k_r2: Real
-def r_r1, F_r1, om_r2, om_r1, T_r2, T_r1: Vector3
+def r_r1, v_r1, a_r1, F_r1, om_r2, om_r1, T_r2, T_r1: Vector3
 def q_r2 = quat w_r2 i_r2 j_r2 k_r2
 def q_r1: Quaternion
 
 def T_D, om_D: Vector3
 def q_D: Quaternion
 
+def r = vec3 (-1.) 0. 0.
+
 def qn1: Real
 def qn2: Real
 def tol, e1, e2: Real
 
+def model = {
+  r_m' == v_m;
+  v_m' == F_m;
+  om_m' == T_m;
+
+  F_g == 9.81 * jj;
+
+  r_h == zero3;
+
+  T_D == om_D;
+
+  r_g == r_m;
+  F_m == -F_h - F_g;
+
+  T_m == -T_D;
+  om_D == om_m;
+
+  q_m' ==. 0.5 * (q_ om_m) * q_m;
+  q_D' ==. 0.5 * (q_ om_D) * q_D;
+
+  omz_m <- 10.;
+  q_D ~==. q_m;
+  w_m <~ cos (PI / 8.);
+  i_m <~ 0.;
+  j_m <~ 0.;
+  k_m <~ sin (PI / 8.)
+}
+
 // def model = {
 //   r_m' == v_m;
-//   v_m' == F_m;
-//   om_m' == T_m;
+//   // v_m' == a_m;
+//   // a_m == F_m;
+//   F_m == v_m';
+//   I * om_m' + cross om_m (I * om_m) == T_m;
 
 //   F_g == 9.81 * jj;
-
+//   r_g' == v_g;
+//   // v_g' == a_g;
 //   r_h == zero3;
-
-//   T_D == om_D;
-
-//   r_h == r_m;
-//   r_g == r_m;
-//   F_m == -F_h - F_g;
-
-//   T_m == -T_D;
-//   om_D == om_m;
-
-//   q_m' ==. 0.5 * (q_ om_m) * q_m;
-//   q_D' ==. 0.5 * (q_ om_D) * q_D;
-
-//   omz_m <- 10.;
-//   q_D ~==. q_m;
-//   w_m <~ cos (PI / 8.);
-//   i_m <~ 0.;
-//   j_m <~ 0.;
-//   k_m <~ sin (PI / 8.)
-// }
-
-// def model = {
-//   r_m' == v_m;
-//   v_m' == F_m;
-//   om_m' == T_m;
-
-//   F_g == 9.81 * jj;
-//   r_h == zero3;
-//   r_r1 == L (q_r2) (vec3 (-1.) 0. 0.);
-//   T_r2 == cross (-r_r1) F_r1;
+//   r_h' == v_h;
+//   // v_h' == a_h;
+//   r_r1 == L q_r2 r;
+//   v_r1 == cross om_r2 (L q_r2 r);
+//   // a_r1 == cross (om_r2') (L q_r2 r) + cross om_r2 (cross om_r2 (L q_r2 r));
+//   T_r2 == -cross (L q_r2 r) F_r1;
 //   om_r1 == zero3;
 
-//   r_h == r_r1 + r_m;
-//   r_g == r_m;
 //   F_m == -F_h - F_g;
 //   F_r1 == -F_h;
 //   T_m == -T_r2;
@@ -77,48 +87,62 @@ def tol, e1, e2: Real
 //   q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
 //   q_m' ==. 0.5 * (q_ om_m) * q_m;
 
+//   // a_h == a_r1 + a_m;
+//   // a_g == a_m;
+
+//   // v_h ~== v_r1 + v_m;
+//   // v_g ~== v_m;
+//   v_h == v_r1 + v_m;
+//   v_g == v_m;
+
+//   r_h ~== r_r1 + r_m;
+//   r_g ~== r_m;
+//   // r_h == r_r1 + r_m;
+//   // r_g == r_m;
+
+
 //   q_r2 ~==. q_m;
-//   w_m <- cos (PI / 8.);
+//   w_m <- cos (-PI / 8.);
 //   i_m <- 0.;
-//   j_m <- 0.;
-//   k_m <- sin (PI / 8.)
+//   k_m <- 0.;
+//   j_m <- sin (-PI / 8.)
 // }
 
-def model = {
-  r_m' == v_m;
-  v_m' == F_m;
-  om_m' == T_m;
+// def model = {
+//   r_m' == v_m;
+//   v_m' == F_m;
+//   om_m' == T_m;
 
-  F_g == 9.81 * jj;
-  r_h == zero3;
-  r_r1 == L (q_r2) (vec3 (-1.) 0. (-0.));
-  T_r2 == cross (-r_r1) F_r1;
-  om_r1 == zero3;
+//   F_g == 9.81 * jj;
+//   r_h == zero3;
+//   r_r1 == L (q_r2) (vec3 (-1.) 0. (-0.));
+//   T_r2 == cross (-r_r1) F_r1;
+//   om_r1 == zero3;
 
-  T_D == om_D;
+//   T_D == om_D;
 
-  r_h == r_r1 + r_m;
-  r_g == r_m;
+//   r_h == r_r1 + r_m;
+//   r_g == r_m;
 
-  F_m == -F_h - F_g;
-  F_r1 == -F_h;
-  T_m == -T_D - T_r2;
-  T_r1 == -T_D;
-  om_r2 == om_m;
-  om_D == om_r1 + om_m;
+//   F_m == -F_h - F_g;
+//   F_r1 == -F_h;
+//   T_m == -T_D - T_r2;
+//   T_r1 == -T_D;
+//   om_r2 == om_m;
+//   om_D == om_r1 + om_m;
 
-  q_r1 ==. idq;
-  q_m' ==. 0.5 * (q_ om_m) * q_m;
-  q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
+//   q_r1 ==. idq;
+//   q_m' ==. 0.5 * (q_ om_m) * q_m;
+//   q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
 
-  q_r2 ~==. q_m;
+//   q_r2 ~==. q_m;
 
-  // w_m <- cos (PI / 8.);
-  // i_m <- 0.;
-  // j_m <- 0.;
-  // k_m <- sin (PI / 8.)
-  norm2 q_m ~= 1.;
-  w_m <~ 1.
-}
+//   // w_m <- cos (PI / 8.);
+//   // i_m <- 0.;
+//   // j_m <- 0.;
+//   // k_m <- sin (PI / 8.)
+//   norm2 q_m ~= 1.;
+//   w_m <~ 1.
+// }
 
 def main = { elaborateToFile ((equationsElement model) ++ visualElement r_m q_m (visualAxes 0.5)) }

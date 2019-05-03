@@ -26,59 +26,59 @@ def MODEL_FILENAME = "/tmp/model.mo"
 
 type InitValMap = (<Real> => (Real, Bool))
 
-  def getUknowns(e: Equations) -> Set(<Real>) = {
-    def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
-      match e with
-      | e_1 e_2 -> workMore e_2 (workMore e_1 a)
-      | sym: Real -> Set.add e a
-      | _ -> a
-    };
+def getUknowns(e: Equations) -> Set(<Real>) = {
+  def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+    match e with
+    | e_1 e_2 -> workMore e_2 (workMore e_1 a)
+    | sym: Real -> Set.add e a
+    | _ -> a
+  };
 
-    def work(e: Equations, a: Set(<Real>)) -> Set(<Real>) = {
-      match e with
-      | e_1; e_2 -> work e_2 (work e_1 a)
-      | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
-      | _ -> a
-    };
+  def work(e: Equations, a: Set(<Real>)) -> Set(<Real>) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
+    | _ -> a
+  };
 
-    work e (Set.empty)
-  }
+  work e (Set.empty)
+}
 
-  def getInitalValMap(e: Equations) -> InitValMap = {
-    def work(e: Equations, a: InitValMap) -> InitValMap = {
-      match e with
-      | e_1; e_2 -> work e_2 (work e_1 a)
-      | u <- r -> {
-          match (u, r) with
-          | (sym: Real, sval r: Real) -> {
-              if Map.mem u a then {
-                  def r_old = fst (Map.find u a);
-                  if r == r_old then a
-                  else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
-              } else Map.add u (r, true) a
-            }
-          | _ -> error "Invalid initial value assignment"
-        }
-      | u <~ r -> {
-          match (u, r) with
-          | (sym: Real, sval r: Real) -> {
-              if Map.mem u a then {
-                if snd (Map.find u a) then a
-                else {
-                  def r_old = fst (Map.find u a);
-                  if r == r_old then a
-                  else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
-                }
+def getInitalValMap(e: Equations) -> InitValMap = {
+  def work(e: Equations, a: InitValMap) -> InitValMap = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | u <- r -> {
+        match (u, r) with
+        | (sym: Real, sval r: Real) -> {
+            if Map.mem u a then {
+                def r_old = fst (Map.find u a);
+                if r == r_old then a
+                else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
+            } else Map.add u (r, true) a
+          }
+        | _ -> error "Invalid initial value assignment"
+      }
+    | u <~ r -> {
+        match (u, r) with
+        | (sym: Real, sval r: Real) -> {
+            if Map.mem u a then {
+              if snd (Map.find u a) then a
+              else {
+                def r_old = fst (Map.find u a);
+                if r == r_old then a
+                else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
               }
-              else Map.add u (r, false) a
             }
-          | _ -> error "Invalid initial value guess"
-        }
-      | _ -> a
-    };
+            else Map.add u (r, false) a
+          }
+        | _ -> error "Invalid initial value guess"
+      }
+    | _ -> a
+  };
 
-    work e (Map.empty)
-  }
+  work e (Map.empty)
+}
 
 def export2Modelica(name: String, e: Equations) -> String = {
   def e = toScalarEquations (toVector3Equations e);

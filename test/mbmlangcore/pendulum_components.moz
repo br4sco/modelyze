@@ -1,0 +1,57 @@
+include MBMLANG
+
+def X = vec3 0. 1. 0.
+def m = 15.
+
+// def J = vec3 0.23 0.46 0.23
+// def J = vec3 15.23 0.46 15.23
+def x = 1.
+def y = 2.
+def z = 1.
+def I = ((z^2. + y^2.) / 12. * m, (x^2. + z^2.) / 12. * m, (x^2. + y^2.) / 12. * m)
+def J = mkVec3 I
+
+def x_m, y_m, z_m: Real
+def r_m = vec3 x_m y_m z_m
+def v_m, F_m, om_m, T_m: Vector3
+def Omx_m, Omy_m, Omz_m: Real
+def Om_m = vec3 Omx_m Omy_m Omz_m
+def w_m, i_m, j_m, k_m: Real
+def q_m = quat w_m i_m j_m k_m
+
+def gamma = vec3 0. 0. (-9.81)
+
+def r_g, F_g, r_h, F_h, r_r1, F_r1, om_r2, T_r2: Vector3
+def q_r2: Quaternion
+
+def model = {
+  r_m' == v_m;
+  v_m' == (-1. / m) * F_m;
+  q_m' ==. 0.5 * (q_ om_m) * q_m;
+  J * Om_m' == -cross Om_m (J * Om_m) - L (qconj q_m) T_m;
+  om_m == L (q_m) Om_m;
+
+  r_h == zero3;
+  F_g == m * gamma * kk;
+  r_r1 == L q_r2 (-X);
+  q_r2' ==. 0.5 * (q_ om_r2) * q_r2;
+  T_r2 == -cross (L q_r2 (-X)) F_r1;
+
+  F_m == -F_h - F_g;
+  F_r1 == -F_h;
+  r_h == r_r1 + r_m;
+  r_g == r_m;
+
+  T_m == -T_r2;
+  om_r2 == om_m;
+
+  q_r2 ~==. q_m; 
+  w_m <- cos (-PI / 6.);
+  i_m <- 0.;
+  j_m <- 0.;
+  k_m <- sin (-PI / 6.)
+}
+
+def main = { elaborateToFile ((equationsElement model)
+             ++ visualElement r_m q_m (visualAxes 0.5)
+             )}

@@ -1,0 +1,18 @@
+include MBMLANG
+
+def x, y, vx, vy, lam, my: Real
+def m = 1.
+def g = 9.81
+def l = 1.
+
+def pendulum = {
+  x' = vx - 2. * x * my';
+  y' = vy - 2. * y * my';
+  m * vx' = -2. * x * lam';
+  m * vy' = -m * g - 2. * y * lam';
+  x^2. + y^2. = l^2.;
+  2. * x * vx + 2. * y * vy = 0.;
+  x <- l
+}
+
+def main = { elaborateToFile (equationsElement pendulum) }
