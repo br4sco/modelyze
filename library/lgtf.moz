@@ -234,7 +234,7 @@ def chsign(IM: IMatrix) -> IMatrix = {
   work IM 0
 }
 
-def (--): IMatrix -> IMatrix = chsign
+def (---): IMatrix -> IMatrix = chsign
 
 def transpose(IM: IMatrix) -> IMatrix = {
   def (M, n, m) = IM;
