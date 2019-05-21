@@ -331,12 +331,12 @@ def solve(cdae: CDAE, z_0: State, I: Interval, h: Real, probes: [<Real>], sll: B
 
   def _ = logg 1 "Equations" (loggprintln eqs);
 
-  def (eqsp, z_0) = indexred (model_to_eqs eqs) z_0;
+  // def (eqs, z_0) = indexred (model_to_eqs eqs) z_0;
 
-  def _ = logg 1 "IR Equations" (loggprintln eqsp);
+  def _ = logg 1 "IR Equations" (loggprintln eqs);
 
   // Setup the Eqs Solver
-  def (resf, nroots, rootf, yy1, yp1, vids, ukm) = get_DAESolver_input eqsp ieqs z_0 0.;
+  def (resf, nroots, rootf, yy1, yp1, vids, ukm) = get_DAESolver_input eqs ieqs z_0 0.;
   def yy0 = (Array.make (Array.length yy1) INFINITE);
   def yp0 = (Array.make (Array.length yp1) INFINITE);
   def t0 = INFINITE;

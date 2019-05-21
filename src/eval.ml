@@ -157,7 +157,7 @@ let eval_daesolver_op eval op arg_lst =
 
   let mk_ida_session resf (nroots, rootf) t0 yy yp n =
     let m = Sundials.Matrix.dense n in
-    Ida.(init Dls.(solver (dense yy m)) (SStolerances (1e-9, 1e-9))
+    Ida.(init Dls.(solver (dense yy m)) (SStolerances (1e-7, 1e-7))
            resf ~roots:(nroots, rootf) t0 yy yp)
   in
 

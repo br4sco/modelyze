@@ -1,0 +1,104 @@
+include DILL
+
+def ti = (0., 1400.)
+def g = 9.81
+def l = 3.
+
+def x, y, vx, vy, dxt, dyt, lam, my: Real
+
+def pendulum1 = {
+  init x l ++
+  eqs_and_edges (
+  x' = vx;
+  y' = vy;
+  vx' = lam * x;
+  vy' = lam * y - g;
+  2. * der vx * x + 2. * vx^2. + 2. * der vy * y + 2. * vy^2. = 0. )
+}
+
+def pendulum2 = {
+  init x l ++
+  eqs_and_edges (
+  x' = vx - 2. * x * my';
+  y' = vy - 2. * y * my';
+  vx' = lam' * x;
+  vy' = lam' * y - g;
+  x^2. + y^2. = l^2.;
+  2. * x * vx + 2. * y * vy = 0.
+  )
+}
+
+def pendulum3 = {
+  init x l ++
+  eqs_and_edges (
+  x' = dxt - 2. * x * my';
+  y' = dyt - 2. * y * my';
+  vx' = lam' * x;
+  vy' = lam' * y - g;
+  dxt = vx;
+  dyt = vy;
+  x^2. + y^2. = l^2.;
+  2. * x * vx + 2. * y * vy = 0.
+  )
+}
+
+def K_p = 10.
+def K_i = 10.
+
+def pendulum4 = {
+  init x l ++
+  eqs_and_edges (
+  x' = vx + K_p * (x^2. + y^2. - l^2.) * x;
+  y' = vy + K_i * (x^2. + y^2. - l^2.) * y;
+  vx' = lam * x;
+  vy' = lam * y - g;
+  2. * der vx * x + 2. * vx^2. + 2. * der vy * y + 2. * vy^2. = 0. )
+}
+
+def K_p = 0.9
+def K_i = 0.003
+def R = 0.
+def th_0 = 45.0*PI/180.0
+def m = 5.
+
+def E, IE, U, Y: Real
+
+def pendulum5 = {
+  init x (l*sin(th_0)) ++
+  init y (-l*cos(th_0)) ++
+  eqs_and_edges (
+  x' = dxt;
+  y' = dyt;
+  m * dxt' = lam * x;
+  m * dyt' = lam * y - g;
+
+  IE' = E;
+  Y = x^2. + y^2. - l^2.;
+  E = R - Y;
+  U = K_p * E + K_i * IE;
+
+  dxt' * x + (x')^2. + dyt' * y + (y')^2. = U)
+}
+
+def pendulum6 = {
+  init x (l*sin(th_0)) ++
+  init y (-l*cos(th_0)) ++
+  eqs_and_edges (
+  x' = dxt;
+  y' = dyt;
+  m * dxt' = lam * x;
+  m * dyt' = lam * y - g;
+
+  IE' = E;
+  Y = x^2. + y^2. - l^2.;
+  E = R - Y;
+  U = K_p * E + K_i * IE;
+
+  dxt' * x + (dxt)^2. + dyt' * y + (dyt)^2. = U)
+}
+
+def monitored = [ (x, "x"), (y, "y"), (sqrt(abs(x^2. + y^2. - l^2.)), "err") ]
+
+def main = {
+  simulate pendulum3 ti 0.01 monitored 2.9 0.001 true false
+}
