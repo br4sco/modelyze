@@ -65,57 +65,57 @@ def iszSReal(v: <Real>) -> Bool = {
   | _ -> false
 }
 def chsgnSReal(v: <Real>) -> <Real> = {
-  if iszSReal v then 0.
-  else {
+  // if iszSReal v then 0.
+  // else {
     match v with
-    | sval v: Real -> -v
-    | -v -> v
+    // | sval v: Real -> -v
+    // | -v -> v
     | _ -> -v
-  }
+  // }
 }
 def subSReal(l: <Real>, r: <Real>) -> <Real> = {
   match (l, r) with
-  | (sval l: Real, sval r: Real) -> l - r
+  // | (sval l: Real, sval r: Real) -> l - r
   | _ -> l - r
 }
 def addSReal(l: <Real>, r: <Real>) -> <Real> = {
-  if iszSReal l && iszSReal r then 0.
-  else if iszSReal l then r
-  else if iszSReal r then l
-  else {
-    match (l, r) with
-    | (sval l: Real, sval r: Real) -> l + r
-    | _ -> {
+  // if iszSReal l && iszSReal r then 0.
+  // else if iszSReal l then r
+  // else if iszSReal r then l
+  // else {
+    // match (l, r) with
+    // | (sval l: Real, sval r: Real) -> l + r
+    // | _ -> {
         match r with
-        | -r -> subSReal l r
+        // | -r -> subSReal l r
         | _ -> l + r
-      }
-  }
+      // }
+  // }
 }
 def prodSReal(l: <Real>, r: <Real>) -> <Real> = {
-  def isuSReal(v: <Real>) -> Bool = {
-    match v with
-    | sval r: Real -> eqReal r 1.
-    | _ -> false
-  };
+  // def isuSReal(v: <Real>) -> Bool = {
+    // match v with
+    // | sval r: Real -> eqReal r 1.
+    // | _ -> false
+  // };
 
-  def isnuSReal(v: <Real>) -> Bool = {
-    match v with
-    | sval r: Real -> eqReal r (-1.)
-    | _ -> false
-  };
+  // def isnuSReal(v: <Real>) -> Bool = {
+    // match v with
+    // | sval r: Real -> eqReal r (-1.)
+    // | _ -> false
+  // };
 
-  if iszSReal l then 0.
-  else if iszSReal r then 0.
-  else if isuSReal l then r
-  else if isuSReal r then l
-  else if isnuSReal l then (chsgnSReal r)
-  else if isnuSReal r then (chsgnSReal l)
-  else {
+  // if iszSReal l then 0.
+  // else if iszSReal r then 0.
+  // else if isuSReal l then r
+  // else if isuSReal r then l
+  // else if isnuSReal l then (chsgnSReal r)
+  // else if isnuSReal r then (chsgnSReal l)
+  // else {
     match (l, r) with
-    | (sval l: Real, sval r: Real) -> l * r
+    // | (sval l: Real, sval r: Real) -> l * r
     | _ -> l * r
-  }
+  // }
 }
 
 
