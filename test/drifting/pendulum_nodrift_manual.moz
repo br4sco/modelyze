@@ -1,6 +1,6 @@
 include DILL
 
-def ti = (0., 1400.)
+def ti = (0., 300.)
 def g = 9.81
 def l = 3.
 
@@ -58,8 +58,8 @@ def pendulum4 = {
 def K_p = 0.9
 def K_i = 0.003
 def R = 0.
-def th_0 = 45.0*PI/180.0
-def m = 5.
+def th_0 = 90.0*PI/180.0
+def m = 1.
 
 def E, IE, U, Y: Real
 
@@ -97,8 +97,8 @@ def pendulum6 = {
   dxt' * x + (dxt)^2. + dyt' * y + (dyt)^2. = U)
 }
 
-def monitored = [ (x, "x"), (y, "y"), (sqrt(abs(x^2. + y^2. - l^2.)), "err") ]
+def monitored = [ (x, "x"), (y, "y"), (x^2. + y^2. - l^2., "err") ]
 
 def main = {
-  simulate pendulum3 ti 0.01 monitored 2.9 0.001 true false
+  simulate pendulum6 ti 0.01 monitored 2.9 0.001 true false
 }
