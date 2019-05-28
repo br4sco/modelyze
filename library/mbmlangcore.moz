@@ -377,7 +377,6 @@ def clock(t_0: Real, t: <Real>) = {
 def mkCuboidInertia(m: Real, xyz: RealVector3) -> RealVector3 = {
   def (x, y, z) = xyz;
   ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
-  // (1., 1., 1.)
 }
 
 def rotationSensor(q: Quaternion, f_1: Frame, f_2: Frame) -> Equations = {
@@ -402,16 +401,18 @@ def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: 
   angularVelocityEdge world f_m om T;
 
   om == L q Om;
-  q' ==. 0.5 * (q_ om) * q + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+  q' ==. 0.5 * (q_ om) * q
+  ;
+  // + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
   r' == v;
-  v' == (-1. / m) * F;
-  J * (Om') == -cross Om (J * Om) - L (qconj q) T
+  v' == (1. / m) * F;
+  J * (Om') == -cross Om (J * Om) + L (qconj q) T
 }
 
 def gravity(m: Real, world: Frame, f: Frame) -> Equations = {
   def r, F: Vector3;
   translationEdge world f r F;
-  F == -m * GRAVITATIONAL_CONSTANT * kk
+  F == m * GRAVITATIONAL_CONSTANT * kk
 }
 
 def sphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
@@ -433,14 +434,18 @@ def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: F
   def r = mkVec3 r;
 
   translationEdge f_2 f_1 r_1 F_1;
-  initialRotationEdge f_2 f_1 idq;
+  initialRotationEdge f_2 f_1 q_1;
   initialRotationEdge world f_2 q_2;
-  angularVelocityEdge f_2 f_1 zero3 T_1;
+  angularVelocityEdge f_2 f_1 om_1 T_1;
   angularVelocityEdge world f_2 om_2 T_2;
 
-  q_2' ==. 0.5 * (q_ om_2) * q_2 + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
+  q_1 ==. idq;
+  om_1 == zero3;
+  q_2' ==. 0.5 * (q_ om_2) * q_2
+  ;
+  // + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
   r_1 == L q_2 r;
-  T_2 == -cross (L q_2 (r)) F_1
+  T_2 == -cross r_1 F_1
 }
 
 def translation(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {

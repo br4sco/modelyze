@@ -31,6 +31,12 @@ def gamma = vec3 0. 0. (9.81)
 
 // def r_g, F_g, r_h1, F_h1, r_r1, F_r1, om_r2, r_h2, F_h2, r_T, F_T: Vector3
 
+def rx_h2, ry_h2, rz_h2: Real
+def r_h2 = vec3 rx_h2 ry_h2 rz_h2
+
+def Fx_h2, Fy_h2, Fz_h2: Real
+def F_h2 = vec3 Fx_h2 Fy_h2 Fz_h2
+
 def rx_h1, ry_h1, rz_h1: Real
 def r_h1 = vec3 rx_h1 ry_h1 rz_h1
 
@@ -51,6 +57,12 @@ def T_r2 = vec3 Tx_r2 Ty_r2 Tz_r2
 
 def omx_r2, omy_r2, omz_r2: Real
 def om_r2 = vec3 omx_r2 omy_r2 omz_r2
+
+def Tx_r22, Ty_r22, Tz_r22: Real
+def T_r22 = vec3 Tx_r22 Ty_r22 Tz_r22
+
+def omx_r22, omy_r22, omz_r22: Real
+def om_r22 = vec3 omx_r22 omy_r22 omz_r22
 
 def w_r2, i_r2, j_r2, k_r2: Real
 def q_r2 = quat w_r2 i_r2 j_r2 k_r2
@@ -75,6 +87,12 @@ def r_r1 = vec3 rx_r1 ry_r1 rz_r1
 
 def Fx_r1, Fy_r1, Fz_r1: Real
 def F_r1 = vec3 Fx_r1 Fy_r1 Fz_r1
+
+def rx_r12, ry_r12, rz_r12: Real
+def r_r12 = vec3 rx_r12 ry_r12 rz_r12
+
+def Fx_r12, Fy_r12, Fz_r12: Real
+def F_r12 = vec3 Fx_r12 Fy_r12 Fz_r12
 
 def rx_T, ry_T, rz_T: Real
 def r_T = vec3 rx_T ry_T rz_T
@@ -117,7 +135,7 @@ def model = {
   norm2 q_m ~= 1.
 }
 
-def th_m, th_r2: Real
+def th_m, th_r2, th_r22: Real
 def model2d = {
   rz_m  = 0.;
   w_m = cos(th_m / 2.);
@@ -131,6 +149,10 @@ def model2d = {
   vx_m' = Fx_m;
   vy_m' = Fy_m;
   omz_m' = Tz_m;
+  rx_T = 2.;
+  ry_T = 0.;
+  // Fx_T = 0.;
+  // Fy_T = 0.;
 
   Fx_g = 0.;
   Fy_g = 9.81;
@@ -143,16 +165,26 @@ def model2d = {
   ry_r1 = -sin(th_r2);
   Tz_r2 = cos(th_r2) * Fy_r1 - sin(th_r2) * Fx_r1;
 
+  th_r22' = omz_r22;
+  rx_r12 = -cos(th_r22);
+  ry_r12 = -sin(th_r22);
+  Tz_r22 = cos(th_r22) * Fy_r12 - sin(th_r22) * Fx_r12;
+
   Fx_h1 = -Fx_r1;
   Fy_h1 = -Fy_r1;
-  Fx_m = -Fx_g + Fx_r1;
-  Fy_m = -Fy_g + Fy_r1;
+  Fx_m = -Fx_g - Fx_T + Fx_r1;
+  Fy_m = -Fy_g - Fy_T + Fy_r1;
+  Fx_r12 = -Fx_T;
+  Fy_r12 = -Fy_T;
   rx_g = rx_m;
   ry_g = ry_m;
+  rx_T = rx_m + rx_r12;
+  ry_T = ry_m + ry_r12;
   rx_r1 = rx_h1 - rx_m;
   ry_r1 = ry_h1 - ry_m;
-  Tz_m = -Tz_r2;
-  omz_r2 = omz_m
+  Tz_m = -Tz_r2 - Tz_r22;
+  omz_r2 = omz_m;
+  omz_r22 = omz_m
 }
 
 def main = { elaborateToFile ((equationsElement model2d)

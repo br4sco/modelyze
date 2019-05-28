@@ -333,7 +333,13 @@ type Bar = Real -> RealVector3 -> Frame -> Arm
 
 def _bar1(body: Body, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
   def (x, y, z) = xyz;
-  arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (body m (mkCuboidInertia m xyz) || gravity1 m) world
+  arm1 (-x / 2., 0., 0.) (x / 2., 0., 0.) (body m (mkCuboidInertia m xyz)
+        || gravity1 m
+       ) world
+}
+
+def bar1(r_0: RealVector3, q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
+  _bar1 (body1 r_0 q_0) m xyz world
 }
 
 def bar1(q_0: RealQuaternion, m: Real, xyz: RealVector3, world: Frame) -> Arm = {
