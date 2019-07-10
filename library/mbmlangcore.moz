@@ -426,6 +426,14 @@ def sphericalJoint(f_1: Frame, f_2: Frame) -> Equations = {
   r == zero3
 }
 
+def revoluteJoint(n: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def r, F, om, T: Vector3;
+  translationEdge f_1 f_2 r F;
+  angularVelocityEdge f_1 f_2 om T;
+  r == zero3;
+  cross om n == zero3
+}
+
 def rotationalDamper(D: Real, f_1: Frame, f_2: Frame) -> Equations = {
   def om, T: Vector3;
   angularVelocityEdge f_1 f_2 om T;
