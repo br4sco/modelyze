@@ -233,6 +233,10 @@ def elaborateToFile(o: ModelElement) -> () = {
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
+def clock1(t_0: Real, t: <Real>) -> ModelElement = {
+  equationsElement (clock t_0 t)
+}
+
 def rotationSensor1(q: Quaternion, f_1: Frame, f_2: Frame) -> ModelElement = {
   equationsElement (rotationSensor q f_1 f_2)
 }
@@ -275,6 +279,10 @@ def body1(m: Real, I: RealVector3, world: Frame, f_m: Frame) -> ModelElement = {
   def r: Vector3;
   def q: Quaternion;
   _body1 m I r q world f_m ++ equationsElement (norm2 q ~= 1.)
+}
+
+def torqueActuator1(f: Vector3, f_1: Frame, f_2: Frame) -> ModelElement = {
+  equationsElement (torqueActuator f f_1 f_2)
 }
 
 def gravity1(m: Real, world: Frame, f: Frame) -> ModelElement = {

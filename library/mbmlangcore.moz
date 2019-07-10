@@ -370,7 +370,6 @@ def EPSILON = 1.e-10
 
 def clock(t_0: Real, t: <Real>) = {
   t <- t_0;
-  t' <- 1.;
   t' = 1.
 }
 
@@ -402,11 +401,17 @@ def body(m: Real, I: RealVector3, r: Vector3, q: Quaternion, world: Frame, f_m: 
 
   om == L q Om;
   q' ==. 0.5 * (q_ om) * q
-  ;
-  // + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
+  // ;
+  + CORRECTION_SPEED * (1. - sqrt(norm2 q)) * q;
   r' == v;
   v' == (1. / m) * F;
   J * (Om') == -cross Om (J * Om) + L (qconj q) T
+}
+
+def torqueActuator(f: Vector3, f_1: Frame, f_2: Frame) -> Equations = {
+  def om, T: Vector3;
+  angularVelocityEdge f_1 f_2 om T;
+  T == f
 }
 
 def gravity(m: Real, world: Frame, f: Frame) -> Equations = {
@@ -442,8 +447,8 @@ def rigidArm(r: RealVector3, r_1: Vector3, q_2: Quaternion, world: Frame, f_1: F
   q_1 ==. idq;
   om_1 == zero3;
   q_2' ==. 0.5 * (q_ om_2) * q_2
-  ;
-  // + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
+  // ;
+  + CORRECTION_SPEED * (1. - sqrt(norm2 q_2)) * q_2;
   r_1 == L q_2 r;
   T_2 == -cross r_1 F_1
 }
