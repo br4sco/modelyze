@@ -19,7 +19,17 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include Graph
-include ModelyzeDAE
+
+def der: Real -> Real
+def (') = der
+
+type Equations
+def (;): Equations -> Equations -> Equations
+def (=): Real -> Real -> Equations
+def (<-): Real -> Real -> Equations
+def (<~): Real -> Real -> Equations
+def (~=): Real -> Real -> Equations
+def NoEqn: Equations
 
 type Frame = Node
 
@@ -37,10 +47,10 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
   mapi f l
 }
 
-type Vector = MatrixMapSReal
-def zero3 = mmSRealZero (3, 1)
+type SRMatrix = MatrixMapSReal
+type RealVector3 = (Real, Real, Real)
 
-def vectorEqual(l: Vector, r: Vector) -> Equations = {
+def vectorEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
   if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
   else {
     def h = find (1, 1) l = find (1, 1) r;
@@ -52,36 +62,57 @@ def vectorEqual(l: Vector, r: Vector) -> Equations = {
 }
 def (==) = vectorEqual
 
-def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> Vector = {
+def matrixDer(M: SRMatrix) -> SRMatrix = {
+  def f(e: <Real>) -> <Real> = { e' };
+  map f M
+}
+def (') = matrixDer
+
+def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> SRMatrix = {
   listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
 }
 
-def mkVector3(t: ()) -> Vector = {
+def mkVector3(t: ()) -> SRMatrix = {
   def x, y, z: <Real>;
   mkVector3 x y z
 }
 
-def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> Vector = {
+def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> SRMatrix = {
   listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
 }
 
-def mkQuaternion(t: ()) -> Vector = {
+def mkQuaternion(t: ()) -> SRMatrix = {
   def w, i, j, k: <Real>;
   mkQuaternion w i j k
 }
 
-def translationEdge: Frame -> Frame -> Vector -> Vector -> Equations
-def angularVelocityEdge: Frame -> Frame -> Vector -> Vector -> Equations
-def initialRotationEdge: Frame -> Frame -> Vector -> Equations
+def zero3 = mkVector3 0. 0. 0.
+def xhat = mkVector3 1. 0. 0.
+def yhat = mkVector3 0. 1. 0.
+def zhat = mkVector3 0. 0. 1.
 
-type VectorPairEdge = (Edge, (Vector, Vector))
-type VectorEdge = (Edge, Vector)
+def vec3ToTuple(v: SRMatrix) -> (<Real>, <Real>, <Real>) = {
+  if dim v != (3, 1) then error DIMENSION_MISSMATCH
+  else (find (1, 1) v, find (2, 1) v, find (3, 1) v)
+}
+
+def quatToTuple(q: SRMatrix) -> (<Real>, <Real>, <Real>, <Real>) = {
+  if dim q != (4, 1) then error DIMENSION_MISSMATCH
+  else (find (1, 1) q, find (2, 1) q, find (3, 1) q, find (4, 1) q)
+}
+
+def translationEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
+def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
+def initialRotationEdge: Frame -> Frame -> SRMatrix -> Equations
+
+type VectorPairEdge = (Edge, (SRMatrix, SRMatrix))
+type VectorEdge = (Edge, SRMatrix)
 
 def mkGraph(mes: [VectorPairEdge]) -> [Edge] = {
   map (fun me: VectorPairEdge -> fst me) mes
 }
 
-def mkVarsList(mes: [VectorPairEdge]) -> [(Vector, Vector)] = {
+def mkVarsList(mes: [VectorPairEdge]) -> [(SRMatrix, SRMatrix)] = {
   map (fun me: VectorPairEdge -> snd me) mes
 }
 
@@ -89,7 +120,7 @@ def getTranslationEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
   def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | translationEdge n_1 n_2 (sval x: Vector) (sval y: Vector) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | translationEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -100,7 +131,7 @@ def getAngularVelocityEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
   def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | angularVelocityEdge n_1 n_2 (sval x: Vector) (sval y: Vector) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | angularVelocityEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) -> (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -111,7 +142,7 @@ def getRotationInitEdges(e: Equations) -> ([VectorEdge], Equations) = {
   def work(e: Equations, a: ([VectorEdge], Equations)) -> ([VectorEdge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | initialRotationEdge n_1 n_2 (sval x: Vector) -> (((n_1, n_2), x)::(fst a), snd a)
+    | initialRotationEdge n_1 n_2 (sval x: SRMatrix) -> (((n_1, n_2), x)::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -186,23 +217,23 @@ def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), 
       }) isvs
 }
 
-def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [Vector], pvs: [Vector]) -> [(Vector, Vector)] = {
-  def uop(c: Int, v: Vector) -> Vector = { - (int2real c) *. v };
-  def bop(c: Int, l: Vector, r: Vector) -> Vector = { l - (int2real c) *. r };
+def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [SRMatrix], pvs: [SRMatrix]) -> [(SRMatrix, SRMatrix)] = {
+  def uop(c: Int, v: SRMatrix) -> SRMatrix = { - (int2real c) *. v };
+  def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = { l - (int2real c) *. r };
   mkPriScndVarsRel uop bop zero3 C svs pvs
 }
 
-def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([Vector], [Vector]))) -> [(Vector, Vector)] = {
+def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix]))) -> [(SRMatrix, SRMatrix)] = {
   def (A, (y_t, y_c)) = Ays;
   mkPriScndVarsRelVector3 A y_t y_c
 }
 
-def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([Vector], [Vector]))) -> [(Vector, Vector)] = {
+def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([SRMatrix], [SRMatrix]))) -> [(SRMatrix, SRMatrix)] = {
   def (B, (x_t, x_c)) = Bxs;
   mkPriScndVarsRelVector3 B x_c x_t
 }
 
-def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([Vector], [Vector])), (MatrixMapInt, ([Vector], [Vector]))) = {
+def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([SRMatrix], [SRMatrix])), (MatrixMapInt, ([SRMatrix], [SRMatrix]))) = {
   def (A, (T, C)) = mkCutsetMatrix mes;
   def B = -tr A;
   def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
@@ -223,11 +254,11 @@ def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge], a: Equ
   }
 }
 
-def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([Vector], [Vector])), a: Equations) -> Equations = {
+def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])), a: Equations) -> Equations = {
   def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRelVector3 C svs pvs;
 
-  def work(rs: [(Vector, Vector)], a: Equations) -> Equations = {
+  def work(rs: [(SRMatrix, SRMatrix)], a: Equations) -> Equations = {
     match rs with
     | [] -> a
     | r::rs -> work rs (a; fst r == snd r)
@@ -243,4 +274,52 @@ def elaborate(e: Equations) -> Equations = {
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
   e
+}
+
+def mkE(q: SRMatrix) = {
+  def (q0, q1, q2, q3) = quatToTuple q;
+  listToMatrix [
+                [-q1,  q0, -q3,  q2],
+                [-q2,  q3,  q0, -q1],
+                [-q3, -q2,  q1,  q0]
+               ] (mmSRealZero (3, 4))
+}
+
+def mkG(q: SRMatrix) = {
+  def (q0, q1, q2, q3) = quatToTuple q;
+  listToMatrix [
+                [-q1,  q0,  q3, -q2],
+                [-q2, -q3,  q0,  q1],
+                [-q3,  q2, -q1,  q0]
+               ] (mmSRealZero (3, 4))
+}
+
+def mkR(q: SRMatrix) = (mkE q) * (tr (mkG q))
+def mkH(q: SRMatrix) = 0.5 *. (tr (mkE q))
+
+def mkJ(d: RealVector3) = {
+  def (Jxx, Jyy, Jzz) = d;
+  add (1, 1) Jxx (add (2, 2) Jyy (add (3, 3) Jzz (mmSRealZero (3, 3))))
+}
+
+def GRAVITATIONAL_CONSTANT = 9.81
+def EPSILON = 1.e-10
+
+def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) = {
+  translationEdge world fm x F;
+  x' == v;
+  F == m *. v';
+}
+
+def bodyR(J: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) = {
+  def R = mkR q;
+  def H = mkH q;
+  def Jw = R * J * (tr R);
+  angularVelocityEdge world fm om T;
+  q' == H * om;
+  T == Jw * om' + (ss om) * Jw * om
+}
+
+def forceActuatorT(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) = {
+  translationEdge f1 f2 x f
 }

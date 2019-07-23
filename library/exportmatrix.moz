@@ -1,0 +1,220 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+
+*/
+
+include MBMLANGCOREMATRIX
+include Base
+
+def MODEL_FILENAME = "/tmp/model.mo"
+def name = "Model"
+
+type InitValMap = (<Real> => (Real, Bool))
+
+def getUknowns(e: Equations) -> Set(<Real>) = {
+  def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+    match e with
+    | e_1 e_2 -> workMore e_2 (workMore e_1 a)
+    | sym: Real -> Set.add e a
+    | _ -> a
+  };
+
+  def work(e: Equations, a: Set(<Real>)) -> Set(<Real>) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
+    | _ -> a
+  };
+
+  work e (Set.empty)
+}
+
+def getInitalValMap(e: Equations) -> InitValMap = {
+  def work(e: Equations, a: InitValMap) -> InitValMap = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | u <- r -> {
+        match (u, r) with
+        | (sym: Real, sval r: Real) -> {
+            if Map.mem u a then {
+                def r_old = fst (Map.find u a);
+                if r == r_old then a
+                else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
+            } else Map.add u (r, true) a
+          }
+        | _ -> error "Invalid initial value assignment"
+      }
+    | u <~ r -> {
+        match (u, r) with
+        | (sym: Real, sval r: Real) -> {
+            if Map.mem u a then {
+              if snd (Map.find u a) then a
+              else {
+                def r_old = fst (Map.find u a);
+                if r == r_old then a
+                else error ("Inconsisent initial guesses for unknown: " ++ symstr(u))
+              }
+            }
+            else Map.add u (r, false) a
+          }
+        | _ -> error "Invalid initial value guess"
+      }
+    | _ -> a
+  };
+
+  work e (Map.empty)
+}
+
+def export2Modelica(e: Equations) -> String = {
+
+  def r2mr(r: Real) -> String = {
+      if r < 0. then "(" ++ real2string r  ++ ")"
+      else real2string r
+  };
+
+  def pprintExpr(e: <Real>) -> String = {
+    def work(e: <Real>) -> String = {
+        match e with
+        | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
+        | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
+        | e1 * e2 -> work e1 ++ " * " ++ work e2
+        | e1 / e2 -> work e1 ++ " / " ++ work e2
+        | -e -> "(-" ++ work e ++ ")"
+        | e1^e2 -> work e1 ++ " ^ " ++ "(" ++ work e2 ++ ")"
+        | der e -> "der(" ++ work e ++ ")"
+        | ~sin e -> "sin(" ++ work e ++ ")"
+        | ~cos e -> "cos(" ++ work e ++ ")"
+        | ~tan e -> "tan(" ++ work e ++ ")"
+        | ~asin e -> "asin(" ++ work e ++ ")"
+        | ~acos e -> "acos(" ++ work e ++ ")"
+        | ~atan e -> "atan(" ++ work e ++ ")"
+        | ~sinh e -> "sinh(" ++ work e ++ ")"
+        | ~cosh e -> "cosh(" ++ work e ++ ")"
+        | ~tanh e -> "tanh(" ++ work e ++ ")"
+        | ~sqrt e -> "sqrt(" ++ work e ++ ")"
+        | ~exp e -> "exp(" ++ work e ++ ")"
+        | ~log e -> "log(" ++ work e ++ ")"
+        | ~log10 e -> "log10(" ++ work e ++ ")"
+        | sym: Real -> symstr(e)
+        | sval r: Real -> r2mr r
+        | _ -> { def _ = dprintln e;  error "Unmatched" }
+    };
+
+    work e
+  };
+
+  def pprintUnknown(u: <Real>, ivm: InitValMap) -> String = {
+    def iv = (if Map.mem u ivm then {
+                def (u_0, fix) = (Map.find u ivm);
+                " (start=" ++ r2mr u_0 ++ (if fix then ", fixed=true)" else ")")
+              } else "");
+    "Real " ++ symstr(u) ++ iv
+  };
+
+  def pprintUnknowns(e: Equations) -> String = {
+    def us = (Set.toList (getUknowns e));
+    def ivm = getInitalValMap e;
+    def f(a: String, u: <Real>) -> String = {
+      a ++ " " ++ pprintUnknown u ivm ++ ";\n"
+    };
+    foldLeft f "" us
+  };
+
+  def pprintInitEqs(e: Equations) -> String = {
+    match e with
+    | e_1; e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
+    | e_1 ~= e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+    | _ -> ""
+  };
+
+  def pprintEqs(e: Equations) -> String  = {
+    match e with
+    | e_1; e_2 -> pprintEqs e_1 ++ pprintEqs e_2
+    | e_1 = e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+    | _ -> ""
+  };
+
+  "model " ++ name ++ "\n"
+  ++ pprintUnknowns e
+  ++ "initial equation\n"
+  ++ pprintInitEqs e
+  ++ "equation\n"
+  ++ pprintEqs e
+  ++ "end " ++ name ++ ";\n"
+}
+
+def export2ModelicaFile(e: Equations) -> () = {
+  writeFile MODEL_FILENAME (export2Modelica e ++ "\n");
+}
+
+def export2Matlab(e: Equations) -> String = {
+
+  def r2mr(r: Real) -> String = {
+      if r < 0. then "(" ++ real2string r  ++ ")"
+      else real2string r
+  };
+
+  def pprintUnknowns(e: Equations) -> String = {
+    def f(a: String, u: <Real>) -> String = {
+      a ++ " " ++ symstr(u) ++ "(t)"
+    };
+
+    def us = (Set.toList (getUknowns e));
+    foldLeft f "" us
+  };
+
+
+  def pprintExpr(e: <>) -> String = {
+      match e with
+      | e1 + e2 -> "(" ++ pprintExpr e1 ++ " + " ++ pprintExpr e2 ++ ")"
+      | e1 - e2 -> "(" ++ pprintExpr e1 ++ " - " ++ pprintExpr e2 ++ ")"
+      | e1 * e2 -> pprintExpr e1 ++ " * " ++ pprintExpr e2
+      | e1 / e2 -> pprintExpr e1 ++ " / " ++ pprintExpr e2
+      | -e -> "(-" ++ pprintExpr e ++ ")"
+      | e1^e2 -> pprintExpr e1 ++ " ^ " ++ "(" ++ pprintExpr e2 ++ ")"
+      | der e -> "diff(" ++ pprintExpr e ++ ")"
+      | ~sin e -> "sin(" ++ pprintExpr e ++ ")"
+      | ~cos e -> "cos(" ++ pprintExpr e ++ ")"
+      | ~tan e -> "tan(" ++ pprintExpr e ++ ")"
+      | ~asin e -> "asin(" ++ pprintExpr e ++ ")"
+      | ~acos e -> "acos(" ++ pprintExpr e ++ ")"
+      | ~atan e -> "atan(" ++ pprintExpr e ++ ")"
+      | ~sinh e -> "sinh(" ++ pprintExpr e ++ ")"
+      | ~cosh e -> "cosh(" ++ pprintExpr e ++ ")"
+      | ~tanh e -> "tanh(" ++ pprintExpr e ++ ")"
+      | ~sqrt e -> "sqrt(" ++ pprintExpr e ++ ")"
+      | ~exp e -> "exp(" ++ pprintExpr e ++ ")"
+      | ~log e -> "log(" ++ pprintExpr e ++ ")"
+      | ~log10 e -> "log10(" ++ pprintExpr e ++ ")"
+      | sym: Real -> symstr(e) ++ "(t)"
+      | sval r: Real -> r2mr r
+      | _ -> error "Unmatched"
+  };
+
+  def pprintEqs(e: Equations) -> String  = {
+    match e with
+    | e_1; e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
+    | e_1 = e_2 -> pprintExpr e_1 ++ " == " ++ pprintExpr e_2
+    | _ -> ""
+  };
+
+  "syms t " ++ pprintUnknowns e ++ "\n\n" ++
+  "vars = [" ++pprintUnknowns e ++ " ];\n\n" ++
+  "eqns = [" ++ pprintEqs e ++ "];\n\n"
+}
