@@ -1,0 +1,246 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include Graph
+include ModelyzeDAE
+
+type Frame = Node
+
+def sw(a: {Dyn}, i: Int, j: Int) -> () = {
+  def n = (Array.length a);
+  if i < n && 0 <= i && j < n && 0 <= j then {
+    def t = (Array.get a i);
+    def _ = (Array.set a i (Array.get a j));
+    Array.set a j t
+  } else error DIMENSION_MISSMATCH
+}
+
+def mapToIdx(l: [Dyn]) -> [Int] = {
+  def f(i: Int, e: Dyn) -> Int = { i };
+  mapi f l
+}
+
+type Vector = MatrixMapSReal
+def zero3 = mmSRealZero (3, 1)
+
+def vectorEqual(l: Vector, r: Vector) -> Equations = {
+  if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
+  else {
+    def h = find (1, 1) l = find (1, 1) r;
+    def lt = sub (2, 1) (dim l) l;
+    def rt = sub (2, 1) (dim r) r;
+    def f(a: Equations, ij: Pos) -> Equations = { a; find ij lt = find ij rt };
+    foldij f h lt
+  }
+}
+def (==) = vectorEqual
+
+def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> Vector = {
+  listToMatrix [[x], [y], [z]] (mmSRealZero (3, 1))
+}
+
+def mkVector3(t: ()) -> Vector = {
+  def x, y, z: <Real>;
+  mkVector3 x y z
+}
+
+def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> Vector = {
+  listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
+}
+
+def mkQuaternion(t: ()) -> Vector = {
+  def w, i, j, k: <Real>;
+  mkQuaternion w i j k
+}
+
+def translationEdge: Frame -> Frame -> Vector -> Vector -> Equations
+def angularVelocityEdge: Frame -> Frame -> Vector -> Vector -> Equations
+def initialRotationEdge: Frame -> Frame -> Vector -> Equations
+
+type VectorPairEdge = (Edge, (Vector, Vector))
+type VectorEdge = (Edge, Vector)
+
+def mkGraph(mes: [VectorPairEdge]) -> [Edge] = {
+  map (fun me: VectorPairEdge -> fst me) mes
+}
+
+def mkVarsList(mes: [VectorPairEdge]) -> [(Vector, Vector)] = {
+  map (fun me: VectorPairEdge -> snd me) mes
+}
+
+def getTranslationEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
+  def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | translationEdge n_1 n_2 (sval x: Vector) (sval y: Vector) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def getAngularVelocityEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
+  def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | angularVelocityEdge n_1 n_2 (sval x: Vector) (sval y: Vector) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def getRotationInitEdges(e: Equations) -> ([VectorEdge], Equations) = {
+  def work(e: Equations, a: ([VectorEdge], Equations)) -> ([VectorEdge], Equations) = {
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | initialRotationEdge n_1 n_2 (sval x: Vector) -> (((n_1, n_2), x)::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def mkCutsetMatrix(mes: [VectorPairEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
+  if isEmpty mes then error "Edge list empty" else {
+    def G = mkGraph mes;
+    if hasSelfLoop G then error "Model graph contains self loop"
+    else {
+      def IM = mkIncidenceMatrix G;
+      def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
+      def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
+
+      def vs = listToArray (mkVarsList mes);
+
+      def work(i: Int, a: MatrixMapInt) -> MatrixMapInt = {
+        if i > rdim a then a
+        else {
+          def j_max = snd (argfind (fun v: Int -> v != 0)
+                        (sub (i, 1) (i, cdim a) a));
+          if i == j_max then work (i + 1) a
+          else {
+            def _ = sw vs (i - 1) (j_max - 1);
+            work (i + 1) (swcols i j_max a)
+          }
+        }
+      };
+
+      def IMrr = rowreduce IM;
+      def _ = logg 2 "IMrr" (fun t: () -> def _ = dp IMrr; ());
+
+      def IMrrt = trimrows IMrr;
+      def _ = logg 2 "IMrrt" (fun t: () -> def _ = dp IMrrt; ());
+
+      if rdim IMrrt > cdim IMrrt then error BAD_MATRIX
+      else {
+        def IA = work 1 (real2int IMrrt);
+        def _ = logg 2 "IA" (fun t: () -> def _ = dp IA; ());
+
+        def (I, A) = vsplit (rdim IA) IA;
+        def T = (if dim A < (1, 1) then arrayToList vs
+                 else arrayToList (sub vs 0 (rdim A)));
+        def C = (if dim A < (1, 1) then []
+                 else arrayToList (sub vs (rdim A) (Array.length vs)));
+        (A, (T, C))
+      }
+    }
+  }
+}
+
+def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: Dyn, C: MatrixMapInt, svs: [Dyn], pvs: [Dyn]) -> [(Dyn, Dyn)] = {
+  def isvs = zip (mapToIdx svs) svs;
+  def jpvs = zip (mapToIdx pvs) pvs;
+
+  map (fun isv: (Int, Dyn) -> {
+        def (i, sv) = isv;
+
+        def cpvs = map (fun jpv: (Int, Dyn) -> { def (j, pv) = jpv; (find (i + 1, j + 1) C, pv) }) jpvs;
+        def cpvs = filter (fun jpv: (Int, Dyn) -> fst jpv != 0) cpvs;
+
+        def f(a: Dyn, cpv: (Int, Dyn)) -> Dyn = {
+          def (c, pv) = cpv;
+          if c == 0 then a else bop c a pv
+        };
+
+        match cpvs with
+        | (c, pv)::cpvs -> (sv, foldLeft f (uop c pv) cpvs)
+        | [] -> (sv, zero)
+
+      }) isvs
+}
+
+def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [Vector], pvs: [Vector]) -> [(Vector, Vector)] = {
+  def uop(c: Int, v: Vector) -> Vector = { - (int2real c) *. v };
+  def bop(c: Int, l: Vector, r: Vector) -> Vector = { l - (int2real c) *. r };
+  mkPriScndVarsRel uop bop zero3 C svs pvs
+}
+
+def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([Vector], [Vector]))) -> [(Vector, Vector)] = {
+  def (A, (y_t, y_c)) = Ays;
+  mkPriScndVarsRelVector3 A y_t y_c
+}
+
+def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([Vector], [Vector]))) -> [(Vector, Vector)] = {
+  def (B, (x_t, x_c)) = Bxs;
+  mkPriScndVarsRelVector3 B x_c x_t
+}
+
+def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([Vector], [Vector])), (MatrixMapInt, ([Vector], [Vector]))) = {
+  def (A, (T, C)) = mkCutsetMatrix mes;
+  def B = -tr A;
+  def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
+
+  def (x_t, y_t) = unzip T;
+  def (x_c, y_c) = unzip C;
+
+  def _ = logg 2 "x_t" (loggprint x_t);
+  def _ = logg 2 "x_c" (loggprint x_c);
+  ((A, (y_t, y_c)), (B, (x_t, x_c)))
+}
+
+type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
+def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge], a: Equations) -> Equations = {
+  if isEmpty mes then a else {
+    def ((A, (y_t, y_c)), (B, (x_t, x_c))) = mkCutsetCircuitData mes;
+    f_t (A, (y_t, y_c)) (f_a (B, (x_c, x_t)) a)
+  }
+}
+
+def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([Vector], [Vector])), a: Equations) -> Equations = {
+  def (C, (svs, pvs)) = Cvs;
+  def rs = mkPriScndVarsRelVector3 C svs pvs;
+
+  def work(rs: [(Vector, Vector)], a: Equations) -> Equations = {
+    match rs with
+    | [] -> a
+    | r::rs -> work rs (a; fst r == snd r)
+    | _ -> error "Unmatched"
+  };
+
+  work rs a
+}
+
+def elaborate(e: Equations) -> Equations = {
+  def (tes, e) = getTranslationEdges e;
+  def (aves, e) = getAngularVelocityEdges e;
+  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
+  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
+  e
+}

@@ -52,6 +52,12 @@ def (*) = multiply
 type Vector3
 type Vector3UkMap = (Vector3 => Vector3)
 
+def vec2tuple(v: Vector3) -> (<Real>, <Real>, <Real>) = {
+  match v with
+  | vec3 x y z -> (x, y, z)
+  | _ -> error "Expected Vector3"
+}
+
 def vec3: Real -> Real -> Real -> Vector3
 def v3add : Vector3 -> Vector3 -> Vector3
 def v3sub: Vector3 -> Vector3 -> Vector3

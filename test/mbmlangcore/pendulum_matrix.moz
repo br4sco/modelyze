@@ -1,0 +1,21 @@
+include Base
+
+def x, y, z: Real
+def u, v, w: Real
+
+type Vector = [Dyn]
+type Matrix = [[Dyn]]
+
+def dot(v1: Vector, v2: Vector) -> Dyn = {
+  def n1 = length v1;
+  def n2 = length v2;
+  if n1 != n2 || n1 == 0 then {
+    error "Invalid Dimensions"
+  } else {
+    foldLeft (fun a: Dyn ->
+      fun e: Dyn -> def (e1, e2) = e; a + e1 * e2)
+        ((hd v1) * (hd v2)) (zip (tl v1) (tl v2))
+  }
+}
+
+def _ = dprintln (dot [x, y, z] [u, v, w])

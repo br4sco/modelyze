@@ -59,6 +59,12 @@ def ea2quat(th: Real, x: Real, y: Real, z: Real) = {
   (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
 }
 
+def quat2tuple(q: Quaternion) -> (<Real>, <Real>, <Real>, <Real>) = {
+  match q with
+  | quat w i j k -> (w, i, j, k)
+  | _ -> error "Expected Quaternion"
+}
+
 def idq = quat 1. 0. 0. 0.
 
 def mkQuat(q: RealQuaternion) -> Quaternion = { def (w, i, j, k) = q; quat w i j k }
