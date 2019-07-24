@@ -23,7 +23,7 @@ include MBMLANGCOREMATRIX
 include Base
 
 def MODEL_FILENAME = "/tmp/model.mo"
-def name = "Model"
+def NAME = "Model"
 
 type InitValMap = (<Real> => (Real, Bool))
 
@@ -150,13 +150,13 @@ def export2Modelica(e: Equations) -> String = {
     | _ -> ""
   };
 
-  "model " ++ name ++ "\n"
+  "model " ++ NAME ++ "\n"
   ++ pprintUnknowns e
   ++ "initial equation\n"
   ++ pprintInitEqs e
   ++ "equation\n"
   ++ pprintEqs e
-  ++ "end " ++ name ++ ";\n"
+  ++ "end " ++ NAME ++ ";\n"
 }
 
 def export2ModelicaFile(e: Equations) -> () = {

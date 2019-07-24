@@ -49,6 +49,7 @@ def mapToIdx(l: [Dyn]) -> [Int] = {
 
 type SRMatrix = MatrixMapSReal
 type RealVector3 = (Real, Real, Real)
+type RealQuaternion = (Real, Real, Real, Real)
 
 def vectorEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
   if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
@@ -62,6 +63,18 @@ def vectorEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
 }
 def (==) = vectorEqual
 
+def vectorInitEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
+  if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
+  else {
+    def h = find (1, 1) l = find (1, 1) r;
+    def lt = sub (2, 1) (dim l) l;
+    def rt = sub (2, 1) (dim r) r;
+    def f(a: Equations, ij: Pos) -> Equations = { a; find ij lt ~= find ij rt };
+    foldij f h lt
+  }
+}
+def (~==) = vectorInitEqual
+
 def matrixDer(M: SRMatrix) -> SRMatrix = {
   def f(e: <Real>) -> <Real> = { e' };
   map f M
@@ -74,6 +87,11 @@ def mkVector3(x: <Real>, y: <Real>, z: <Real>) -> SRMatrix = {
 
 def mkVector3(t: ()) -> SRMatrix = {
   def x, y, z: <Real>;
+  mkVector3 x y z
+}
+
+def mkVector3(v: RealVector3) -> SRMatrix = {
+  def (x, y, z) = v;
   mkVector3 x y z
 }
 
@@ -156,7 +174,7 @@ def mkCutsetMatrix(mes: [VectorPairEdge]) -> (MatrixMapInt, (Dyn, Dyn)) = {
     else {
       def IM = mkIncidenceMatrix G;
       def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
-      def _ = logg 2 "(x, y)" (loggprint (mkVarsList mes));
+      def _ = logg 2 "X" (fun t: () -> def _ = map (fun e: (SRMatrix, SRMatrix) -> dp (fst e)) (mkVarsList mes); ());
 
       def vs = listToArray (mkVarsList mes);
 
@@ -246,6 +264,8 @@ def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([SRMatrix], [
   ((A, (y_t, y_c)), (B, (x_t, x_c)))
 }
 
+
+
 type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
 def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge], a: Equations) -> Equations = {
   if isEmpty mes then a else {
@@ -305,13 +325,52 @@ def mkJ(d: RealVector3) = {
 def GRAVITATIONAL_CONSTANT = 9.81
 def EPSILON = 1.e-10
 
-def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) = {
+// === Single Edge Components ===
+
+def forceActuatorT(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  translationEdge f1 f2 x f
+}
+
+def forceActuatorT(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  def xfa1, xfa2, xfa3: Real;
+  def x = mkVector3 xfa1 xfa2 xfa3;
+  forceActuatorT f x f1 f2
+}
+
+def translationActuatorT(f: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  translationEdge f1 f2 f F
+}
+
+def translationActuatorT(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  def Fta1, Fta2, Fta3: Real;
+  def F = mkVector3 Fta1 Fta2 Fta3;
+  translationActuatorT f F f1 f2
+}
+
+def angularVelocityActuatorR(f: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  angularVelocityEdge f1 f2 f T
+}
+
+def angularVelocityActuatorR(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  def Tra1, Tra2, Tra3: Real;
+  def T = mkVector3 Tra1 Tra2 Tra3;
+  angularVelocityActuatorR f T f1 f2
+}
+
+def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   translationEdge world fm x F;
   x' == v;
   F == m *. v';
 }
 
-def bodyR(J: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) = {
+def bodyT(m: Real, x: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+  def vm1, vm2, vm3, Fm1, Fm2, Fm3: Real;
+  def v = mkVector3 vm1 vm2 vm3;
+  def F = mkVector3 Fm1 Fm2 Fm3;
+  bodyT m v x F world fm
+}
+
+def bodyR(J: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   def R = mkR q;
   def H = mkH q;
   def Jw = R * J * (tr R);
@@ -320,6 +379,46 @@ def bodyR(J: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm:
   T == Jw * om' + (ss om) * Jw * om
 }
 
-def forceActuatorT(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) = {
-  translationEdge f1 f2 x f
+def bodyR(J: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+  def omm1, omm2, omm3, Tm1, Tm2, Tm3: Real;
+  def om = mkVector3 omm1 omm2 omm3;
+  def T = mkVector3 Tm1 Tm2 Tm3;
+  bodyR J om q T world fm
 }
+
+def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  translationActuatorT ((mkR q2) * (mkVector3 r)) F f1 f2
+}
+
+def rigidArm1R(T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  angularVelocityActuatorR zero3 T f1 f2
+}
+
+def rigidArm1R(f1: Frame, f2: Frame) -> Equations = {
+  def Tr11, Tr12, Tr13: Real;
+  def T = mkVector3 Tr11 Tr12 Tr13;
+  rigidArm1R T f1 f2
+}
+
+def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, f2: Frame) -> Equations = {
+  angularVelocityEdge world f2 om T;
+  q' == (mkH q) * om;
+  T == -(ss ((mkR q) * (mkVector3 r))) * F1
+}
+
+def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix, world: Frame, f2: Frame) -> Equations = {
+  def omr21, omr22, omr23, Tr21, Tr22, Tr23: Real;
+  def om = mkVector3 omr21 omr22 omr23;
+  def T = mkVector3 Tr21 Tr22 Tr23;
+  rigidArm2R r F1 om q T world f2
+}
+
+def gravity(m: Real, world: Frame, fm: Frame) -> Equations = {
+  forceActuatorT ((m * GRAVITATIONAL_CONSTANT) *. zhat) world fm
+}
+
+def sphericalJoint(f1: Frame, f2: Frame) -> Equations = {
+  translationActuatorT zero3 f1 f2
+}
+
+// === Composed Components ===

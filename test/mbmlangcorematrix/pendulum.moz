@@ -1,6 +1,6 @@
 include EXPORTMATRIX
 
-def world, fm: Frame
+def world, f1, f2: Frame
 def vm1, vm2, vm3, xm1, xm2, xm3, Fm1, Fm2, Fm3, qm1, qm2, qm3, qm4, omm1, omm2, omm3, Tm1, Tm2, Tm3: <Real>
 def vm = mkVector3 vm1 vm2 vm3
 def xm = mkVector3 xm1 xm2 xm3
@@ -8,15 +8,30 @@ def Fm = mkVector3 Fm1 Fm2 Fm3
 def qm = mkQuaternion qm1 qm2 qm3 qm4
 def omm = mkVector3 omm1 omm2 omm3
 def Tm = mkVector3 Tm1 Tm2 Tm3
-def J = mkJ (1., 1., 1.)
+def J = mkJ (1., 2., 3.)
 def m = 1.
 
-def xg1, xg2, xg3: <Real>
+def xg1, xg2, xg3: Real
 def xg = mkVector3 xg1 xg2 xg3
 
-def model = bodyT m vm xm Fm world fm;
-            bodyR J omm qm Tm world fm;
-            forceActuatorT ((m * GRAVITATIONAL_CONSTANT) *. yhat) xg world fm;
-            qm1 <- 1.
+def qr21, qr22, qr23, qr24: Real
+def qr2 = mkQuaternion qr21 qr22 qr23 qr24
+
+def Fr11, Fr12, Fr13: Real
+def Fr1 = mkVector3 Fr11 Fr12 Fr13
+
+def r = (-1., 0.,0.)
+
+def model =
+            bodyT m xm world f2;
+            bodyR J qm world f2;
+            rigidArm1T r Fr1 qr2 f2 f1;
+            rigidArm1R f2 f1;
+            rigidArm2R r Fr1 qr2 world f2;
+            gravity m world f2;
+            sphericalJoint world f1;
+            qm1 <- 1.;
+            qr21 <- 1.
+            // qm ~== qr2
 
 def _ = export2ModelicaFile (elaborate model)
