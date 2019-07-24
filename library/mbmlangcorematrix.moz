@@ -51,6 +51,12 @@ type SRMatrix = MatrixMapSReal
 type RealVector3 = (Real, Real, Real)
 type RealQuaternion = (Real, Real, Real, Real)
 
+def ea2quat(th: Real, u: RealVector3) = {
+  def (x, y, z) = u;
+  def n = sqrt(x^2. + y^2. + z^2.);
+  (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
+}
+
 def vectorFold2(f: (Dyn -> <Real> -> <Real> -> Dyn), a: Dyn, v1: SRMatrix, v2: SRMatrix) -> Dyn = {
   if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then error DIMENSION_MISSMATCH
   else {
@@ -109,6 +115,11 @@ def mkVector3(v: RealVector3) -> SRMatrix = {
 
 def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> SRMatrix = {
   listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
+}
+
+def mkQuaternion(q: RealQuaternion) -> SRMatrix = {
+  def (w, i, j, k) = q;
+  mkQuaternion w i j k
 }
 
 def mkQuaternion(t: ()) -> SRMatrix = {
@@ -435,18 +446,18 @@ def sphericalJoint(f1: Frame, f2: Frame) -> Equations = {
   translationActuatorT zero3 f1 f2
 }
 
-def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, om: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJoint(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, om: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   angularVelocityEdge f1 f2 om T;
   (tr u1) * T == zero1;
   (tr u2) * om == zero1;
   (tr u3) * om == zero1
 }
 
-def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJoint(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   def omhr1, omhr2, omhr3, Thr1, Thr2, Thr3: Real;
   def om = mkVector3 omhr1 omhr2 omhr3;
   def T = mkVector3 Thr1 Thr2 Thr3;
-  revoluteJointR u1 u2 u3 om T f1 f2
+  revoluteJoint u1 u2 u3 om T f1 f2
 }
 
 // === Composed Components ===

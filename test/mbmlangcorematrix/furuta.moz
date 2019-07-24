@@ -1,0 +1,49 @@
+include EXPORTMATRIX
+
+def world, f1, f2, f3, f4, f5, f6: Frame
+def Jd = (1., 1., 1.)
+def m = 1.
+def l = 1.
+def th01 = 0.
+def u1 = (1., 0., 0.)
+def th02 = PI / 2.
+def u2 = (0., 0., -1.)
+
+def xm11, xm21, xm31: Real
+def xm1 = mkVector3 xm11 xm21 xm31
+
+def xm12, xm22, xm32: Real
+def xm2 = mkVector3 xm12 xm22 xm32
+
+def qm11, qm21, qm31, qm41: Real
+def qm1 = mkQuaternion qm11 qm21 qm31 qm41
+
+def qm12, qm22, qm32, qm42: Real
+def qm2 = mkQuaternion qm12 qm22 qm32 qm42
+
+def qr1 = mkQuaternion ()
+def qr2 = mkQuaternion ()
+def qr3 = mkQuaternion ()
+
+def model =
+            sphericalJoint world f1;
+            revoluteJoint zhat xhat yhat world f1;
+            rigidArm (-l, 0., 0.) qr1 world f1 f2;
+            body m Jd xm1 qm1 world f2;
+            gravity m world f2;
+            rigidArm (l, 0., 0.) qr2 world f3 f2;
+            sphericalJoint f3 f4;
+            revoluteJoint ((mkR qm1) * xhat) ((mkR qm1) * yhat) ((mkR qm1) * zhat) f3 f4;
+            rigidArm (-l, 0., 0.) qr3 world f4 f5;
+            body m Jd xm2 qm2 world f5;
+            gravity m world f5;
+            qr1 ~== qm1;
+            qr2 ~== qm1;
+            qr3 ~== qm2;
+            qm11 <- 1.;
+            // qm1 ~== mkQuaternion (ea2quat th01 u1);
+            qm2 ~== mkQuaternion (ea2quat th02 u2)
+
+
+
+def _ = export2ModelicaFile (elaborate model)

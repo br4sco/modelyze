@@ -26,18 +26,17 @@ def model1 =
             rigidArm2R r Fr1 qr2 world f2;
             gravity m world f2;
             sphericalJoint world f1;
-            revoluteJointR yhat xhat zhat world f1;
+            revoluteJoint yhat xhat zhat world f1;
             qm1 <- 1.;
-            qr21 <- 1.
-
+            qr2 ~== qm
 
 def model2 =
             body m Jd xm qm world f2;
             rigidArm r qr2 world f1 f2;
             gravity m world f2;
             sphericalJoint world f1;
-            revoluteJointR yhat xhat zhat world f1;
+            revoluteJoint yhat xhat zhat world f1;
             qm1 <- 1.;
-            qr21 <- 1.
+            qr2 ~== qm
 
-def _ = export2ModelicaFile (elaborate model2)
+def _ = export2ModelicaFile (elaborate model1)
