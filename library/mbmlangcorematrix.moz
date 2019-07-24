@@ -51,27 +51,39 @@ type SRMatrix = MatrixMapSReal
 type RealVector3 = (Real, Real, Real)
 type RealQuaternion = (Real, Real, Real, Real)
 
-def vectorEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
-  if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
+def vectorFold2(f: (Dyn -> <Real> -> <Real> -> Dyn), a: Dyn, v1: SRMatrix, v2: SRMatrix) -> Dyn = {
+  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then error DIMENSION_MISSMATCH
   else {
-    def h = find (1, 1) l = find (1, 1) r;
-    def lt = sub (2, 1) (dim l) l;
-    def rt = sub (2, 1) (dim r) r;
-    def f(a: Equations, ij: Pos) -> Equations = { a; find ij lt = find ij rt };
-    foldij f h lt
+    def ff(a: Dyn, ij: Pos) -> Dyn = { f a (find ij v1) (find ij v2) };
+    foldij ff a v1
   }
+}
+
+def vectorFoldHead2(fa: (Dyn -> Dyn -> Dyn), f: (<Real> -> <Real> -> Dyn), v1: SRMatrix, v2: SRMatrix) -> Dyn = {
+  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then error DIMENSION_MISSMATCH
+  else {
+    def h = f (find (1, 1) v1) (find (1, 1) v2);
+    if dim v2 == (1, 1) then h
+    else {
+      def lt = sub (2, 1) (dim v1) v1;
+      def rt = sub (2, 1) (dim v2) v2;
+      def ff(a: Equations, ij: Pos) -> Equations = { fa a (f (find ij lt) (find ij rt)) };
+      foldij ff h lt
+    }
+  }
+}
+
+def vectorEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
+  def fa(a: Equations, e: Equations) -> Equations = { a; e };
+  def f(l: <Real>, r: <Real>) -> Equations = { l = r };
+  vectorFoldHead2 fa f l r
 }
 def (==) = vectorEqual
 
 def vectorInitEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
-  if dim l != dim r || rdim l < 1 || cdim l > 1 then error DIMENSION_MISSMATCH
-  else {
-    def h = find (1, 1) l = find (1, 1) r;
-    def lt = sub (2, 1) (dim l) l;
-    def rt = sub (2, 1) (dim r) r;
-    def f(a: Equations, ij: Pos) -> Equations = { a; find ij lt ~= find ij rt };
-    foldij f h lt
-  }
+  def fa(a: Equations, e: Equations) -> Equations = { a; e };
+  def f(l: <Real>, r: <Real>) -> Equations = { l ~= r };
+  vectorFoldHead2 fa f l r
 }
 def (~==) = vectorInitEqual
 
@@ -104,6 +116,7 @@ def mkQuaternion(t: ()) -> SRMatrix = {
   mkQuaternion w i j k
 }
 
+def zero1 = mmSRealZero (1, 1)
 def zero3 = mkVector3 0. 0. 0.
 def xhat = mkVector3 1. 0. 0.
 def yhat = mkVector3 0. 1. 0.
@@ -370,20 +383,21 @@ def bodyT(m: Real, x: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   bodyT m v x F world fm
 }
 
-def bodyR(J: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   def R = mkR q;
   def H = mkH q;
+  def J = mkJ Jd;
   def Jw = R * J * (tr R);
   angularVelocityEdge world fm om T;
   q' == H * om;
   T == Jw * om' + (ss om) * Jw * om
 }
 
-def bodyR(J: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def bodyR(Jd: RealVector3, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   def omm1, omm2, omm3, Tm1, Tm2, Tm3: Real;
   def om = mkVector3 omm1 omm2 omm3;
   def T = mkVector3 Tm1 Tm2 Tm3;
-  bodyR J om q T world fm
+  bodyR Jd om q T world fm
 }
 
 def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
@@ -421,4 +435,31 @@ def sphericalJoint(f1: Frame, f2: Frame) -> Equations = {
   translationActuatorT zero3 f1 f2
 }
 
+def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, om: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  angularVelocityEdge f1 f2 om T;
+  (tr u1) * T == zero1;
+  (tr u2) * om == zero1;
+  (tr u3) * om == zero1
+}
+
+def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  def omhr1, omhr2, omhr3, Thr1, Thr2, Thr3: Real;
+  def om = mkVector3 omhr1 omhr2 omhr3;
+  def T = mkVector3 Thr1 Thr2 Thr3;
+  revoluteJointR u1 u2 u3 om T f1 f2
+}
+
 // === Composed Components ===
+
+def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+  bodyT m x world fm;
+  bodyR Jd q world fm
+}
+
+def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+  def Fr11, Fr12, Fr13: Real;
+  def Fr1 = mkVector3 Fr11 Fr12 Fr13;
+  rigidArm1T r Fr1 q f2 f1;
+  rigidArm1R f2 f1;
+  rigidArm2R r Fr1 q world f2
+}

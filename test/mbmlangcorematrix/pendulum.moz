@@ -1,18 +1,14 @@
 include EXPORTMATRIX
 
 def world, f1, f2: Frame
-def vm1, vm2, vm3, xm1, xm2, xm3, Fm1, Fm2, Fm3, qm1, qm2, qm3, qm4, omm1, omm2, omm3, Tm1, Tm2, Tm3: <Real>
-def vm = mkVector3 vm1 vm2 vm3
-def xm = mkVector3 xm1 xm2 xm3
-def Fm = mkVector3 Fm1 Fm2 Fm3
-def qm = mkQuaternion qm1 qm2 qm3 qm4
-def omm = mkVector3 omm1 omm2 omm3
-def Tm = mkVector3 Tm1 Tm2 Tm3
-def J = mkJ (1., 2., 3.)
+def Jd = (1., 2., 3.)
 def m = 1.
 
-def xg1, xg2, xg3: Real
-def xg = mkVector3 xg1 xg2 xg3
+def xm1, xm2, xm3: Real
+def xm = mkVector3 xm1 xm2 xm3
+
+def qm1, qm2, qm3, qm4: Real
+def qm = mkQuaternion qm1 qm2 qm3 qm4
 
 def qr21, qr22, qr23, qr24: Real
 def qr2 = mkQuaternion qr21 qr22 qr23 qr24
@@ -22,16 +18,26 @@ def Fr1 = mkVector3 Fr11 Fr12 Fr13
 
 def r = (-1., 0.,0.)
 
-def model =
+def model1 =
             bodyT m xm world f2;
-            bodyR J qm world f2;
+            bodyR Jd qm world f2;
             rigidArm1T r Fr1 qr2 f2 f1;
             rigidArm1R f2 f1;
             rigidArm2R r Fr1 qr2 world f2;
             gravity m world f2;
             sphericalJoint world f1;
+            revoluteJointR yhat xhat zhat world f1;
             qm1 <- 1.;
             qr21 <- 1.
-            // qm ~== qr2
 
-def _ = export2ModelicaFile (elaborate model)
+
+def model2 =
+            body m Jd xm qm world f2;
+            rigidArm r qr2 world f1 f2;
+            gravity m world f2;
+            sphericalJoint world f1;
+            revoluteJointR yhat xhat zhat world f1;
+            qm1 <- 1.;
+            qr21 <- 1.
+
+def _ = export2ModelicaFile (elaborate model2)
