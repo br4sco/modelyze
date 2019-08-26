@@ -120,6 +120,18 @@ def qprod(p: SRMatrix, q: SRMatrix) = { M2q ((q2M p) * (q2M q)) }
 
 def qconj(q: SRMatrix) = { M2q (tr (q2M q)) }
 
+def norm2(v: SRMatrix) = {
+  def f(a: <Real>, ij: Pos) -> <Real> = {
+    a + (find ij v)^2.
+  };
+  def z: <Real> = 0.;
+
+  if cdim v != 1 && rdim v <= 0 then error DIMENSION_MISSMATCH
+  else {
+    foldij f z v
+  }
+}
+
 def ea2quat(th: Real, u: RealVector3) = {
   def (x, y, z) = u;
   def n = sqrt(x^2. + y^2. + z^2.);
@@ -161,6 +173,13 @@ def vectorInitEqual(l: SRMatrix, r: SRMatrix) -> Equations = {
   vectorFoldHead2 fa f l r
 }
 def (~==) = vectorInitEqual
+
+def vectorInit(l: SRMatrix, r: SRMatrix) -> Equations = {
+  def fa(a: Equations, e: Equations) -> Equations = { a; e };
+  def f(l: <Real>, r: <Real>) -> Equations = { l <~ r };
+  vectorFoldHead2 fa f l r
+}
+def (<~~) = vectorInit
 
 def matrixDer(M: SRMatrix) -> SRMatrix = {
   def f(e: <Real>) -> <Real> = { e' };

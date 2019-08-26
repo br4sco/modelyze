@@ -38,11 +38,7 @@ def model =
             rigidArm (-l, 0., 0.) qr3 world f4 f5;
             body m Jd xm2 qm2 world f5;
             gravity m world f5;
-            // qr1 ~== qm1;
-            // qr2 ~== qm1;
-            // qr3 ~== qm2;
-            qm11 <- 1.;
-            // qm1 ~== mkQuaternion (ea2quat th01 u1);
+            qm1 <~~ idq;
             qm2 ~== mkQuaternion (ea2quat th02 u2)
             // qm2 ~== M2q ((q2M (mkQuaternion (ea2quat (PI / 2.) (0., 0., -1.)))) * (q2M (mkQuaternion (ea2quat (PI / 4.) (0., -1., 0.)))))
 
