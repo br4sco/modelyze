@@ -1,0 +1,207 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include EXPORTMATRIX
+
+def SCENE_FILENAME = "/tmp/scene.json"
+
+type Color = String
+
+type Material
+def stdMaterial: Color -> Real -> Material
+
+type Geometry3D
+def cuboid: Real -> Real -> Real -> Geometry3D
+def sphere: Real -> Geometry3D
+
+type VisualData
+def visualSolid: Geometry3D -> Material -> VisualData
+def visualAxes: Real -> VisualData
+
+type ModelElement
+def (++) : ModelElement -> ModelElement -> ModelElement
+def visualElement: SRMatrix -> SRMatrix -> VisualData -> ModelElement
+def equationsElement: Equations -> ModelElement
+def NoElement: ModelElement
+
+type FrameFun1 = Frame -> ModelElement
+type FrameFun2 = Frame -> Frame -> ModelElement
+
+def inParallel(l: FrameFun2, r: FrameFun2, f_1: Frame, f_2: Frame) -> ModelElement = {
+  l f_1 f_2 ++ r f_1 f_2
+}
+def (||) = inParallel
+
+def inSeries(l: Frame, r: FrameFun1) -> ModelElement = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFun1, r: Frame) -> ModelElement = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFun1, r: FrameFun2) = {
+  def f_1: Frame;
+  fun f_2: Frame -> l f_1 ++ r f_1 f_2
+}
+def (--) = inSeries
+
+def inSeriesExposeFrame(l: FrameFun2, f_2: Frame) = {
+  (l, f_2)
+}
+def (-.-) = inSeriesExposeFrame
+
+def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
+  def (l, f_2) = lf_2;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (-.-) = inSeriesExposeFrame
+
+def inSeries(l: FrameFun2, r: FrameFun2) = {
+  def f_2: Frame;
+  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+}
+def (--) = inSeries
+
+def WHITE = "#ffffff"
+def RED = "#ff0000"
+def BLUE = "#0000ff"
+def GREEN = "#00ff00"
+def BLACK = "#000000"
+
+def real2JSONstring(r: Real) -> String = {
+  if int2real (real2int r) == r then real2string r ++ "0"
+  else real2string r
+}
+
+def geometry2JSON(g: Geometry3D) -> String = {
+  match g with
+  | cuboid (sval x: Real) (sval y: Real) (sval z: Real) -> "{ " ++
+                                    "\"type\": \"Cuboid\", " ++
+                                    "\"x\": " ++ real2JSONstring x ++ ", " ++
+                                    "\"y\": " ++ real2JSONstring y ++ ", " ++
+                                    "\"z\": " ++ real2JSONstring z ++
+                                    " }"
+
+  | sphere (sval r: Real) -> "{ " ++
+                             "\"type\": \"Sphere\", " ++
+                             "\"radius\": " ++ real2JSONstring r ++
+                             " }"
+  | _ -> error "Unmatched Geometry3D"
+}
+
+def material2JSON(m: Material) -> String = {
+  match m with
+  | stdMaterial (sval s: String) (sval o: Real) -> {
+      if o >= 0. && o <= 1. then {
+        "{ " ++
+        "\"type\": \"Standard\", " ++
+        "\"color\": \"" ++ s ++ "\", " ++
+        "\"opacity\": " ++ real2JSONstring o ++
+        " }"
+      } else error INVALID_ARGUMENT
+    }
+  | _ -> error "Unmatched Material"
+}
+
+def visualData2Json(d: VisualData) -> String = {
+  match d with
+  | visualSolid g m -> "{ \"type\": \"Solid\"," ++
+                       "\"geometry\": " ++ geometry2JSON g ++ ", " ++
+                       "\"material\": " ++ material2JSON m ++
+                       " }"
+  | visualAxes (sval s: Real) -> "{ \"type\": \"Axes\", " ++
+                                 "\"size\": " ++ real2JSONstring s ++
+                                 " }"
+  | _ -> error "Unmatched visual data"
+}
+
+def visualElement2Json(o: ModelElement) -> String = {
+  def work(o: ModelElement) -> String = {
+    match o with
+    | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
+    | visualElement (sval v: SRMatrix)  (sval q: SRMatrix) vd -> {
+        def (x, y, z) = vec3ToTuple v;
+        def (w, i, j, k) = quatToTuple q;
+                                      "{ " ++
+                                      "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
+                                      "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
+                                      "\"zLabel\": \"" ++ symstr(z) ++ "\", " ++
+                                      "\"wLabel\": \"" ++ symstr(w) ++ "\", " ++
+                                      "\"iLabel\": \"" ++ symstr(i) ++ "\", " ++
+                                      "\"jLabel\": \"" ++ symstr(j) ++ "\", " ++
+                                      "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
+                                      "\"data\": " ++ visualData2Json vd ++
+                                      " }"
+      }
+    | _ -> { def _ = dprintln o; error "Expected only visualElement" }
+  };
+  "{ \"scene\": [ " ++ work o ++ " ] }"
+}
+
+def getVisualElements(o: ModelElement) -> ModelElement = {
+  def work(o: ModelElement, a: ModelElement) -> ModelElement = {
+    match o with
+    | o_1 ++ o_2 -> work o_2 (work o_1 a)
+    | visualElement _ _ _ -> a ++ o
+    | _ -> a
+  };
+  work o NoElement
+}
+
+def cleanupModelElements(o: ModelElement) -> ModelElement = {
+    match o with
+    | o_1 ++ o_2 -> {
+          match (cleanupModelElements o_1, cleanupModelElements o_2) with
+          | (NoElement, NoElement) -> NoElement
+          | (NoElement, o) -> o
+          | (o, NoElement) -> o
+          | (o_1b,o_2b) -> o_1b ++ o_2b
+       }
+    | _ -> o
+}
+
+def getModel(o: ModelElement) -> Equations = {
+  def work(o: ModelElement, a: Equations) -> Equations = {
+    match o with
+    | o_1 ++ o_2 -> (work o_2 (work o_1 a))
+    | equationsElement e -> a; e
+    | _ -> a
+  };
+  work o NoEqn
+}
+
+def elaborateToFile(o: ModelElement) -> () = {
+  def m = elaborate (getModel o);
+  def vo = getVisualElements o;
+  def vo = cleanupModelElements vo;
+
+  def _ = export2ModelicaFile m;
+  match vo with
+  | NoElement -> ()
+  | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
+}
