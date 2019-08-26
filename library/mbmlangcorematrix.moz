@@ -465,14 +465,23 @@ def angularVelocityActuatorR(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   angularVelocityActuatorR f T f1 f2
 }
 
-def torqueActuator(f: SRMatrix, om: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def torqueActuatorR(f: SRMatrix, om: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   angularVelocityEdge f1 f2 om f
 }
 
-def torqueActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def torqueActuatorR(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   def omta1, omta2, omta3: Real;
   def om = mkVector3 omta1 omta2 omta3;
-  torqueActuator f om f1 f2
+  torqueActuatorR f om f1 f2
+}
+
+def rotationSensor(q: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  def oms1, oms2, oms3: Real;
+  def om = mkVector3 oms1 oms2 oms3;
+  def H = mkH q;
+  q' == H * om;
+  initialRotationEdge f1 f2 q;
+  torqueActuatorR zero3 f1 f2
 }
 
 def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) -> Equations = {
@@ -511,6 +520,7 @@ def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, f1: Frame, f2: Frame) 
 }
 
 def rigidArm1R(T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  initialRotationEdge f1 f2 idq;
   angularVelocityActuatorR zero3 T f1 f2
 }
 

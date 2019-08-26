@@ -39,6 +39,7 @@ def model =
             body m Jd xm2 qm2 world f5;
             gravity m world f5;
             qm1 <~~ idq;
+            qm1 ~== idq;
             qm2 ~== mkQuaternion (ea2quat th02 u2)
             // qm2 ~== M2q ((q2M (mkQuaternion (ea2quat (PI / 2.) (0., 0., -1.)))) * (q2M (mkQuaternion (ea2quat (PI / 4.) (0., -1., 0.)))))
 
