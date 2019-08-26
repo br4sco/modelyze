@@ -9,17 +9,17 @@ def u1 = (1., 0., 0.)
 def th02 = PI / 2.
 def u2 = (0., 0., -1.)
 
-def xm11, xm21, xm31: Real
-def xm1 = mkVector3 xm11 xm21 xm31
+def xm11, xm12, xm13: Real
+def xm1 = mkVector3 xm11 xm12 xm13
 
-def xm12, xm22, xm32: Real
-def xm2 = mkVector3 xm12 xm22 xm32
+def xm21, xm22, xm23: Real
+def xm2 = mkVector3 xm21 xm22 xm23
 
-def qm11, qm21, qm31, qm41: Real
-def qm1 = mkQuaternion qm11 qm21 qm31 qm41
+def qm11, qm12, qm13, qm14: Real
+def qm1 = mkQuaternion qm11 qm12 qm13 qm14
 
-def qm12, qm22, qm32, qm42: Real
-def qm2 = mkQuaternion qm12 qm22 qm32 qm42
+def qm21, qm22, qm23, qm24: Real
+def qm2 = mkQuaternion qm21 qm22 qm23 qm24
 
 def qr1 = mkQuaternion ()
 def qr2 = mkQuaternion ()
@@ -43,7 +43,5 @@ def model =
             qm11 <- 1.;
             // qm1 ~== mkQuaternion (ea2quat th01 u1);
             qm2 ~== mkQuaternion (ea2quat th02 u2)
-
-
 
 def _ = export2ModelicaFile (elaborate model)
