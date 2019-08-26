@@ -1,13 +1,13 @@
 include MBMLANGVISUALMATRIX
 
 def world, f1, f2, f3, f4, f5, f6: Frame
-def Jd = (1., 1., 1.)
+def Jd = (1., 2., 3.)
 def m = 1.
 def l = 1.
 def th01 = 0.
 def u1 = (1., 0., 0.)
-def th02 = PI / 2.
-def u2 = (0., 0., -1.)
+def th02 = PI / 4.
+def u2 = (1., 0., 1.)
 
 def xm11, xm12, xm13: Real
 def xm1 = mkVector3 xm11 xm12 xm13
@@ -42,6 +42,7 @@ def model =
             qr3 ~== qm2;
             qm11 <- 1.;
             // qm1 ~== mkQuaternion (ea2quat th01 u1);
-            qm2 ~== mkQuaternion (ea2quat th02 u2)
+            // qm2 ~== mkQuaternion (ea2quat th02 u2)
+            // qm2 ~== M2q ((q2M (mkQuaternion (ea2quat (PI / 2.) (0., 0., -1.)))) * (q2M (mkQuaternion (ea2quat (PI / 4.) (0., -1., 0.)))))
 
 def _ = elaborateToFile (equationsElement model ++ visualElement xm1 qm1 (visualAxes 1.) ++ visualElement xm2 qm2 (visualAxes 1.))

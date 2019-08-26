@@ -147,16 +147,16 @@ def visualElement2Json(o: ModelElement) -> String = {
     | visualElement (sval v: SRMatrix)  (sval q: SRMatrix) vd -> {
         def (x, y, z) = vec3ToTuple v;
         def (w, i, j, k) = quatToTuple q;
-                                      "{ " ++
-                                      "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
-                                      "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
-                                      "\"zLabel\": \"" ++ symstr(z) ++ "\", " ++
-                                      "\"wLabel\": \"" ++ symstr(w) ++ "\", " ++
-                                      "\"iLabel\": \"" ++ symstr(i) ++ "\", " ++
-                                      "\"jLabel\": \"" ++ symstr(j) ++ "\", " ++
-                                      "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
-                                      "\"data\": " ++ visualData2Json vd ++
-                                      " }"
+        "{ " ++
+        "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
+        "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
+        "\"zLabel\": \"" ++ symstr(z) ++ "\", " ++
+        "\"wLabel\": \"" ++ symstr(w) ++ "\", " ++
+        "\"iLabel\": \"" ++ symstr(i) ++ "\", " ++
+        "\"jLabel\": \"" ++ symstr(j) ++ "\", " ++
+        "\"kLabel\": \"" ++ symstr(k) ++ "\", " ++
+        "\"data\": " ++ visualData2Json vd ++
+        " }"
       }
     | _ -> { def _ = dprintln o; error "Expected only visualElement" }
   };

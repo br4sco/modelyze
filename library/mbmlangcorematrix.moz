@@ -288,8 +288,6 @@ def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([SRMatrix], [
   ((A, (y_t, y_c)), (B, (x_t, x_c)))
 }
 
-
-
 type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
 def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge], a: Equations) -> Equations = {
   if isEmpty mes then a else {
@@ -318,6 +316,24 @@ def elaborate(e: Equations) -> Equations = {
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
   e
+}
+
+def q2M(q: SRMatrix) = {
+  def (q0, q1, q2, q3) = quatToTuple q;
+  listToMatrix [
+                [ q0, -q1, -q2, -q3],
+                [ q1,  q0, -q3,  q2],
+                [ q2,  q3,  q0, -q1],
+                [ q3, -q2,  q1,  q0]
+               ] (mmSRealZero (4, 4))
+}
+
+def M2q(M: SRMatrix) = {
+  def q0 = find (1, 1) M;
+  def q1 = find (2, 1) M;
+  def q2 = find (3, 1) M;
+  def q3 = find (4, 1) M;
+  mkQuaternion q0 q1 q2 q3
 }
 
 def mkE(q: SRMatrix) = {
