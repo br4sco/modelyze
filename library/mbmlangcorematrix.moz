@@ -191,9 +191,9 @@ def zero1 = mmSRealZero (1, 1)
 def zero3 = mkVector3 0. 0. 0.
 def idq = mkQuaternion 1. 0. 0. 0.
 def id3 = mmSRealId 3
-def xhat = mkVector3 1. 0. 0.
-def yhat = mkVector3 0. 1. 0.
-def zhat = mkVector3 0. 0. 1.
+def xhat = (1., 0., 0.)
+def yhat = (0., 1., 0.)
+def zhat = (0., 0., 1.)
 
 def translationEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
 def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
@@ -431,6 +431,22 @@ def mkJ(d: RealVector3) = {
   add (1, 1) Jxx (add (2, 2) Jyy (add (3, 3) Jzz (mmSRealZero (3, 3))))
 }
 
+def mkOrthogonalBasis(u: RealVector3) -> (SRMatrix, SRMatrix, SRMatrix) = {
+  def findNonParallelVector(v: SRMatrix) = {
+    def (sval x: Real, sval y: Real, sval z: Real) = vec3ToTuple v;
+    if x == 0. then mkVector3 1. y z
+    else if y == 0. then mkVector3 x 1. z
+    else if z == 0. then mkVector3 x y 1.
+    else mkVector3 x (2. * y) (3. * z)
+  };
+
+  def u1 = mkVector3 u;
+  def v = findNonParallelVector u1;
+  def u2 = ss u1 * v;
+  def u3 = ss u1 * u2;
+  (u1, u2, u3)
+}
+
 def GRAVITATIONAL_CONSTANT = 9.81
 def EPSILON = 1.e-10
 
@@ -546,7 +562,7 @@ def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix, world: Frame, f2: Fram
 }
 
 def gravity(m: Real, world: Frame, fm: Frame) -> Equations = {
-  forceActuator ((m * GRAVITATIONAL_CONSTANT) *. zhat) world fm
+  forceActuator ((m * GRAVITATIONAL_CONSTANT) *. mkVector3 zhat) world fm
 }
 
 def sphericalJoint(f1: Frame, f2: Frame) -> Equations = {
@@ -582,7 +598,8 @@ def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) ->
   rigidArm2R r Fr1 q world f2
 }
 
-def revoluteJoint(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+  def (u1, u2, u3) = mkOrthogonalBasis u;
   if seq world f1 then q == idq; revoluteJointR u1 u2 u3 f1 f2
   else {
     def R = mkR q;
