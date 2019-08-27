@@ -1,0 +1,17 @@
+include MBMLANGVISUALMATRIX
+
+def world, f1: Frame
+
+def m = 1.
+def Jd = (1., 2., 3.)
+
+def myBody(x0: RealVector3, q0: RealQuaternion) = body1 world m Jd (visualAxes 1.) x0 q0
+def myGravity = gravity1 world
+
+def x0 = (1., 1., 1.)
+def q0 = ea2quat (PI / 4.) (1., 1., 1.)
+
+def model =
+			myBody x0 q0 f1
+
+def _ = elaborateToFile model

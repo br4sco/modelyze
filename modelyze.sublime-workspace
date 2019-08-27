@@ -1,0 +1,460 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"bui",
+				"built_in_types\tcontext"
+			],
+			[
+				"met",
+				"meta_scope\tmeta_scope:"
+			],
+			[
+				"typ",
+				"type_definition\tcontext"
+			],
+			[
+				"o",
+				"other\tconvention"
+			],
+			[
+				"type",
+				"type_ident\tcontext"
+			],
+			[
+				"a",
+				"assignment\tconvention"
+			],
+			[
+				"t",
+				"type\tconvention"
+			],
+			[
+				"s",
+				"separator\tconvention"
+			],
+			[
+				"m",
+				"match\tmatch:"
+			],
+			[
+				"me",
+				"meta_scope\tmeta_scope:"
+			],
+			[
+				"meta",
+				"meta_content_scope\tmeta_content_scope:"
+			],
+			[
+				"sym",
+				"symbolic_storage_type\tcontext"
+			],
+			[
+				"p",
+				"pop\tpop: true"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "library/mbmlangvisualmatrix.moz",
+			"settings":
+			{
+				"buffer_size": 8077,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "modelyze.sublime-project",
+			"settings":
+			{
+				"buffer_size": 78,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/oerikss/.config/sublime-text-3/Packages/User/Modelyze.sublime-syntax",
+			"settings":
+			{
+				"buffer_size": 2079,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"pref",
+				"Preferences: LSP Settings"
+			],
+			[
+				"preferences",
+				"Preferences: LSP Settings"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"buid",
+				"Build: New Build System"
+			],
+			[
+				"pack inst",
+				"Package Control: Install Package"
+			],
+			[
+				"pack is",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 150.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+	],
+	"file_history":
+	[
+		"/home/oerikss/.profile_local",
+		"/home/oerikss/src/mbmlang/modelyze/library/base.moz",
+		"/home/oerikss/.config/sublime-text-3/Packages/User/Modelyze.sublime-syntax",
+		"/home/oerikss/src/mbmlang/modelyze/library/export.moz",
+		"/home/oerikss/src/mbmlang/modelyze/library/vector3.moz",
+		"/home/oerikss/src/mbmlang/modelyze/library/matrix.moz",
+		"/home/oerikss/src/mbmlang/modelyze/library/synchronous.moz",
+		"/home/oerikss/src/mbmlang/modelyze/src/eval.ml",
+		"/home/oerikss/src/mbmlang/modelyze/demo/breaking-controlsys.moz",
+		"/home/oerikss/src/mbmlang/modelyze/demo/breakingpendulum.moz",
+		"/home/oerikss/src/mbmlang/modelyze/demo/breakingpendulum2.moz",
+		"/home/oerikss/src/mbmlang/modelyze/demo/capacitor-switch.moz",
+		"/home/oerikss/src/modelyze/library/dill.moz",
+		"/home/oerikss/src/modelyze/test/matrix/eq.moz",
+		"/home/oerikss/src/modelyze/library/base.moz",
+		"/home/oerikss/src/modelyze/library/matrix.moz"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 101.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"work"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "library/mbmlangvisualmatrix.moz",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8077,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/Modelyze.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3822.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "modelyze.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 78,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								77,
+								77
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PackageDev/Package/Sublime Text Project/Sublime Text Project.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 2,
+					"file": "/home/oerikss/.config/sublime-text-3/Packages/User/Modelyze.sublime-syntax",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2079,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PackageDev/Package/Sublime Text Syntax Definition/Sublime Text Syntax Definition.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 120.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "modelyze.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"mbmlan",
+				"library/mbmlangvisualmatrix.moz"
+			],
+			[
+				"expo",
+				"library/export.moz"
+			],
+			[
+				"bas",
+				"library/base.moz"
+			],
+			[
+				"base",
+				"library/base.moz"
+			],
+			[
+				"eva",
+				"src/eval.ml"
+			],
+			[
+				"eval",
+				"src/eval.ml"
+			],
+			[
+				"eval.",
+				"src/eval.ml"
+			],
+			[
+				"pendulum_man",
+				"test/mbmlangcore/pendulum_manual.moz"
+			],
+			[
+				"eq",
+				"test/matrix/eq.moz"
+			],
+			[
+				"matr",
+				"library/matrix.moz"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"(<>.)"
+			]
+		],
+		"width": 592.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": false,
+	"side_bar_width": 312.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

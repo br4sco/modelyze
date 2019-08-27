@@ -1,0 +1,33 @@
+{
+	"folders":
+	[
+		{
+			"path": "library"
+		},
+		{
+			"path": "test"
+		}
+	],
+    
+    "build_systems":
+    [
+        {
+            "name": "Interpret",
+            "cmd": ["moz", "$file"],
+            "file_regex": "^(..*)\\s([0-9]+):([0-9]+)-[0-9]+:[0-9]+\\serror:\\s(..*)",
+            "selector": "source.moz"
+        },
+        {
+            "name": "Simulate and Visulize",
+            "cmd": ["mozplot", "-v", "$file"],
+            "file_regex": "^(..*)\\s([0-9]+):([0-9]+)-[0-9]+:[0-9]+\\serror:\\s(..*)",
+            "selector": "source.moz"
+        },
+        {
+            "name": "Simulate and Plot",
+            "cmd": ["mozplot", "-p", "$file"],
+            "file_regex": "^(..*)\\s([0-9]+):([0-9]+)-[0-9]+:[0-9]+\\serror:\\s(..*)",
+            "selector": "source.moz"
+        }
+    ]
+}

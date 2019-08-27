@@ -293,7 +293,6 @@ def filter(p: (Dyn -> Bool), m: (Dyn => Dyn)) -> (Dyn => Dyn) = {
   listToMap (filter (fun e: (Dyn, Dyn) -> p (fst e)) (Map.toList m))
 }
 
-
 def concat(ls: [[Dyn]]) -> [Dyn] = {
   // def f(a: [Dyn], e: [Dyn]) -> [Dyn] = { append a e };
   // foldLeft f [] ls
