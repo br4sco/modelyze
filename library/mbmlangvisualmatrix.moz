@@ -32,6 +32,7 @@ def cuboid: Real -> Real -> Real -> Geometry3D
 def sphere: Real -> Geometry3D
 
 type VisualData
+def invisible: VisualData
 def visualSolid: Geometry3D -> Material -> VisualData
 def visualAxes: Real -> VisualData
 
@@ -163,10 +164,11 @@ def visualElement2Json(o: ModelElement) -> String = {
   "{ \"scene\": [ " ++ work o ++ " ] }"
 }
 
-def getVisualElements(o: ModelElement) -> ModelElement = {
+def getVisibleVisualElements(o: ModelElement) -> ModelElement = {
   def work(o: ModelElement, a: ModelElement) -> ModelElement = {
     match o with
     | o_1 ++ o_2 -> work o_2 (work o_1 a)
+    | visualElement _ _ invisible -> a
     | visualElement _ _ _ -> a ++ o
     | _ -> a
   };
@@ -197,11 +199,85 @@ def getModel(o: ModelElement) -> Equations = {
 
 def elaborateToFile(o: ModelElement) -> () = {
   def m = elaborate (getModel o);
-  def vo = getVisualElements o;
+  def vo = getVisibleVisualElements o;
   def vo = cleanupModelElements vo;
 
   def _ = export2ModelicaFile m;
   match vo with
   | NoElement -> ()
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
+}
+
+type Body = Real -> RealVector3 -> VisualData -> FrameFun2
+
+def _mkBodyVars(t: ()) = {
+  def xm1, xm2, xm3, qm1, qm2, qm3, qm4: Real;
+  def x = mkVector3 xm1 xm2 xm3;
+  def q = mkQuaternion qm1 qm2 qm3 qm4;
+  (x, q)
+}
+
+def _mkBody(e: Equations, x: SRMatrix, q: SRMatrix) = {
+  def b(m: Real, Jd: RealVector3, vd: VisualData, world: Frame, fm: Frame) = {
+    equationsElement (e; body m Jd x q world fm) ++ visualElement x q vd
+  };
+  b
+}
+
+def body1(x0: RealVector3, q0: RealQuaternion) -> Body = {
+  def (x, q) = _mkBodyVars ();
+  _mkBody (x <~~ mkVector3 x0; q <~~ mkQuaternion q0) x q
+}
+
+def body1(q0: RealQuaternion) -> Body = {
+  def (x, q) = _mkBodyVars ();
+  _mkBody (q <~~ mkQuaternion q0) x q
+}
+
+def body1(x0: RealVector3) -> Body = {
+  def (x, q) = _mkBodyVars ();
+  _mkBody (x <~~ mkVector3 x0) x q
+}
+
+def _mkTransSensVar(t: ()) = {
+  def xs1, xs2, xs3: Real;
+  def x = mkVector3 xs1 xs2 xs3;
+  x
+}
+
+def sphericalJoint1(vd: VisualData, world: Frame) -> FrameFun2 = {
+  def x = _mkTransSensVar ();
+  def q = mkQuaternion ();
+  fun f1: Frame -> fun f2: Frame ->
+    equationsElement (translationSensor x world f1; sphericalJoint f1 f2; q == idq; q <~~ idq)
+    ++ visualElement x q vd
+}
+
+def revoluteJoint1(q0: RealQuaternion, u: RealVector3, vd: VisualData, world: Frame) -> FrameFun2 = {
+
+}
+
+type Arm = RealVector3 -> Frame -> Frame -> Frame -> ModelElement
+
+def _mkArmVar(t: ()) = {
+  def qra1, qra2, qra3, qra4: Real;
+  def q = mkQuaternion qra1 qra2 qra3 qra4;
+  q
+}
+
+def _mkArm(e: Equations, q: SRMatrix) = {
+  def a(r: RealVector3, world: Frame, f1: Frame, f2: Frame) = {
+    equationsElement (e; rigidArm r q world f1 f2)
+  };
+  a
+}
+
+def arm1(q0: RealQuaternion) -> Arm = {
+  def q = _mkArmVar ();
+  _mkArm (q <~~ mkQuaternion q0) q
+}
+
+def arm1: Arm = {
+  def q = _mkArmVar ();
+  _mkArm NoEqn q
 }

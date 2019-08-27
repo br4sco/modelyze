@@ -450,6 +450,14 @@ def mkOrthogonalBasis(u: RealVector3) -> (SRMatrix, SRMatrix, SRMatrix) = {
 def GRAVITATIONAL_CONSTANT = 9.81
 def EPSILON = 1.e-10
 
+// === Edge-less Physical Components ===
+
+def clock(t0: Real, t: <Real>) -> Equations = {
+  t' = 1.;
+  t' <- 1.;
+  t <- t0
+}
+
 // === Single Edge Components ===
 
 def forceActuator(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
@@ -493,12 +501,20 @@ def torqueActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
 }
 
 def rotationSensor(q: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
-  def oms1, oms2, oms3: Real;
-  def om = mkVector3 oms1 oms2 oms3;
-  def H = mkH q;
-  q' == H * om;
-  initialRotationEdge f1 f2 q;
-  torqueActuator zero3 om f1 f2
+  if seq f1 f2 then q == idq
+  else {
+    def oms1, oms2, oms3: Real;
+    def om = mkVector3 oms1 oms2 oms3;
+    def H = mkH q;
+    q' == H * om;
+    initialRotationEdge f1 f2 q;
+    torqueActuator zero3 om f1 f2
+  }
+}
+
+def translationSensor(x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  if seq f1 f2 then x == zero3
+  else forceActuator zero3 x f1 f2
 }
 
 def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) -> Equations = {
@@ -600,10 +616,10 @@ def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) ->
 
 def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
   def (u1, u2, u3) = mkOrthogonalBasis u;
-  if seq world f1 then q == idq; revoluteJointR u1 u2 u3 f1 f2
-  else {
+  // if seq world f1 then q == idq; revoluteJointR u1 u2 u3 f1 f2
+  // else {
     def R = mkR q;
     rotationSensor q world f1;
     revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
-  }
+  // }
 }
