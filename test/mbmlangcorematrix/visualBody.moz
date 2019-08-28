@@ -1,17 +1,21 @@
 include MBMLANGVISUALMATRIX
 
-def world, f1: Frame
+def world, fm: Frame
 
 def m = 1.
 def Jd = (1., 2., 3.)
 
-def myBody(x0: RealVector3, q0: RealQuaternion) = body1 world m Jd (visualAxes 1.) x0 q0
-def myGravity = gravity1 world
+def myBody(q0: RealQuaternion) = body1 world m Jd (visualSolid (cylinder 0.3 0.3 xhat) (stdMaterial GREEN 0.5)) q0
+def myGravity = gravity1 world m
+def mySJoint = sphericalJoint1 world 0.3 RED 0.5
+def myRArm(q0: RealQuaternion) = arm1 world (-1., 0., 0.) q0
+def myRJoint = revoluteJoint1 world 0.3 0.4 RED 0.5
 
 def x0 = (1., 1., 1.)
-def q0 = ea2quat (PI / 4.) (1., 1., 1.)
+def q0 = ea2quat (0. * PI / 4.) (0., 0., 1.)
 
 def model =
-			myBody x0 q0 f1
+			world -- myRJoint yhat idq -- myRArm q0 -- fm ++
+			myBody q0 fm ++ myGravity fm
 
 def _ = elaborateToFile model

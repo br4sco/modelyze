@@ -189,7 +189,7 @@ def (') = matrixDer
 
 def zero1 = mmSRealZero (1, 1)
 def zero3 = mkVector3 0. 0. 0.
-def idq = mkQuaternion 1. 0. 0. 0.
+def idq = (1., 0., 0., 0.)
 def id3 = mmSRealId 3
 def xhat = (1., 0., 0.)
 def yhat = (0., 1., 0.)
@@ -320,7 +320,7 @@ def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [SRMatrix], pvs: [SRMatrix]) -
 def mkPriScndVarsRelQuaternion(C: MatrixMapInt, sqs: [SRMatrix], pqs: [SRMatrix]) -> [(SRMatrix, SRMatrix)] = {
   def uop(c: Int, q: SRMatrix) -> SRMatrix = { if c < 0 then q else qconj q };
   def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = { qprod l (uop c r) };
-  mkPriScndVarsRel uop bop idq C sqs pqs
+  mkPriScndVarsRel uop bop (mkQuaternion idq) C sqs pqs
 }
 
 def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix]))) -> [(SRMatrix, SRMatrix)] = {
@@ -501,7 +501,7 @@ def torqueActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
 }
 
 def rotationSensor(q: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
-  if seq f1 f2 then q == idq
+  if seq f1 f2 then q == mkQuaternion idq
   else {
     def oms1, oms2, oms3: Real;
     def om = mkVector3 oms1 oms2 oms3;
@@ -553,7 +553,7 @@ def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, f1: Frame, f2: Frame) 
 }
 
 def rigidArm1R(T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
-  initialRotationEdge f1 f2 idq;
+  initialRotationEdge f1 f2 (mkQuaternion idq);
   angularVelocityActuator zero3 T f1 f2
 }
 
@@ -616,10 +616,7 @@ def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) ->
 
 def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
   def (u1, u2, u3) = mkOrthogonalBasis u;
-  // if seq world f1 then q == idq; revoluteJointR u1 u2 u3 f1 f2
-  // else {
-    def R = mkR q;
-    rotationSensor q world f1;
-    revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
-  // }
+  def R = mkR q;
+  rotationSensor q world f1;
+  revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
 }

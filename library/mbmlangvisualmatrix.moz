@@ -30,6 +30,7 @@ def stdMaterial: Color -> Real -> Material
 type Geometry3D
 def cuboid: Real -> Real -> Real -> Geometry3D
 def sphere: Real -> Geometry3D
+def cylinder: Real -> Real -> RealVector3 -> Geometry3D
 
 type VisualData
 def invisible: VisualData
@@ -101,17 +102,32 @@ def real2JSONstring(r: Real) -> String = {
 
 def geometry2JSON(g: Geometry3D) -> String = {
   match g with
-  | cuboid (sval x: Real) (sval y: Real) (sval z: Real) -> "{ " ++
-                                    "\"type\": \"Cuboid\", " ++
-                                    "\"x\": " ++ real2JSONstring x ++ ", " ++
-                                    "\"y\": " ++ real2JSONstring y ++ ", " ++
-                                    "\"z\": " ++ real2JSONstring z ++
-                                    " }"
+  | cuboid (sval x: Real) (sval y: Real) (sval z: Real) -> 
+      "{ " ++
+      "\"type\": \"Cuboid\", " ++
+      "\"x\": " ++ real2JSONstring x ++ ", " ++
+      "\"y\": " ++ real2JSONstring y ++ ", " ++
+      "\"z\": " ++ real2JSONstring z ++
+      " }"
 
-  | sphere (sval r: Real) -> "{ " ++
-                             "\"type\": \"Sphere\", " ++
-                             "\"radius\": " ++ real2JSONstring r ++
-                             " }"
+  | sphere (sval r: Real) -> 
+    "{ " ++
+    "\"type\": \"Sphere\", " ++
+    "\"radius\": " ++ real2JSONstring r ++
+    " }"
+
+  | cylinder (sval r: Real) (sval h: Real) (sval u: RealVector3) -> {
+      def (u1, u2, u3) = u;
+      "{ " ++
+      "\"type\": \"Cylinder\", " ++
+      "\"radius\": " ++ real2JSONstring r ++ ", " ++
+      "\"height\": " ++ real2JSONstring h ++ ", " ++
+      "\"u1\": " ++ real2JSONstring u1 ++ ", " ++
+      "\"u2\": " ++ real2JSONstring u2 ++ ", " ++
+      "\"u3\": " ++ real2JSONstring u3 ++ 
+      " }"
+    }
+
   | _ -> error "Unmatched Geometry3D"
 }
 
@@ -221,17 +237,17 @@ def _mkBody(e: Equations, x: SRMatrix, q: SRMatrix, world: Frame, m: Real, Jd: R
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, x0: RealVector3, q0: RealQuaternion) -> FrameFun1 = {
   def (x, q) = _mkBodyVars ();
-  _mkBody (x <~~ mkVector3 x0; q <~~ mkQuaternion q0) x q world m Jd vd
+  _mkBody (x <~~ mkVector3 x0; q <~~ mkQuaternion q0; norm2 q ~= 1.) x q world m Jd vd
 }
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, x0: RealVector3) -> FrameFun1 = {
   def (x, q) = _mkBodyVars ();
-  _mkBody (x <~~ mkVector3 x0) x q world m Jd vd
+  _mkBody (x <~~ mkVector3 x0; norm2 q ~= 1.) x q world m Jd vd
 }
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, q0: RealQuaternion) -> FrameFun1 = {
   def (x, q) = _mkBodyVars ();
-  _mkBody (q <~~ mkQuaternion q0) x q world m Jd vd
+  _mkBody (q <~~ mkQuaternion q0; norm2 q ~= 1.) x q world m Jd vd
 }
 
 def gravity1(world: Frame, m: Real) -> FrameFun1 = {
@@ -250,9 +266,13 @@ def sphericalJoint1(world: Frame, vd: VisualData) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     equationsElement (translationSensor x world f1;
                       sphericalJoint f1 f2; 
-                      q == idq; 
-                      q <~~ idq)
+                      q == mkQuaternion idq; 
+                      q <~~ mkQuaternion idq)
     ++ visualElement x q vd
+}
+
+def sphericalJoint1(world: Frame, r: Real, c: Color, o: Real) -> FrameFun2 = {
+  sphericalJoint1 world (visualSolid (sphere r) (stdMaterial c o))
 }
 
 def revoluteJoint1(world: Frame, u: RealVector3, vd: VisualData, q0: RealQuaternion) -> FrameFun2 = {
@@ -265,6 +285,10 @@ def revoluteJoint1(world: Frame, u: RealVector3, vd: VisualData, q0: RealQuatern
                       revoluteJoint u q world f1 f2;
                       q <~~ mkQuaternion q0)
     ++ visualElement x q vd
+}
+
+def revoluteJoint1(world: Frame, r: Real, h: Real, c: Color, o: Real, u: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
+  revoluteJoint1 world u (visualSolid (cylinder r h u) (stdMaterial c o)) q0
 }
 
 def _mkArmVar(t: ()) = {
