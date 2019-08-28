@@ -1,6 +1,6 @@
 include MBMLANGVISUALMATRIX
 
-def world, f1, f2, f3, f4, f5, f6: Frame
+def world, f1, f2, f3, f4, f5, f6, f7, f8: Frame
 def Jd = (1., 2., 3.)
 def m = 1.
 def l = 1.
@@ -24,6 +24,7 @@ def qm2 = mkQuaternion qm21 qm22 qm23 qm24
 def qr1 = mkQuaternion ()
 def qr2 = mkQuaternion ()
 def qr3 = mkQuaternion ()
+def qr4 = mkQuaternion ()
 
 def qrj1 = mkQuaternion ()
 def qrj2 = mkQuaternion ()
@@ -41,11 +42,46 @@ def model =
             rigidArm (-l, 0., 0.) qr3 world f4 f5;
             body m Jd xm2 qm2 world f5;
             gravity m world f5;
-            qrj2 <~~ idq;
-            qm1 <~~ idq;
+            qrj2 <~~ mkQuaternion idq;
+            qm1 <~~ mkQuaternion idq;
             // qm1 ~== idq;
             qm2 <~~ mkQuaternion (ea2quat th02 u2)
             // qs <~~ mkQuaternion (ea2quat th02 u2)
             // qm2 ~== M2q ((q2M (mkQuaternion (ea2quat (PI / 2.) (0., 0., -1.)))) * (q2M (mkQuaternion (ea2quat (PI / 4.) (0., -1., 0.)))))
 
-def _ = elaborateToFile (equationsElement model ++ visualElement xm1 qm1 (visualAxes 1.) ++ visualElement xm2 qm2 (visualAxes 1.))
+// def _ = elaborateToFile (equationsElement model ++ visualElement xm1 qm1 (visualAxes 1.) ++ visualElement xm2 qm2 (visualAxes 1.))
+
+def t: Real
+def model2 = equationsElement (
+            clock 0. t;
+            // sphericalJoint world f1;
+            revoluteJoint zhat qrj1 world world f1;
+            torqueActuator (mkVector3 0. 0. (t^1.5 * sin(t^1.4))) world f1;
+            rigidArm (-l, 0., 0.) qr1 world f1 f2;
+            body m Jd xm1 qm1 world f2;
+            gravity m world f2;
+            rigidArm (l, 0., 0.) qr2 world f3 f2;
+            sphericalJoint f3 f4;
+            revoluteJoint xhat qrj2 world f3 f4;
+            rigidArm (-l, 0., 0.) qr3 world f4 f5;
+            rigidArm (l, 0., 0.) qr4 world f6 f5;
+            body m Jd xm2 qm2 world f5;
+            gravity m world f5;
+
+
+            qrj2 <~~ mkQuaternion idq;
+            qm1 <~~ mkQuaternion idq;
+            qr1 <~~ mkQuaternion idq;
+            qr2 <~~ mkQuaternion idq;
+
+            qm2 <~~ mkQuaternion (ea2quat th02 u2);
+            qr3 <~~ mkQuaternion (ea2quat th02 u2);
+            qr4 <~~ mkQuaternion (ea2quat th02 u2)
+            )
+
+def _ = elaborateToFile (model2
+                          ++ visualElement xm1 qm1 (visualAxes 1.)
+                          ++ visualElement xm2 qm2 (visualAxes 1.)
+                          // ++ sphericalJoint1 world invisible f3 f4
+                          ++ sphericalJoint1 world invisible world f1
+                        )

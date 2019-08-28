@@ -401,7 +401,7 @@ def elaborate(e: Equations) -> Equations = {
   def (ries, e) = getRotationInitEdges e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
   def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
-  def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
+  // def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
   e
 }
 
@@ -454,8 +454,12 @@ def EPSILON = 1.e-10
 
 def clock(t0: Real, t: <Real>) -> Equations = {
   t' = 1.;
-  t' <- 1.;
+  // t' <- 1.;
   t <- t0
+}
+
+def mkCuboidInertia(m: Real, x: Real, y: Real, z: Real) -> RealVector3 = {
+  ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
 }
 
 // === Single Edge Components ===
@@ -548,33 +552,33 @@ def bodyR(Jd: RealVector3, q: SRMatrix, world: Frame, fm: Frame) -> Equations = 
   bodyR Jd om q T world fm
 }
 
-def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
-  translationActuator ((mkR q2) * (mkVector3 r)) F f1 f2
+def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, fm: Frame, fe: Frame) -> Equations = {
+  translationActuator ((mkR q2) * (mkVector3 r)) F fm fe
 }
 
-def rigidArm1R(T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
-  initialRotationEdge f1 f2 (mkQuaternion idq);
-  angularVelocityActuator zero3 T f1 f2
+def rigidArm1R(T: SRMatrix, fm: Frame, fe: Frame) -> Equations = {
+  initialRotationEdge fm fe (mkQuaternion idq);
+  angularVelocityActuator zero3 T fm fe
 }
 
-def rigidArm1R(f1: Frame, f2: Frame) -> Equations = {
+def rigidArm1R(fm: Frame, fe: Frame) -> Equations = {
   def Tr11, Tr12, Tr13: Real;
   def T = mkVector3 Tr11 Tr12 Tr13;
-  rigidArm1R T f1 f2
+  rigidArm1R T fm fe
 }
 
-def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, f2: Frame) -> Equations = {
-  angularVelocityEdge world f2 om T;
-  initialRotationEdge world f2 q;
+def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+  angularVelocityEdge world fm om T;
+  initialRotationEdge world fm q;
   q' == (mkH q) * om;
   T == -(ss ((mkR q) * (mkVector3 r))) * F1
 }
 
-def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix, world: Frame, f2: Frame) -> Equations = {
+def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   def omr21, omr22, omr23, Tr21, Tr22, Tr23: Real;
   def om = mkVector3 omr21 omr22 omr23;
   def T = mkVector3 Tr21 Tr22 Tr23;
-  rigidArm2R r F1 om q T world f2
+  rigidArm2R r F1 om q T world fm
 }
 
 def gravity(m: Real, world: Frame, fm: Frame) -> Equations = {
@@ -606,12 +610,12 @@ def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: F
   bodyR Jd q world fm
 }
 
-def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, fe: Frame, fm: Frame) -> Equations = {
   def Fr11, Fr12, Fr13: Real;
   def Fr1 = mkVector3 Fr11 Fr12 Fr13;
-  rigidArm1T r Fr1 q f2 f1;
-  rigidArm1R f2 f1;
-  rigidArm2R r Fr1 q world f2
+  rigidArm1T r Fr1 q fm fe;
+  rigidArm1R fm fe;
+  rigidArm2R r Fr1 q world fm
 }
 
 def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {

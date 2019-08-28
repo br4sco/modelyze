@@ -1,6 +1,6 @@
 include MBMLANGVISUALMATRIX
 
-def world, fm: Frame
+def world, f1, f2, f3, f4, f5: Frame
 
 def m = 1.
 def Jd = (1., 2., 3.)
@@ -8,14 +8,19 @@ def Jd = (1., 2., 3.)
 def myBody(q0: RealQuaternion) = body1 world m Jd (visualSolid (cylinder 0.3 0.3 xhat) (stdMaterial GREEN 0.5)) q0
 def myGravity = gravity1 world m
 def mySJoint = sphericalJoint1 world 0.3 RED 0.5
-def myRArm(q0: RealQuaternion) = arm1 world (-1., 0., 0.) q0
+def myRArm(q0: RealQuaternion) = rigidArm1 world (-1., 0., 0.) q0
 def myRJoint = revoluteJoint1 world 0.3 0.4 RED 0.5
+def myBar = bar1 world m 2. 0.3 0.3 GREEN 0.5
 
-def x0 = (1., 1., 1.)
-def q0 = ea2quat (0. * PI / 4.) (0., 0., 1.)
+def q0 = ea2quat (PI / 2.) (0., 1., 0.)
 
 def model =
-			world -- myRJoint yhat idq -- myRArm q0 -- fm ++
-			myBody q0 fm ++ myGravity fm
+            world -- myRJoint yhat idq -- myBar idq
+            -- mySJoint -- myBar q0 -- f1
+            // mySJoint world f1 ++
+            // myBar idq f1 f2 ++
+            // mySJoint f2 f3 ++
+            // myBar idq f3 f4
 
 def _ = elaborateToFile model
+// def _ = dprintln (getModel model)
