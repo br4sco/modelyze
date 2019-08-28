@@ -12,15 +12,10 @@ def myRArm(q0: RealQuaternion) = rigidArm1 world (-1., 0., 0.) q0
 def myRJoint = revoluteJoint1 world 0.3 0.4 RED 0.5
 def myBar = bar1 world m 2. 0.3 0.3 GREEN 0.5
 
-def q0 = ea2quat (PI / 2.) (0., 1., 0.)
+def q0 = ea2quat (PI / 2.) (0., 0., 1.)
 
 def model =
-            world -- myRJoint yhat idq -- myBar idq
-            -- mySJoint -- myBar q0 -- f1
-            // mySJoint world f1 ++
-            // myBar idq f1 f2 ++
-            // mySJoint f2 f3 ++
-            // myBar idq f3 f4
+            world -- myRJoint zhat idq -- myBar idq
+            -- myRJoint xhat idq-- myBar q0 -- f1
 
 def _ = elaborateToFile model
-// def _ = dprintln (getModel model)
