@@ -603,6 +603,14 @@ def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Fram
   revoluteJointR u1 u2 u3 om T f1 f2
 }
 
+def damperR(D: Real, f1: Frame, f2: Frame) -> Equations = {
+  def omd1, omd2, omd3, Td1, Td2, Td3: Real;
+  def om = mkVector3 omd1 omd2 omd3;
+  def T = mkVector3 Td1 Td2 Td3;
+  angularVelocityEdge f1 f2 om T;
+  T == D *. om
+}
+
 // === Composed Components ===
 
 def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {

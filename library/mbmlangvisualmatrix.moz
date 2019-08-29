@@ -312,6 +312,10 @@ def revoluteJoint1(world: Frame, r: Real, h: Real, c: Color, o: Real, u: RealVec
   revoluteJoint1 world u (visualSolid (cylinder r h u) (stdMaterial c o)) q0
 }
 
+def rotationDamper1(D: Real) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame -> equationsElement (damperR D f1 f2)
+}
+
 def _mkRigidArmVar(t: ()) = {
   def qra1, qra2, qra3, qra4: Real;
   def q = mkQuaternion qra1 qra2 qra3 qra4;
