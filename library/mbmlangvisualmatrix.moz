@@ -261,17 +261,16 @@ def _mkTransSensVar(t: ()) = {
   x
 }
 
-def sphericalJoint1(world: Frame, vd: VisualData) -> FrameFun2 = {
+def sphericalJoint1(world: Frame, vd: VisualData, f1: Frame, f2: Frame) -> ModelElement = {
   def x = _mkTransSensVar ();
   def q = mkQuaternion ();
-  fun f1: Frame -> fun f2: Frame ->
-    equationsElement (
-                      sphericalJoint f1 f2
-                      ;translationSensor x world f1
-                      ;q == mkQuaternion idq
-                      ;q <~~ mkQuaternion idq
-                     )
-    ++ visualElement x q vd
+  equationsElement (
+                    sphericalJoint f1 f2
+                    ;translationSensor x world f1
+                    ;q == mkQuaternion idq
+                    ;q <~~ mkQuaternion idq
+                   )
+  ++ visualElement x q vd
 }
 
 def sphericalJoint1(world: Frame, r: Real, c: Color, o: Real) -> FrameFun2 = {
