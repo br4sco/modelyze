@@ -224,8 +224,14 @@ def elaborateToFile(o: ModelElement) -> () = {
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
+def clock1(t0: Real, t: <Real>) -> ModelElement = equationsElement (clock t0 t)
+
 def translationActuator1(f: SRMatrix) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame -> equationsElement (translationActuator f f1 f2)
+}
+
+def torqueActuator1(f: SRMatrix) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame -> equationsElement (torqueActuator f f1 f2)
 }
 
 def _mkBodyVars(t: ()) = {
@@ -244,11 +250,21 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, q0: RealQuater
   _mkBody (q <~~ mkQuaternion q0; norm2 q ~= 1.) x q world m Jd vd
 }
 
+def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData) -> FrameFun1 = {
+  def (x, q) = _mkBodyVars ();
+  _mkBody (norm2 q ~= 1.) x q world m Jd vd
+}
+
 type BodyFun = Frame -> Real -> RealVector3 -> VisualData -> FrameFun1
 
 def _mkBodyFun(q0: RealQuaternion) -> BodyFun = {
   fun world: Frame -> fun m: Real -> fun Jd: RealVector3 -> fun vd: VisualData ->
     body1(world, m, Jd, vd, q0)
+}
+
+def _mkBodyFun(t: ()) -> BodyFun = {
+  fun world: Frame -> fun m: Real -> fun Jd: RealVector3 -> fun vd: VisualData ->
+    body1(world, m, Jd, vd)
 }
 
 def gravity1(world: Frame, m: Real) -> FrameFun1 = {
@@ -311,13 +327,22 @@ def _mkRigidArm(e: Equations, q: SRMatrix, world: Frame, r: RealVector3, f1: Fra
 
 def rigidArm1(world: Frame, r: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
   def q = _mkRigidArmVar ();
-  _mkRigidArm (q <~~ mkQuaternion q0) q world r
+  _mkRigidArm (q <~~ mkQuaternion q0; norm2 q ~= 1.) q world r
+}
+
+def rigidArm1(world: Frame, r: RealVector3) -> FrameFun2 = {
+  def q = _mkRigidArmVar ();
+  _mkRigidArm (norm2 q ~= 1.) q world r
 }
 
 type RigidArmFun = Frame -> RealVector3 -> FrameFun2
 
 def _mkRigidArmFun(q0: RealQuaternion) -> RigidArmFun = {
   fun world: Frame -> fun r: RealVector3 -> rigidArm1(world, r, q0)
+}
+
+def _mkRigidArmFun(t: ()) -> RigidArmFun = {
+  fun world: Frame -> fun r: RealVector3 -> rigidArm1(world, r)
 }
 
 def _mkBar(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real, bf: BodyFun, raf: RigidArmFun) -> FrameFun2 = {
@@ -333,4 +358,8 @@ def _mkBar(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real, 
 
 def bar1(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real, q0: RealQuaternion) -> FrameFun2 = {
   _mkBar world m x y z c o (_mkBodyFun(q0)) (_mkRigidArmFun(q0))
+}
+
+def bar1(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real) -> FrameFun2 = {
+  _mkBar world m x y z c o (_mkBodyFun ()) (_mkRigidArmFun ())
 }
