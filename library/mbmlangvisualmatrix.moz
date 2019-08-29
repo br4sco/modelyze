@@ -224,6 +224,10 @@ def elaborateToFile(o: ModelElement) -> () = {
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
 
+def translationActuator1(f: SRMatrix) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame -> equationsElement (translationActuator f f1 f2)
+}
+
 def _mkBodyVars(t: ()) = {
   def xm1, xm2, xm3, qm1, qm2, qm3, qm4: Real;
   def x = mkVector3 xm1 xm2 xm3;
