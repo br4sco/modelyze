@@ -11,11 +11,24 @@ def mySJoint = sphericalJoint1 world 0.3 RED 0.5
 def myRArm(q0: RealQuaternion) = rigidArm1 world (-1., 0., 0.) q0
 def myRJoint = revoluteJoint1 world 0.3 0.4 RED 0.5
 def myBar = bar1 world m 2. 0.3 0.3 GREEN 0.5
+def myRDamper = rotationDamper1 0.7
 
+def th0 = -PI / 4.
 def q0 = ea2quat (PI / 2.) (0., 0., 1.)
+def q01 = ea2quat (th0) (0., 1., 0.)
+def q02 = ea2quat (0.) (0., 0., 1.)
+def q03 = ea2quat (th0 - PI) (0., 1., 0.)
 
 def model =
-            world -- myRJoint zhat idq -- myBar idq
-            -- myRJoint xhat idq-- myBar q0 -- f1
+            world -- mySJoint -- myBar q01 -- mySJoint -- myBar q02 -- mySJoint -- myBar q03 -- mySJoint
+            // world -- myRJoint yhat idq -- myBar q01 -- mySJoint -- myBar q02 -- mySJoint -- myBar q03 -- mySJoint
+            // world -- myRJoint yhat idq -- myBar q01 -- myRJoint yhat q01 -- myBar q02 -- mySJoint -- myBar q03 -- mySJoint
+            // world -- myRJoint yhat idq -- myBar q01 -- mySJoint -- myBar q02 -- myRJoint yhat q02 -- myBar q03 -- mySJoint
+            // world -- myRJoint yhat idq -- myBar q01 -- mySJoint -- myBar q02 -- mySJoint -- myBar q03 -- myRJoint yhat q03
+            // world -- myRJoint yhat idq -- myBar q01 -- myRJoint yhat q01 -- myBar q02 -- myRJoint yhat q02 -- myBar q03 -- myRJoint yhat q03
+            -- f1
+            ++ world -- translationActuator1 (mkVector3 (2., 0., 0.)) -- f1
+            // world -- myRJoint zhat idq -- myBar idq
+            // -- myRJoint xhat idq-- myBar q0 -- f1
 
 def _ = elaborateToFile model
