@@ -1,6 +1,0 @@
-NoEqn_1;
-w_1 = sval(3) * sval(2) - sval(-2);
-i_1 = sval(-9);
-j_1 = sval(-2);
-k_1 = sval(11)
-(28, -56, 30, -20)

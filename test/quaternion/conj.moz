@@ -1,9 +1,0 @@
-include Quaternion
-
-def p: Quaternion
-def q = quat 1. 2. 3. 4.
-
-def _ = dprintln (toScalarEquations (toVector3Equations (p ==. (qconj q))))
-
-def q = quat 1. 2. 3. 0.
-def _ = dprintln (toScalarEquations (toVector3Equations (p ==. (qconj q))))
