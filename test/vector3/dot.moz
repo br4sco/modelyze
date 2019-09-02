@@ -1,9 +1,0 @@
-include Vector3
-
-def x, y, z, u, v, w: Real
-def xx = vec3 x y z
-def uu = vec3 u v w
-
-def _ = dprintln (dot uu xx)
-def _ = dprintln (applyVec2RealOptrs (10. * dot uu xx * uu))
-def _ = dprintln (applyVec2RealOptrs (10. * dot uu xx * (uu + dot (dot uu uu * xx) xx * xx)))

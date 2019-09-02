@@ -1,5 +1,5 @@
--i2b_1 = sval(0);
--i2a_1 = sval(0);
+-(i2b_1) = sval(0);
+-(i2a_1) = sval(0);
 i1b_1 + i3b_1 = sval(0);
 i1a_1 + i3a_1 = sval(0);
 i2b_1 - i1b_1 = sval(0);

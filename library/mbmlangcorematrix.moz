@@ -20,6 +20,14 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Graph
 
+def zero1 = mmSRealZero (1, 1)
+def zero3 = mmSRealZero (3, 1)
+def idq = (1., 0., 0., 0.)
+def id3 = mmSRealId 3
+def xhat = (1., 0., 0.)
+def yhat = (0., 1., 0.)
+def zhat = (0., 0., 1.)
+
 def EXPECTED_VECTOR3 = "Expected vector3"
 def EXPECTED_QUATERNION = "Expected quaternion"
 
@@ -132,6 +140,11 @@ def norm2(v: SRMatrix) = {
   }
 }
 
+def dot(l: SRMatrix, r: SRMatrix) -> <Real> = {
+  if dim l != dim r then error DIMENSION_MISSMATCH
+  else hd (hd (matrixToList (l * (tr r))))
+}
+
 def ea2quat(th: Real, u: RealVector3) = {
   def (x, y, z) = u;
   def n = sqrt(x^2. + y^2. + z^2.);
@@ -186,14 +199,6 @@ def matrixDer(M: SRMatrix) -> SRMatrix = {
   map f M
 }
 def (') = matrixDer
-
-def zero1 = mmSRealZero (1, 1)
-def zero3 = mkVector3 0. 0. 0.
-def idq = (1., 0., 0., 0.)
-def id3 = mmSRealId 3
-def xhat = (1., 0., 0.)
-def yhat = (0., 1., 0.)
-def zhat = (0., 0., 1.)
 
 def translationEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
 def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
@@ -516,6 +521,10 @@ def rotationSensor(q: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   }
 }
 
+def angularVelocitySensor(om: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  torqueActuator zero3 om f1 f2
+}
+
 def translationSensor(x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   if seq f1 f2 then x == zero3
   else forceActuator zero3 x f1 f2
@@ -631,4 +640,11 @@ def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Fram
   def R = mkR q;
   rotationSensor q world f1;
   revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
+}
+
+def angularVelocitySensorU(u: SRMatrix, omu: <Real>, f1: Frame, f2: Frame) -> Equations = {
+  def oms1, oms2, oms3: Real;
+  def om = mkVector3 oms1 oms2 oms3;
+  angularVelocitySensor om f1 f2;
+  omu = dot u om
 }
