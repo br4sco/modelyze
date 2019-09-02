@@ -648,3 +648,10 @@ def angularVelocitySensorU(u: SRMatrix, omu: <Real>, f1: Frame, f2: Frame) -> Eq
   angularVelocitySensor om f1 f2;
   omu = dot u om
 }
+
+def angularVelocitySensorU(u: RealVector3, omu: <Real>, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+  def R = mkR q;
+  def uu = mkVector3 u;
+  rotationSensor q world f1;
+  angularVelocitySensorU (R * uu) omu f1 f2
+}
