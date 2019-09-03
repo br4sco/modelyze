@@ -213,16 +213,19 @@ def getModel(o: ModelElement) -> Equations = {
   work o NoEqn
 }
 
-def elaborateToFile(o: ModelElement) -> () = {
+def elaborateToFile(exportfun: (Equations -> ()), o: ModelElement) -> () = {
   def m = elaborate (getModel o);
   def vo = getVisibleVisualElements o;
   def vo = cleanupModelElements vo;
 
-  def _ = export2ModelicaFile m;
+  def _ = exportfun m;
   match vo with
   | NoElement -> ()
   | _ -> writeFile SCENE_FILENAME (visualElement2Json vo ++ "\n")
 }
+
+def elaborateToFile(o: ModelElement) -> () = elaborateToFile export2ModelicaFile o
+def elaborateToFileDebug(o: ModelElement) -> () = elaborateToFile export2ModelicaFileDebug o
 
 def clock1(t0: Real, t: <Real>) -> ModelElement = equationsElement (clock t0 t)
 
