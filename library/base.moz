@@ -457,3 +457,7 @@ def sub(a: {Dyn}, s: Int, len: Int) -> {Dyn} = {
     na
   } else { error INVALID_ARGUMENT }
 }
+
+def foldLeft(f: (Dyn -> Dyn -> Dyn), a: Dyn, s: Set(Dyn)) -> Dyn = {
+  foldLeft f a (Set.toList s)
+}
