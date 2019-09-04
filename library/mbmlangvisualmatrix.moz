@@ -102,12 +102,12 @@ def real2JSONstring(r: Real) -> String = {
 
 def geometry2JSON(g: Geometry3D) -> String = {
   match g with
-  | cuboid (sval x: Real) (sval y: Real) (sval z: Real) ->
+  | cuboid (sval w: Real) (sval h: Real) (sval d: Real) ->
       "{ " ++
       "\"type\": \"Cuboid\", " ++
-      "\"x\": " ++ real2JSONstring x ++ ", " ++
-      "\"y\": " ++ real2JSONstring y ++ ", " ++
-      "\"z\": " ++ real2JSONstring z ++
+      "\"w\": " ++ real2JSONstring w ++ ", " ++
+      "\"h\": " ++ real2JSONstring h ++ ", " ++
+      "\"d\": " ++ real2JSONstring d ++
       " }"
 
   | sphere (sval r: Real) ->
@@ -244,13 +244,24 @@ def _mkBodyVars(t: ()) = {
   (x, q)
 }
 
+def mkTestVars(t: ()) = {
+  def xm1_test, xm2_test, xm3_test, qm1_test, qm2_test, qm3_test, qm4_test: Real;
+  def x = mkVector3 xm1_test xm2_test xm3_test;
+  def q = mkQuaternion qm1_test qm2_test qm3_test qm4_test;
+  (x, q)
+}
+
 def _mkBody(e: Equations, x: SRMatrix, q: SRMatrix, world: Frame, m: Real, Jd: RealVector3, vd: VisualData, fm: Frame) = {
   equationsElement (e; body m Jd x q world fm) ++ visualElement x q vd
 }
 
+def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, x: SRMatrix, q: SRMatrix, q0: RealQuaternion) -> FrameFun1 = {
+  _mkBody (q <~~ mkQuaternion q0; norm2 q ~= 1.) x q world m Jd vd
+}
+
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData, q0: RealQuaternion) -> FrameFun1 = {
   def (x, q) = _mkBodyVars ();
-  _mkBody (q <~~ mkQuaternion q0; norm2 q ~= 1.) x q world m Jd vd
+  body1 world m Jd vd x q q0
 }
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData) -> FrameFun1 = {
@@ -259,6 +270,11 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData) -> FrameFun1 =
 }
 
 type BodyFun = Frame -> Real -> RealVector3 -> VisualData -> FrameFun1
+
+def _mkBodyFun(x: SRMatrix, q: SRMatrix, q0: RealQuaternion) -> BodyFun = {
+  fun world: Frame -> fun m: Real -> fun Jd: RealVector3 -> fun vd: VisualData ->
+    body1(world, m, Jd, vd, x, q, q0)
+}
 
 def _mkBodyFun(q0: RealQuaternion) -> BodyFun = {
   fun world: Frame -> fun m: Real -> fun Jd: RealVector3 -> fun vd: VisualData ->
@@ -348,21 +364,25 @@ def _mkRigidArmFun(t: ()) -> RigidArmFun = {
   fun world: Frame -> fun r: RealVector3 -> rigidArm1(world, r)
 }
 
-def _mkBar(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real, bf: BodyFun, raf: RigidArmFun) -> FrameFun2 = {
+def _mkBar(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real, bf: BodyFun, raf: RigidArmFun) -> FrameFun2 = {
   def fm: Frame;
-  def Jd = mkCuboidInertia m x y z;
+  def Jd = mkCuboidInertia m w h d;
   fun fw: Frame -> fun fe: Frame ->
-  fw -- raf world (-x / 2., 0., 0.) -.- fm -.- raf world (-x / 2., 0., 0.) -- fe
+  fw -- raf world (-w / 2., 0., 0.) -.- fm -.- raf world (-w / 2., 0., 0.) -- fe
   // raf world (-x / 2., 0., 0.) fw fm
-  // ++ raf world (x / 2., 0., 0.) fe fm
-  ++ bf world m Jd (visualSolid (cuboid x y z) (stdMaterial c o)) fm
+  // ++ raf world (w / 2., 0., 0.) fe fm
+  ++ bf world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) fm
   ++ gravity1 world m fm
 }
 
-def bar1(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real, q0: RealQuaternion) -> FrameFun2 = {
-  _mkBar world m x y z c o (_mkBodyFun(q0)) (_mkRigidArmFun(q0))
+def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real, x: SRMatrix, q: SRMatrix, q0: RealQuaternion) -> FrameFun2 = {
+  _mkBar world m w h d c o (_mkBodyFun(x, q, q0)) (_mkRigidArmFun(q0))
 }
 
-def bar1(world: Frame, m: Real, x: Real, y: Real, z: Real, c: Color, o: Real) -> FrameFun2 = {
-  _mkBar world m x y z c o (_mkBodyFun ()) (_mkRigidArmFun ())
+def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real, q0: RealQuaternion) -> FrameFun2 = {
+  _mkBar world m w h d c o (_mkBodyFun(q0)) (_mkRigidArmFun(q0))
+}
+
+def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real) -> FrameFun2 = {
+  _mkBar world m w h d c o (_mkBodyFun ()) (_mkRigidArmFun ())
 }
