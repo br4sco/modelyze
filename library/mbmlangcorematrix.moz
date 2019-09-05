@@ -101,6 +101,13 @@ def quatToTuple(q: SRMatrix) -> (<Real>, <Real>, <Real>, <Real>) = {
   else (find (1, 1) q, find (2, 1) q, find (3, 1) q, find (4, 1) q)
 }
 
+def q2ea321(q: SRMatrix) -> SRMatrix = {
+  def (w, i, j, k) = quatToTuple q;
+  mkVector3 (atan(2. * (w * i + j * k) / (1. - 2. * (i^2. + j^2.))))
+            (asin(2. * (w * j - k * i)))
+            (atan(2. * (w * k + i * j) / (1. - 2. * (j^2. + k^2.))))
+}
+
 def q2M(q: SRMatrix) = {
   if dim q != (4, 1) then error EXPECTED_QUATERNION
   else {
