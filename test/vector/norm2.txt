@@ -1,3 +1,3 @@
 sval(0) + sval(1)^sval(2) + sval(2)^sval(2) + sval(3)^sval(2)
 sval(0) + x_1^sval(2) + y_1^sval(2) + z_1^sval(2)
-sval(0) + sval(0)^sval(2) + sval(1)^sval(2) + sval(0)^sval(2)
+sqrt(sval(0) + sval(0)^sval(2) + sval(1)^sval(2) + sval(0)^sval(2))

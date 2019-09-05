@@ -58,3 +58,13 @@
   [sval(0), sval(2), sval(0)]
   [sval(0), sval(0), sval(2)]
 ] d = (3, 3)
+[
+  [sqrt(r_1_1), sval(0), sval(0)]
+  [sval(0), sqrt(r_1_1), sval(0)]
+  [sval(0), sval(0), sqrt(r_1_1)]
+] d = (3, 3)
+[
+  [sqrt(r_1_1 + sval(1)), sval(0), sval(0)]
+  [sval(0), sqrt(r_1_1 + sval(1)), sval(0)]
+  [sval(0), sval(0), sqrt(r_1_1 + sval(1))]
+] d = (3, 3)
