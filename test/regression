@@ -79,5 +79,6 @@ test_files()
 test_files "matrix"
 test_files "sreal"
 test_files "graph"
+test_files "vector"
 
 rm -f test.out

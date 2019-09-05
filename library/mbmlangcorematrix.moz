@@ -77,6 +77,11 @@ def mkVector3(v: RealVector3) -> SRMatrix = {
   mkVector3 x y z
 }
 
+def mkTestVector3(t: ()) -> SRMatrix = {
+  def test1, test2, test3: Real;
+  mkVector3 test1 test2 test3
+}
+
 def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> SRMatrix = {
   listToMatrix [[w], [i], [j], [k]] (mmSRealZero (4, 1))
 }
@@ -136,7 +141,7 @@ def qprod(p: SRMatrix, q: SRMatrix) = { M2q ((q2M p) * (q2M q)) }
 
 def qconj(q: SRMatrix) = { M2q (tr (q2M q)) }
 
-def norm2(v: SRMatrix) = {
+def norm2(v: SRMatrix) -> <Real> = {
   def f(a: <Real>, ij: Pos) -> <Real> = {
     a + (find ij v)^2.
   };
@@ -150,7 +155,7 @@ def norm2(v: SRMatrix) = {
 
 def dot(l: SRMatrix, r: SRMatrix) -> <Real> = {
   if dim l != dim r then error DIMENSION_MISSMATCH
-  else hd (hd (matrixToList (l * (tr r))))
+  else hd (hd (matrixToList ((tr l) * r)))
 }
 
 def ea2quat(th: Real, u: RealVector3) = {
@@ -660,6 +665,8 @@ def angularVelocitySensorU(u: SRMatrix, omu: <Real>, f1: Frame, f2: Frame) -> Eq
 def angularVelocitySensorU(u: RealVector3, omu: <Real>, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
   def R = mkR q;
   def uu = mkVector3 u;
+  def n = (1. / sqrt(norm2 uu)) *. uu;
   rotationSensor q world f1;
-  angularVelocitySensorU (R * uu) omu f1 f2
+  angularVelocitySensorU (R * n) omu f1 f2
 }
+

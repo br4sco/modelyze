@@ -1,0 +1,10 @@
+include MBMLANGCOREMATRIX
+
+def x, y, z: Real
+def v = mkVector3 1. 2. 3.
+def u = mkVector3 x y z
+def w = mkVector3 yhat
+
+def _ = dprintln (norm2 v)
+def _ = dprintln (norm2 u)
+def _ = dprintln (sqrt (norm2 w))

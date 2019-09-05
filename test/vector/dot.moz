@@ -1,0 +1,13 @@
+include MBMLANGCOREMATRIX
+
+def xh = mkVector3 xhat
+def yh = mkVector3 yhat
+def zh = mkVector3 zhat
+
+def _ = dprintln (dot xh xh)
+
+def _ = dprintln (dot xh yh)
+
+def _ = dprintln (dot xh zh)
+
+def _ = dprintln (dot yh zh)

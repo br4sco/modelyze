@@ -59,3 +59,5 @@ def _ = dp (A * (real2sreal Ir))
 
 def _ = dp (r_1 *. I)
 def _ = dp (2. *. I)
+def _ = dp (sqrt(r_1) *. I)
+def _ = dp (sqrt(r_1 + 1.) *. I)

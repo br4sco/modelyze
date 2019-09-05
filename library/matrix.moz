@@ -442,26 +442,26 @@ def matrixScalarProd(mfind: MatrixFind, madd: MatrixAdd, mzero: MatrixZero,
 
   mapij madd mzero (fun ij: Pos -> { prod s (mfind ij M) }) M
 }
-def matrixScalarProd(s: Int, M: MatrixMapInt) -> MatrixMapInt = {
+def matrixScalarProdInt(s: Int, M: MatrixMapInt) -> MatrixMapInt = {
   matrixScalarProd mmIntFind mmIntAdd mmIntZero prodInt s M
 }
-def (*.): Int -> MatrixMapInt -> MatrixMapInt = matrixScalarProd
+def (*.): Int -> MatrixMapInt -> MatrixMapInt = matrixScalarProdInt
 // def matrixScalarProd(M: MatrixMapInt, s: Int) -> MatrixMapInt = {
 //   matrixScalarProd mmIntFind mmIntAdd mmIntZero prodInt s M
 // }
 // def (*): MatrixMapInt -> Int -> MatrixMapInt = matrixScalarProd
-def matrixScalarProd(s: Real, M: MatrixMapReal) -> MatrixMapReal = {
+def matrixScalarProdReal(s: Real, M: MatrixMapReal) -> MatrixMapReal = {
   matrixScalarProd mmRealFind mmRealAdd mmRealZero prodReal s M
 }
-def (*.): Real -> MatrixMapReal -> MatrixMapReal = matrixScalarProd
+def (*.): Real -> MatrixMapReal -> MatrixMapReal = matrixScalarProdReal
 // def matrixScalarProd(M: MatrixMapReal, s: Real) -> MatrixMapReal = {
 //   matrixScalarProd mmRealFind mmRealAdd mmRealZero prodReal s M
 // }
 // def (*): MatrixMapReal -> Real -> MatrixMapReal = matrixScalarProd
-def matrixScalarProd(s: <Real>, M: MatrixMapSReal) -> MatrixMapSReal = {
+def matrixScalarProdSReal(s: <Real>, M: MatrixMapSReal) -> MatrixMapSReal = {
   matrixScalarProd mmSRealFind mmSRealAdd mmSRealZero prodSReal s M
 }
-def (*.): <Real> -> MatrixMapSReal -> MatrixMapSReal = matrixScalarProd
+def (*.): <Real> -> MatrixMapSReal -> MatrixMapSReal = matrixScalarProdSReal
 // def matrixScalarProd(M: MatrixMapSReal, s: <Real>) -> MatrixMapSReal = {
 //   matrixScalarProd mmSRealFind mmSRealAdd mmSRealZero prodSReal s M
 // }
