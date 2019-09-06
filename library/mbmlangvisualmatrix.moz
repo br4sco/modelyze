@@ -319,9 +319,9 @@ def revoluteJoint1(world: Frame, u: RealVector3, vd: VisualData, q0: RealQuatern
   fun f1: Frame -> fun f2: Frame ->
     equationsElement (
                       sphericalJoint f1 f2
-                      ;translationSensor x world f1
-                      ;revoluteJoint u q world f1 f2
-                      ;q <~~ mkQuaternion q0
+                      ; translationSensor x world f1
+                      ; revoluteJoint u q world f1 f2
+                      ; q <~~ mkQuaternion q0
                      )
     ++ visualElement x q vd
 }

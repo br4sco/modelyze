@@ -466,13 +466,12 @@ def mkOrthogonalBasis(u: RealVector3) -> (SRMatrix, SRMatrix, SRMatrix) = {
 }
 
 def GRAVITATIONAL_CONSTANT = 9.81
-def EPSILON = 1.e-10
+def EPSILON = 1.e-15
 
 // === Edge-less Physical Components ===
 
 def clock(t0: Real, t: <Real>) -> Equations = {
   t' = 1.;
-  // t' <- 1.;
   t <- t0
 }
 
@@ -625,12 +624,12 @@ def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Fram
   revoluteJointR u1 u2 u3 om T f1 f2
 }
 
-def damperR(D: Real, f1: Frame, f2: Frame) -> Equations = {
+def damperR(d: Real, f1: Frame, f2: Frame) -> Equations = {
   def omd1, omd2, omd3, Td1, Td2, Td3: Real;
   def om = mkVector3 omd1 omd2 omd3;
   def T = mkVector3 Td1 Td2 Td3;
   angularVelocityEdge f1 f2 om T;
-  T == D *. om
+  T == d *. om
 }
 
 def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
@@ -672,9 +671,15 @@ def angularSensorU(u: SRMatrix, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> 
   th <- th0;
   angularVelocitySensorU u omu f1 f2
 }
+
 def angularSensorU(u: RealVector3, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> Equations = {
   def omu: Real;
   th' = omu;
   th <- th0;
   angularVelocitySensorU u omu f1 f2
+}
+
+def translationalSpring(k: Real, s: Real, x: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  translationEdge f1 f2 x F;
+  F == (-k * (1. - (s / (sqrt(norm2 x) + EPSILON)))) *. x;
 }
