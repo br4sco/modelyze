@@ -633,8 +633,6 @@ def damperR(D: Real, f1: Frame, f2: Frame) -> Equations = {
   T == D *. om
 }
 
-// === Composed Components ===
-
 def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   bodyT m x world fm;
   bodyR Jd q world fm
@@ -662,11 +660,21 @@ def angularVelocitySensorU(u: SRMatrix, omu: <Real>, f1: Frame, f2: Frame) -> Eq
   omu = dot u om
 }
 
-def angularVelocitySensorU(u: RealVector3, omu: <Real>, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
-  def R = mkR q;
+def angularVelocitySensorU(u: RealVector3, omu: <Real>, f1: Frame, f2: Frame) -> Equations = {
   def uu = mkVector3 u;
   def n = (1. / sqrt(norm2 uu)) *. uu;
-  rotationSensor q world f1;
-  angularVelocitySensorU (R * n) omu f1 f2
+  angularVelocitySensorU n omu f1 f2
 }
 
+def angularSensorU(u: SRMatrix, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> Equations = {
+  def omu: Real;
+  th' = omu;
+  th <- th0;
+  angularVelocitySensorU u omu f1 f2
+}
+def angularSensorU(u: RealVector3, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> Equations = {
+  def omu: Real;
+  th' = omu;
+  th <- th0;
+  angularVelocitySensorU u omu f1 f2
+}
