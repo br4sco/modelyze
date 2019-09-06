@@ -479,6 +479,10 @@ def mkCuboidInertia(m: Real, x: Real, y: Real, z: Real) -> RealVector3 = {
   ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
 }
 
+def mkSphericalInertia(m: Real, r: Real) -> RealVector3 = {
+  (m * r^2. / 5., m * r^2. / 5., m * r^2. / 5.)
+}
+
 // === Single Edge Components ===
 
 def forceActuator(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
@@ -681,5 +685,18 @@ def angularSensorU(u: RealVector3, th0: Real, th: <Real>, f1: Frame, f2: Frame) 
 
 def translationalSpring(k: Real, s: Real, x: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   translationEdge f1 f2 x F;
-  F == (-k * (1. - (s / (sqrt(norm2 x) + EPSILON)))) *. x;
+  F == (k * (1. - (s / (sqrt(norm2 x) + EPSILON)))) *. x;
+}
+
+def translationalSpring(k: Real, s: Real, f1: Frame, f2: Frame) -> Equations = {
+  def xk1, xk2, xk3, Fk1, Fk2, Fk3: Real;
+  def x = mkVector3 xk1 xk2 xk3;
+  def F = mkVector3 Fk1 Fk2 Fk3;
+  translationalSpring k s x F f1 f2
+}
+
+def translationalDamper(d: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+  translationEdge f1 f2 x F;
+  x' == v;
+  F == (d / ((norm2 x) + EPSILON) * (dot x v))  *. x
 }

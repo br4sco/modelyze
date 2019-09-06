@@ -369,8 +369,6 @@ def _mkBar(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real, 
   def Jd = mkCuboidInertia m w h d;
   fun fw: Frame -> fun fe: Frame ->
   fw -- raf world (-w / 2., 0., 0.) -.- fm -.- raf world (-w / 2., 0., 0.) -- fe
-  // raf world (-x / 2., 0., 0.) fw fm
-  // ++ raf world (w / 2., 0., 0.) fe fm
   ++ bf world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) fm
   ++ gravity1 world m fm
 }
@@ -385,4 +383,18 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real, q0
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real) -> FrameFun2 = {
   _mkBar world m w h d c o (_mkBodyFun ()) (_mkRigidArmFun ())
+}
+
+def _mkSpere(world: Frame, m: Real, r: Real, c: Color, o: Real, bf: BodyFun) -> FrameFun1 = {
+  def Jd = mkSphericalInertia m r;
+  fun fm: Frame ->
+    bf world m Jd (visualSolid (sphere r) (stdMaterial c o)) fm ++ gravity1 world m fm
+}
+
+def sphere1(world: Frame, m: Real, r: Real, c: Color, o: Real, x: SRMatrix, q: SRMatrix, q0: RealQuaternion) -> FrameFun1 = {
+   _mkSpere world m r c o (_mkBodyFun(x, q, q0))
+}
+
+def translationalSpring1(k: Real, s: Real) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame -> equationsElement (translationalSpring k s f1 f2)
 }
