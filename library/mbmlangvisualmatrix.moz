@@ -398,3 +398,7 @@ def sphere1(world: Frame, m: Real, r: Real, c: Color, o: Real, x: SRMatrix, q: S
 def translationalSpring1(k: Real, s: Real) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame -> equationsElement (translationalSpring k s f1 f2)
 }
+
+def translationalDamper1(d: Real) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame -> equationsElement (translationalDamper d f1 f2)
+}
