@@ -164,8 +164,8 @@ def visualElement2Json(o: ModelElement) -> String = {
     match o with
     | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
     | visualElement (sval v: SRMatrix)  (sval q: SRMatrix) vd -> {
-        def (x, y, z) = vec3ToTuple v;
-        def (w, i, j, k) = quatToTuple q;
+        def (x, y, z) = toRealVector3 v;
+        def (w, i, j, k) = toRealQauternion q;
         "{ " ++
         "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
         "\"yLabel\": \"" ++ symstr(y) ++ "\", " ++
