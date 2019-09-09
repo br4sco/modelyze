@@ -161,26 +161,35 @@ def dot(l: SRMatrix, r: SRMatrix) -> <Real> = {
 def ea2quat(th: Real, u: RealVector3) = {
   def (x, y, z) = u;
   def n = sqrt(x^2. + y^2. + z^2.);
-  (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.), (z / n) * sin (th / 2.))
+  (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.),
+    (z / n) * sin (th / 2.))
 }
 
-def vectorFold2(f: (Dyn -> <Real> -> <Real> -> Dyn), a: Dyn, v1: SRMatrix, v2: SRMatrix) -> Dyn = {
-  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then error DIMENSION_MISSMATCH
+def vectorFold2(f: (Dyn -> <Real> -> <Real> -> Dyn), a: Dyn,
+  v1: SRMatrix, v2: SRMatrix) -> Dyn = {
+
+  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then
+    error DIMENSION_MISSMATCH
   else {
     def ff(a: Dyn, ij: Pos) -> Dyn = { f a (find ij v1) (find ij v2) };
     foldij ff a v1
   }
 }
 
-def vectorFoldHead2(fa: (Dyn -> Dyn -> Dyn), f: (<Real> -> <Real> -> Dyn), v1: SRMatrix, v2: SRMatrix) -> Dyn = {
-  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then error DIMENSION_MISSMATCH
+def vectorFoldHead2(fa: (Dyn -> Dyn -> Dyn), f: (<Real> -> <Real> -> Dyn),
+  v1: SRMatrix, v2: SRMatrix) -> Dyn = {
+
+  if dim v1 != dim v2 || rdim v1 < 1 || cdim v1 > 1 then
+    error DIMENSION_MISSMATCH
   else {
     def h = f (find (1, 1) v1) (find (1, 1) v2);
     if dim v2 == (1, 1) then h
     else {
       def lt = sub (2, 1) (dim v1) v1;
       def rt = sub (2, 1) (dim v2) v2;
-      def ff(a: Equations, ij: Pos) -> Equations = { fa a (f (find ij lt) (find ij rt)) };
+      def ff(a: Equations, ij: Pos) -> Equations = {
+        fa a (f (find ij lt) (find ij rt))
+      };
       foldij ff h lt
     }
   }
@@ -229,10 +238,13 @@ def mkVarsList(mes: [VectorPairEdge]) -> [(SRMatrix, SRMatrix)] = {
 }
 
 def getTranslationEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
-  def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
+  def work(e: Equations, a: ([VectorPairEdge], Equations))
+    -> ([VectorPairEdge], Equations) = {
+
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | translationEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | translationEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) ->
+        (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -240,10 +252,13 @@ def getTranslationEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
 }
 
 def getAngularVelocityEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
-  def work(e: Equations, a: ([VectorPairEdge], Equations)) -> ([VectorPairEdge], Equations) = {
+  def work(e: Equations, a: ([VectorPairEdge], Equations))
+    -> ([VectorPairEdge], Equations) = {
+
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | angularVelocityEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) -> (((n_1, n_2), (x, y))::(fst a), snd a)
+    | angularVelocityEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) ->
+        (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -251,10 +266,12 @@ def getAngularVelocityEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
 }
 
 def getRotationInitEdges(e: Equations) -> ([VectorEdge], Equations) = {
-  def work(e: Equations, a: ([VectorEdge], Equations)) -> ([VectorEdge], Equations) = {
+  def work(e: Equations, a: ([VectorEdge], Equations))
+    -> ([VectorEdge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | initialRotationEdge n_1 n_2 (sval x: SRMatrix) -> (((n_1, n_2), x)::(fst a), snd a)
+    | initialRotationEdge n_1 n_2 (sval x: SRMatrix) ->
+        (((n_1, n_2), x)::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
 
@@ -268,7 +285,9 @@ def mkCutsetMatrix(mes: [Dyn]) -> (MatrixMapInt, (Dyn, Dyn)) = {
     else {
       def IM = mkIncidenceMatrix G;
       def _ = logg 2 "IM" (fun t: () -> def _ = dp IM; ());
-      def _ = logg 2 "X" (fun t: () -> def _ = map (fun e: (SRMatrix, SRMatrix) -> dp (fst e)) (mkVarsList mes); ());
+      def _ = logg 2 "X" (fun t: () ->
+        def _ = map (fun e: (SRMatrix, SRMatrix) ->
+          dp (fst e)) (mkVarsList mes); ());
 
       def vs = listToArray (mkVarsList mes);
 
@@ -307,14 +326,19 @@ def mkCutsetMatrix(mes: [Dyn]) -> (MatrixMapInt, (Dyn, Dyn)) = {
   }
 }
 
-def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), zero: Dyn, C: MatrixMapInt, svs: [Dyn], pvs: [Dyn]) -> [(Dyn, Dyn)] = {
+def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn),
+  zero: Dyn, C: MatrixMapInt, svs: [Dyn], pvs: [Dyn]) -> [(Dyn, Dyn)] = {
+
   def isvs = zip (mapToIdx svs) svs;
   def jpvs = zip (mapToIdx pvs) pvs;
 
   map (fun isv: (Int, Dyn) -> {
         def (i, sv) = isv;
 
-        def cpvs = map (fun jpv: (Int, Dyn) -> { def (j, pv) = jpv; (find (i + 1, j + 1) C, pv) }) jpvs;
+        def cpvs = map (fun jpv: (Int, Dyn) -> {
+          def (j, pv) = jpv; (find (i + 1, j + 1) C, pv)
+        }) jpvs;
+
         def cpvs = filter (fun jpv: (Int, Dyn) -> fst jpv != 0) cpvs;
 
         def f(a: Dyn, cpv: (Int, Dyn)) -> Dyn = {
@@ -329,29 +353,42 @@ def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn), 
       }) isvs
 }
 
-def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [SRMatrix], pvs: [SRMatrix]) -> [(SRMatrix, SRMatrix)] = {
+def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [SRMatrix], pvs: [SRMatrix])
+  -> [(SRMatrix, SRMatrix)] = {
+
   def uop(c: Int, v: SRMatrix) -> SRMatrix = { - (int2real c) *. v };
-  def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = { l - (int2real c) *. r };
+  def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = {
+    l - (int2real c) *. r
+  };
+
   mkPriScndVarsRel uop bop zero3 C svs pvs
 }
 
-def mkPriScndVarsRelQuaternion(C: MatrixMapInt, sqs: [SRMatrix], pqs: [SRMatrix]) -> [(SRMatrix, SRMatrix)] = {
+def mkPriScndVarsRelQuaternion(C: MatrixMapInt, sqs: [SRMatrix],
+  pqs: [SRMatrix]) -> [(SRMatrix, SRMatrix)] = {
+
   def uop(c: Int, q: SRMatrix) -> SRMatrix = { if c < 0 then q else qconj q };
   def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = { qprod l (uop c r) };
   mkPriScndVarsRel uop bop (mkQuaternion idq) C sqs pqs
 }
 
-def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix]))) -> [(SRMatrix, SRMatrix)] = {
+def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
+  -> [(SRMatrix, SRMatrix)] = {
+
   def (A, (y_t, y_c)) = Ays;
   mkPriScndVarsRelVector3 A y_t y_c
 }
 
-def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([SRMatrix], [SRMatrix]))) -> [(SRMatrix, SRMatrix)] = {
+def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
+  -> [(SRMatrix, SRMatrix)] = {
+
   def (B, (x_t, x_c)) = Bxs;
   mkPriScndVarsRelVector3 B x_c x_t
 }
 
-def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt, ([SRMatrix], [SRMatrix])), (MatrixMapInt, ([SRMatrix], [SRMatrix]))) = {
+def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt,
+  ([SRMatrix], [SRMatrix])), (MatrixMapInt, ([SRMatrix], [SRMatrix]))) = {
+
   def (A, (T, C)) = mkCutsetMatrix mes;
   def B = -tr A;
   def _ = logg 2 "A" (fun t: () -> def _ = dp A; ());
@@ -371,21 +408,28 @@ def mkCircuitData(mies: [VectorEdge]) -> (MatrixMapInt, ([Dyn], [Dyn])) = {
 }
 
 type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
-def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge], a: Equations) -> Equations = {
+
+def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge],
+  a: Equations) -> Equations = {
+
   if isEmpty mes then a else {
     def ((A, (y_t, y_c)), (B, (x_t, x_c))) = mkCutsetCircuitData mes;
     f_t (A, (y_t, y_c)) (f_a (B, (x_c, x_t)) a)
   }
 }
 
-def mkTopolInitEquations(f_a: MkEqsFun, mies: [VectorEdge], a: Equations) -> Equations = {
+def mkTopolInitEquations(f_a: MkEqsFun, mies: [VectorEdge], a: Equations)
+  -> Equations = {
+
   if isEmpty mies then a else {
     def (B, (x_t, x_c)) = mkCircuitData mies;
     f_a (B, (x_c, x_t)) a
   }
 }
 
-def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])), a: Equations) -> Equations = {
+def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])),
+  a: Equations) -> Equations = {
+
   def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRelVector3 C svs pvs;
 
@@ -399,7 +443,9 @@ def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])), a: Eq
   work rs a
 }
 
-def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])), a: Equations) -> Equations = {
+def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt,
+  ([SRMatrix], [SRMatrix])), a: Equations) -> Equations = {
+
   def (C, (svs, pvs)) = Cvs;
   def rs = mkPriScndVarsRelQuaternion C svs pvs;
 
@@ -417,8 +463,12 @@ def elaborate(e: Equations) -> Equations = {
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
   def (ries, e) = getRotationInitEdges e;
-  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations tes e;
-  def e = mkTopolEquations mkVector3TopolEquations mkVector3TopolEquations aves e;
+  def e = mkTopolEquations mkVector3TopolEquations
+            mkVector3TopolEquations tes e;
+
+  def e = mkTopolEquations mkVector3TopolEquations
+            mkVector3TopolEquations aves e;
+
   // def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
   e
 }
@@ -476,7 +526,8 @@ def clock(t0: Real, t: <Real>) -> Equations = {
 }
 
 def mkCuboidInertia(m: Real, x: Real, y: Real, z: Real) -> RealVector3 = {
-  ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.), (m / 12.) * (y^2. + x^2.))
+  ((m / 12.) * (y^2. + z^2.), (m / 12.) * (x^2. + z^2.),
+    (m / 12.) * (y^2. + x^2.))
 }
 
 def mkSphericalInertia(m: Real, r: Real) -> RealVector3 = {
@@ -485,7 +536,9 @@ def mkSphericalInertia(m: Real, r: Real) -> RealVector3 = {
 
 // === Single Edge Components ===
 
-def forceActuator(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def forceActuator(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame)
+  -> Equations = {
+
   translationEdge f1 f2 x f
 }
 
@@ -495,7 +548,9 @@ def forceActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   forceActuator f x f1 f2
 }
 
-def translationActuator(f: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def translationActuator(f: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame)
+  -> Equations = {
+
   translationEdge f1 f2 f F
 }
 
@@ -505,7 +560,9 @@ def translationActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   translationActuator f F f1 f2
 }
 
-def angularVelocityActuator(f: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def angularVelocityActuator(f: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame)
+  -> Equations = {
+
   angularVelocityEdge f1 f2 f T
 }
 
@@ -515,7 +572,9 @@ def angularVelocityActuator(f: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   angularVelocityActuator f T f1 f2
 }
 
-def torqueActuator(f: SRMatrix, om: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def torqueActuator(f: SRMatrix, om: SRMatrix, f1: Frame, f2: Frame)
+  -> Equations = {
+
   angularVelocityEdge f1 f2 om f
 }
 
@@ -546,7 +605,9 @@ def translationSensor(x: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   else forceActuator zero3 x f1 f2
 }
 
-def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix,
+  world: Frame, fm: Frame) -> Equations = {
+
   translationEdge world fm x F;
   x' == v;
   F == m *. v';
@@ -559,7 +620,9 @@ def bodyT(m: Real, x: SRMatrix, world: Frame, fm: Frame) -> Equations = {
   bodyT m v x F world fm
 }
 
-def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix,
+  world: Frame, fm: Frame) -> Equations = {
+
   def R = mkR q;
   def H = mkH q;
   def J = mkJ Jd;
@@ -570,14 +633,18 @@ def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame,
   T == Jw * om' + (ss om) * Jw * om
 }
 
-def bodyR(Jd: RealVector3, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def bodyR(Jd: RealVector3, q: SRMatrix, world: Frame, fm: Frame)
+  -> Equations = {
+
   def omm1, omm2, omm3, Tm1, Tm2, Tm3: Real;
   def om = mkVector3 omm1 omm2 omm3;
   def T = mkVector3 Tm1 Tm2 Tm3;
   bodyR Jd om q T world fm
 }
 
-def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, fm: Frame, fe: Frame) -> Equations = {
+def rigidArm1T(r: RealVector3, F: SRMatrix, q2: SRMatrix, fm: Frame, fe: Frame)
+  -> Equations = {
+
   translationActuator ((mkR q2) * (mkVector3 r)) F fm fe
 }
 
@@ -592,14 +659,18 @@ def rigidArm1R(fm: Frame, fe: Frame) -> Equations = {
   rigidArm1R T fm fe
 }
 
-def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix, T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix,
+  T: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+
   angularVelocityEdge world fm om T;
   initialRotationEdge world fm q;
   q' == (mkH q) * om;
   T == -(ss ((mkR q) * (mkVector3 r))) * F1
 }
 
-def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def rigidArm2R(r: RealVector3, F1: SRMatrix, q: SRMatrix,
+  world: Frame, fm: Frame) -> Equations = {
+
   def omr21, omr22, omr23, Tr21, Tr22, Tr23: Real;
   def om = mkVector3 omr21 omr22 omr23;
   def T = mkVector3 Tr21 Tr22 Tr23;
@@ -614,14 +685,18 @@ def sphericalJoint(f1: Frame, f2: Frame) -> Equations = {
   translationActuator zero3 f1 f2
 }
 
-def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, om: SRMatrix, T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, om: SRMatrix,
+  T: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+
   angularVelocityEdge f1 f2 om T;
   (tr u1) * T == zero1;
   (tr u2) * om == zero1;
   (tr u3) * om == zero1
 }
 
-def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJointR(u1: SRMatrix, u2: SRMatrix, u3: SRMatrix,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def omhr1, omhr2, omhr3, Thr1, Thr2, Thr3: Real;
   def om = mkVector3 omhr1 omhr2 omhr3;
   def T = mkVector3 Thr1 Thr2 Thr3;
@@ -636,12 +711,16 @@ def damperR(d: Real, f1: Frame, f2: Frame) -> Equations = {
   T == d *. om
 }
 
-def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix, world: Frame, fm: Frame) -> Equations = {
+def body(m: Real, Jd: RealVector3, x: SRMatrix, q: SRMatrix,
+  world: Frame, fm: Frame) -> Equations = {
+
   bodyT m x world fm;
   bodyR Jd q world fm
 }
 
-def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, fe: Frame, fm: Frame) -> Equations = {
+def rigidArm(r: RealVector3, q: SRMatrix, world: Frame,
+  fe: Frame, fm: Frame) -> Equations = {
+
   def Fr11, Fr12, Fr13: Real;
   def Fr1 = mkVector3 Fr11 Fr12 Fr13;
   rigidArm1T r Fr1 q fm fe;
@@ -649,41 +728,53 @@ def rigidArm(r: RealVector3, q: SRMatrix, world: Frame, fe: Frame, fm: Frame) ->
   rigidArm2R r Fr1 q world fm
 }
 
-def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame, f1: Frame, f2: Frame) -> Equations = {
+def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def (u1, u2, u3) = mkOrthogonalBasis u;
   def R = mkR q;
   rotationSensor q world f1;
   revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
 }
 
-def angularVelocitySensorU(u: SRMatrix, omu: <Real>, f1: Frame, f2: Frame) -> Equations = {
+def angularVelocitySensorU(u: SRMatrix, omu: <Real>,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def oms1, oms2, oms3: Real;
   def om = mkVector3 oms1 oms2 oms3;
   angularVelocitySensor om f1 f2;
   omu = dot u om
 }
 
-def angularVelocitySensorU(u: RealVector3, omu: <Real>, f1: Frame, f2: Frame) -> Equations = {
+def angularVelocitySensorU(u: RealVector3, omu: <Real>,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def uu = mkVector3 u;
   def n = (1. / sqrt(norm2 uu)) *. uu;
   angularVelocitySensorU n omu f1 f2
 }
 
-def angularSensorU(u: SRMatrix, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> Equations = {
+def angularSensorU(u: SRMatrix, th0: Real, th: <Real>,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def omu: Real;
   th' = omu;
   th <- th0;
   angularVelocitySensorU u omu f1 f2
 }
 
-def angularSensorU(u: RealVector3, th0: Real, th: <Real>, f1: Frame, f2: Frame) -> Equations = {
+def angularSensorU(u: RealVector3, th0: Real, th: <Real>,
+  f1: Frame, f2: Frame) -> Equations = {
+
   def omu: Real;
   th' = omu;
   th <- th0;
   angularVelocitySensorU u omu f1 f2
 }
 
-def translationalSpring(k: Real, s: Real, x: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def translationalSpring(k: Real, s: Real, x: SRMatrix, F: SRMatrix,
+  f1: Frame, f2: Frame) -> Equations = {
+
   translationEdge f1 f2 x F;
   F == (k * (1. - (s / (sqrt(norm2 x) + EPSILON)))) *. x;
 }
@@ -695,7 +786,9 @@ def translationalSpring(k: Real, s: Real, f1: Frame, f2: Frame) -> Equations = {
   translationalSpring k s x F f1 f2
 }
 
-def translationalDamper(d: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
+def translationalDamper(d: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix,
+  f1: Frame, f2: Frame) -> Equations = {
+
   translationEdge f1 f2 x F;
   x' == v;
   F == (d / ((norm2 x) + EPSILON) * (dot x v))  *. x
