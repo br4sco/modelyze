@@ -91,13 +91,17 @@ def inSeries(l: FrameFun2, r: FrameFun2) = {
 }
 def (--) = inSeries
 
-def serialize(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
+def serializei(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
   def work(a: FrameFun2, i: Int) -> FrameFun2 = {
     if n - i < 0 then error "n is not a positive number"
     else if n - i == 0 then a
     else work (a -- f (i + 1)) (i + 1)
   };
   work (f 1) 1
+}
+
+def serialize(f: FrameFun2, n: Int) -> FrameFun2 = {
+  serializei (fun i: Int -> f) n
 }
 
 def WHITE = "#ffffff"
@@ -430,10 +434,14 @@ def translationalDamper1(d: Real) -> FrameFun2 = {
     equationsElement (translationalDamper d f1 f2)
 }
 
-def rotationalSpring1(world: Frame, k: Real, s: Real, u: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
+def rotationalSpring1(world: Frame, k: Real, s: Real, u: RealVector3,
+  q0: RealQuaternion) -> FrameFun2 = {
+
   fun f1: Frame -> fun f2: Frame ->
     def q = mkQuaternion ();
-    equationsElement (rotationalSpring k s u q world f1 f2)
+    equationsElement (rotationalSpring k s u q world f1 f2
+                      // ; norm2 q ~= 1.
+                      ; q <~~ mkQuaternion q0)
 }
 
 def angularVelocityActuator1(f: SRMatrix) -> FrameFun2 = {
