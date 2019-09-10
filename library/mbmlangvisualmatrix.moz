@@ -91,6 +91,15 @@ def inSeries(l: FrameFun2, r: FrameFun2) = {
 }
 def (--) = inSeries
 
+def serialize(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
+  def work(a: FrameFun2, i: Int) -> FrameFun2 = {
+    if n - i < 0 then error "n is not a positive number"
+    else if n - i == 0 then a
+    else work (a -- f (i + 1)) (i + 1)
+  };
+  work (f 1) 1
+}
+
 def WHITE = "#ffffff"
 def RED = "#ff0000"
 def BLUE = "#0000ff"
