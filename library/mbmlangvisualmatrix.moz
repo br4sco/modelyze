@@ -420,3 +420,14 @@ def translationalDamper1(d: Real) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     equationsElement (translationalDamper d f1 f2)
 }
+
+def rotationalSpring1(world: Frame, k: Real, s: Real, u: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    def q = mkQuaternion ();
+    equationsElement (rotationalSpring k s u q world f1 f2)
+}
+
+def angularVelocityActuator1(f: SRMatrix) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    equationsElement (angularVelocityActuator f f1 f2)
+}
