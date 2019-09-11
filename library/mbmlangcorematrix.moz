@@ -807,16 +807,16 @@ def translationalDamper(d: Real, f1: Frame, f2: Frame) -> Equations = {
   translationalDamper d v x F f1 f2
 }
 
-def rotationalSpring(k: Real, s: Real, n: SRMatrix, om: SRMatrix, T: SRMatrix,
+def rotationalSpring(k: Real, n: SRMatrix, om: SRMatrix, T: SRMatrix,
   f1: Frame, f2: Frame) -> Equations = {
 
   def th: Real;
   angularVelocityEdge f1 f2 om T;
-  angularSensorU n s th f1 f2;
+  angularSensorU n 0. th f1 f2;
   T == (k * th) *. n
 }
 
-def rotationalSpring(k: Real, s: Real, u: RealVector3, q: SRMatrix,
+def rotationalSpring(k: Real, u: RealVector3, q: SRMatrix,
   om: SRMatrix, T: SRMatrix, world: Frame, f1: Frame, f2: Frame)
   -> Equations = {
 
@@ -824,14 +824,14 @@ def rotationalSpring(k: Real, s: Real, u: RealVector3, q: SRMatrix,
   def n = (1. / sqrt(norm2 uu)) *. uu;
   def R = mkR q;
   rotationSensor q world f1;
-  rotationalSpring k s (R * n) om T f1 f2
+  rotationalSpring k (R * n) om T f1 f2
 }
 
-def rotationalSpring(k: Real, s: Real, u: RealVector3, q: SRMatrix,
+def rotationalSpring(k: Real, u: RealVector3, q: SRMatrix,
   world: Frame, f1: Frame, f2: Frame) -> Equations = {
 
   def omk1, omk2, omk3, Tk1, Tk2, Tk3: Real;
   def om = mkVector3 omk1 omk2 omk3;
   def T = mkVector3 Tk1 Tk2 Tk3;
-  rotationalSpring k s u q om T world f1 f2
+  rotationalSpring k u q om T world f1 f2
 }

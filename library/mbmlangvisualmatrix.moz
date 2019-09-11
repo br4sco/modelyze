@@ -434,12 +434,12 @@ def translationalDamper1(d: Real) -> FrameFun2 = {
     equationsElement (translationalDamper d f1 f2)
 }
 
-def rotationalSpring1(world: Frame, k: Real, s: Real, u: RealVector3,
+def rotationalSpring1(world: Frame, k: Real, u: RealVector3,
   q0: RealQuaternion) -> FrameFun2 = {
 
   fun f1: Frame -> fun f2: Frame ->
     def q = mkQuaternion ();
-    equationsElement (rotationalSpring k s u q world f1 f2
+    equationsElement (rotationalSpring k u q world f1 f2
                       // ; norm2 q ~= 1.
                       ; q <~~ mkQuaternion q0)
 }
