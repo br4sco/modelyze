@@ -158,6 +158,8 @@ def dot(l: SRMatrix, r: SRMatrix) -> <Real> = {
   else hd (hd (matrixToList ((tr l) * r)))
 }
 
+def normalize(v: SRMatrix) -> SRMatrix = { (1. / sqrt(norm2 v)) *. v }
+
 def ea2quat(th: Real, u: RealVector3) = {
   def (x, y, z) = u;
   def n = sqrt(x^2. + y^2. + z^2.);
@@ -747,16 +749,15 @@ def angularVelocitySensorU(u: SRMatrix, omu: <Real>,
 
   def oms1, oms2, oms3: Real;
   def om = mkVector3 oms1 oms2 oms3;
+  def n = normalize u;
   angularVelocitySensor om f1 f2;
-  omu = dot u om
+  omu = dot n om
 }
 
 def angularVelocitySensorU(u: RealVector3, omu: <Real>,
   f1: Frame, f2: Frame) -> Equations = {
 
-  def uu = mkVector3 u;
-  def n = (1. / sqrt(norm2 uu)) *. uu;
-  angularVelocitySensorU n omu f1 f2
+  angularVelocitySensorU (mkVector3 u) omu f1 f2
 }
 
 def angularSensorU(u: SRMatrix, th0: Real, th: <Real>,
@@ -812,7 +813,8 @@ def rotationalSpring(k: Real, n: SRMatrix, om: SRMatrix, T: SRMatrix,
 
   def th: Real;
   angularVelocityEdge f1 f2 om T;
-  angularSensorU n 0. th f1 f2;
+  th' = dot n om;
+  th <- 0.;
   T == (k * th) *. n
 }
 
@@ -820,9 +822,8 @@ def rotationalSpring(k: Real, u: RealVector3, q: SRMatrix,
   om: SRMatrix, T: SRMatrix, world: Frame, f1: Frame, f2: Frame)
   -> Equations = {
 
-  def uu = mkVector3 u;
-  def n = (1. / sqrt(norm2 uu)) *. uu;
   def R = mkR q;
+  def n = normalize (mkVector3 u);
   rotationSensor q world f1;
   rotationalSpring k (R * n) om T f1 f2
 }
