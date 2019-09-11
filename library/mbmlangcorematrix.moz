@@ -78,8 +78,8 @@ def mkVector3(v: RealVector3) -> SRMatrix = {
 }
 
 def mkTestVector3(t: ()) -> SRMatrix = {
-  def test1, test2, test3: Real;
-  mkVector3 test1 test2 test3
+  def v1_test, v2_test, v3_test: Real;
+  mkVector3 v1_test v2_test v3_test
 }
 
 def mkQuaternion(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> SRMatrix = {
@@ -94,6 +94,11 @@ def mkQuaternion(q: RealQuaternion) -> SRMatrix = {
 def mkQuaternion(t: ()) -> SRMatrix = {
   def w, i, j, k: <Real>;
   mkQuaternion w i j k
+}
+
+def mkTestQuaternion(t: ()) -> SRMatrix = {
+  def q1_test, q2_test, q3_test, q4_test: Real;
+  mkQuaternion q1_test q2_test q3_test q4_test
 }
 
 def toRealVector3(v: SRMatrix) -> (<Real>, <Real>, <Real>) = {
@@ -167,6 +172,12 @@ def eaa2quat(th: Real, u: RealVector3) = {
     (z / n) * sin (th / 2.))
 }
 
+def quat2eaa(q: SRMatrix) -> (<Real>, SRMatrix) = {
+  def (w, i, j, k) = toRealQauternion q;
+  def d = sqrt(1. - w * w);
+  (2. * acos w, mkVector3 (i / d) (j / d) (k /d))
+}
+
 def vectorFold2(f: (Dyn -> <Real> -> <Real> -> Dyn), a: Dyn,
   v1: SRMatrix, v2: SRMatrix) -> Dyn = {
 
@@ -224,10 +235,10 @@ def matrixDer(M: SRMatrix) -> SRMatrix = {
 }
 def (') = matrixDer
 
-def eaa2quat(th: <Real>, n: SRMatrix) = {
-  def (n1, n2, n3) = toRealVector3 n;
-  mkQuaternion (cos(th / 2.)) (sin(th / 2.) * n1) (sin(th /2.) * n2) (sin(th /2.) * n3)
-}
+// def eaa2quat(th: <Real>, n: SRMatrix) = {
+//   def (n1, n2, n3) = toRealVector3 n;
+//   mkQuaternion (cos(th / 2.)) (sin(th / 2.) * n1) (sin(th /2.) * n2) (sin(th /2.) * n3)
+// }
 
 def translationEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
 def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
