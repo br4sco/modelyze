@@ -160,7 +160,7 @@ def dot(l: SRMatrix, r: SRMatrix) -> <Real> = {
 
 def normalize(v: SRMatrix) -> SRMatrix = { (1. / sqrt(norm2 v)) *. v }
 
-def ea2quat(th: Real, u: RealVector3) = {
+def eaa2quat(th: Real, u: RealVector3) = {
   def (x, y, z) = u;
   def n = sqrt(x^2. + y^2. + z^2.);
   (cos (th / 2.), (x / n) * sin (th / 2.), (y / n) * sin (th / 2.),
@@ -224,7 +224,7 @@ def matrixDer(M: SRMatrix) -> SRMatrix = {
 }
 def (') = matrixDer
 
-def ea2quat(th: <Real>, n: SRMatrix) = {
+def eaa2quat(th: <Real>, n: SRMatrix) = {
   def (n1, n2, n3) = toRealVector3 n;
   mkQuaternion (cos(th / 2.)) (sin(th / 2.) * n1) (sin(th /2.) * n2) (sin(th /2.) * n3)
 }
