@@ -174,7 +174,7 @@ def eaa2quat(th: Real, u: RealVector3) = {
 
 def quat2eaa(q: SRMatrix) -> (<Real>, SRMatrix) = {
   def (w, i, j, k) = toRealQauternion q;
-  def d = sqrt(1. - w * w);
+  def d = sqrt(1. - w * w + EPSILON);
   (2. * acos w, mkVector3 (i / d) (j / d) (k /d))
 }
 
@@ -826,6 +826,7 @@ def rotationalSpring(k: Real, n: SRMatrix, om: SRMatrix, T: SRMatrix,
   angularVelocityEdge f1 f2 om T;
   th' = dot n om;
   th <- 0.;
+
   T == (k * th) *. n
 }
 
@@ -846,4 +847,22 @@ def rotationalSpring(k: Real, u: RealVector3, q: SRMatrix,
   def om = mkVector3 omk1 omk2 omk3;
   def T = mkVector3 Tk1 Tk2 Tk3;
   rotationalSpring k u q om T world f1 f2
+}
+
+def rotationalSpringEAA(k: Real, q: SRMatrix, om: SRMatrix, T: SRMatrix,
+  world: Frame, f1: Frame, f2: Frame) ->Equations = {
+
+  def (th, n) = quat2eaa q;
+  rotationSensor q world f2;
+  angularVelocityEdge f1 f2 om T;
+  T == (k * th) *. n
+}
+
+def rotationalSpringEAA(k: Real, q: SRMatrix, world: Frame,
+  f1: Frame, f2: Frame) ->Equations = {
+
+  def omk1, omk2, omk3, Tk1, Tk2, Tk3: Real;
+  def om = mkVector3 omk1 omk2 omk3;
+  def T = mkVector3 Tk1 Tk2 Tk3;
+  rotationalSpringEAA k q world f1 f2
 }
