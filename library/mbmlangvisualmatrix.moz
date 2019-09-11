@@ -69,8 +69,9 @@ def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
 def (--) = inSeries
 
 def inSeries(l: FrameFun1, r: FrameFun2) = {
-  def f_1: Frame;
-  fun f_2: Frame -> l f_1 ++ r f_1 f_2
+  fun f_2: Frame ->
+      def f_1: Frame;
+      l f_1 ++ r f_1 f_2
 }
 def (--) = inSeries
 
@@ -80,14 +81,16 @@ def inSeriesExposeFrame(l: FrameFun2, f_2: Frame) = {
 def (-.-) = inSeriesExposeFrame
 
 def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
-  def (l, f_2) = lf_2;
-  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+  fun f_1: Frame -> fun f_3: Frame ->
+      def (l, f_2) = lf_2;
+      l f_1 f_2 ++ r f_2 f_3
 }
 def (-.-) = inSeriesExposeFrame
 
 def inSeries(l: FrameFun2, r: FrameFun2) = {
-  def f_2: Frame;
-  fun f_1: Frame -> fun f_3: Frame -> l f_1 f_2 ++ r f_2 f_3
+  fun f_1: Frame -> fun f_3: Frame ->
+    def f_2: Frame;
+    l f_1 f_2 ++ r f_2 f_3
 }
 def (--) = inSeries
 
