@@ -259,6 +259,16 @@ def torqueActuator1(f: SRMatrix) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame -> equationsElement (torqueActuator f f1 f2)
 }
 
+def translationSensor1(x: SRMatrix) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    equationsElement (translationSensor x f1 f2)
+}
+
+def rotationSensor1(q: SRMatrix) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    equationsElement (rotationSensor q f1 f2)
+}
+
 def _mkBodyVarT(t: ()) = {
   def xm1, xm2, xm3: Real;
   mkVector3 xm1 xm2 xm3
@@ -386,19 +396,27 @@ def rigidArm1(world: Frame, r: RealVector3) -> FrameFun2 = {
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
-  x: SRMatrix, q: SRMatrix) -> FrameFun2 = {
+  xm: SRMatrix, qm: SRMatrix, ql: SRMatrix, qr: SRMatrix) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def fm: Frame;
     def Jd = mkCuboidInertia m w h d;
-    def q1 = _mkRigidArmVar ();
-    def q2 = _mkRigidArmVar ();
-    def larm = rigidArm1 world (-w / 2., 0., 0.) q1;
-    def rarm = rigidArm1 world (-w / 2., 0., 0.) q2;
+    def larm = rigidArm1 world (-w / 2., 0., 0.) qr;
+    def rarm = rigidArm1 world (-w / 2., 0., 0.) ql;
     fw -- larm  -.- fm -.- rarm -- fe
-    ++ body1 world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) x q fm
+    ++ body1 world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) xm qm fm
     ++ gravity1 world m fm
-    ++ equationsElement (q1 ~== q; q2 ~== q)
+
+}
+
+def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
+  x: SRMatrix, q: SRMatrix) -> FrameFun2 = {
+
+  fun fw: Frame -> fun fe: Frame ->
+    def qr = _mkRigidArmVar ();
+    def ql = _mkRigidArmVar ();
+    bar1 world m w h d c o x q ql qr fw fe
+    ++ equationsElement (qr~== q; ql ~== q)
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
@@ -407,7 +425,7 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
   fun fw: Frame -> fun fe: Frame ->
     def (x, q) = _mkBodyVars ();
     bar1 world m w h d c o x q fw fe
-    ++ equationsElement (norm2 q ~= 1.; q <~~ mkQuaternion q0)
+    ++ equationsElement (norm2 q ~= 1. ; q <~~ mkQuaternion q0)
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real)
