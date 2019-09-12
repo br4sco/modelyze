@@ -20,6 +20,9 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Graph
 
+def ERROR_ADJUST_QUATERNIONS = false
+def QUATERNION_CORRECTION_CONSTANT = 2.0
+
 def zero1 = mmSRealZero (1, 1)
 def zero3 = mmSRealZero (3, 1)
 def idq = (1., 0., 0., 0.)
@@ -512,6 +515,13 @@ def mkG(q: SRMatrix) = {
 def mkR(q: SRMatrix) = (mkE q) * (tr (mkG q))
 def mkH(q: SRMatrix) = 0.5 *. (tr (mkE q))
 
+def relateQtoOm(q: SRMatrix, om: SRMatrix) = {
+  def H = mkH q;
+  if ERROR_ADJUST_QUATERNIONS then
+    q' == (H * om) + (QUATERNION_CORRECTION_CONSTANT * (1. - sqrt(norm2 q))) *. q
+  else q' == H * om
+}
+
 def mkJ(d: RealVector3) = {
   def (Jxx, Jyy, Jzz) = d;
   add (1, 1) Jxx (add (2, 2) Jyy (add (3, 3) Jzz (mmSRealZero (3, 3))))
@@ -607,8 +617,9 @@ def rotationSensor(q: SRMatrix, f1: Frame, f2: Frame) -> Equations = {
   else {
     def oms1, oms2, oms3: Real;
     def om = mkVector3 oms1 oms2 oms3;
-    def H = mkH q;
-    q' == H * om;
+    // def H = mkH q;
+    // q' == H * om;
+    relateQtoOm q om;
     initialRotationEdge f1 f2 q;
     torqueActuator zero3 om f1 f2
   }
@@ -642,12 +653,13 @@ def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix,
   world: Frame, fm: Frame) -> Equations = {
 
   def R = mkR q;
-  def H = mkH q;
+  // def H = mkH q;
   def J = mkJ Jd;
   def Jw = R * J * (tr R);
   angularVelocityEdge world fm om T;
   initialRotationEdge world fm q;
-  q' == H * om;
+  // q' == H * om;
+  relateQtoOm q om;
   T == Jw * om' + (ss om) * Jw * om
 }
 
@@ -682,7 +694,8 @@ def rigidArm2R(r: RealVector3, F1: SRMatrix, om: SRMatrix, q: SRMatrix,
 
   angularVelocityEdge world fm om T;
   initialRotationEdge world fm q;
-  q' == (mkH q) * om;
+  // q' == (mkH q) * om;
+  relateQtoOm q om;
   T == -(ss ((mkR q) * (mkVector3 r))) * F1
 }
 

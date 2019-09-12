@@ -401,6 +401,7 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
   fun fw: Frame -> fun fe: Frame ->
     def fm: Frame;
     def Jd = mkCuboidInertia m w h d;
+    // def Jd = (1., 2., 3.);
     def larm = rigidArm1 world (-w / 2., 0., 0.) qr;
     def rarm = rigidArm1 world (-w / 2., 0., 0.) ql;
     fw -- larm  -.- fm -.- rarm -- fe
@@ -423,9 +424,15 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
   q0: RealQuaternion) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
+    def qr = _mkRigidArmVar ();
+    def ql = _mkRigidArmVar ();
     def (x, q) = _mkBodyVars ();
+    // bar1 world m w h d c o x q ql qr fw fe
     bar1 world m w h d c o x q fw fe
-    ++ equationsElement (norm2 q ~= 1. ; q <~~ mkQuaternion q0)
+    ++ equationsElement (norm2 q ~= 1. ; q <~~ mkQuaternion q0
+                         // ; norm2 ql ~= 1. ; ql <~~ mkQuaternion q0
+                         // ; norm2 qr ~= 1. ; qr <~~ mkQuaternion q0
+                        )
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real)
