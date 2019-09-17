@@ -149,6 +149,16 @@ def qprod(p: SRMatrix, q: SRMatrix) = { M2q ((q2M p) * (q2M q)) }
 
 def qconj(q: SRMatrix) = { M2q (tr (q2M q)) }
 
+def qim(q: SRMatrix) = {
+  def (w, i, j, k) = toRealQauternion q;
+  mkVector3 i j k
+}
+
+def qre(q: SRMatrix) = {
+  def (w, i, j, k) = toRealQauternion q;
+  w
+}
+
 def norm2(v: SRMatrix) -> <Real> = {
   def f(a: <Real>, ij: Pos) -> <Real> = {
     a + (find ij v)^2.
@@ -480,6 +490,17 @@ def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt,
   work rs a
 }
 
+def removeTrivialEquations(e: Equations) -> Equations = {
+  match e with
+  | e_1; e_2 -> removeTrivialEquations e_1; removeTrivialEquations e_2
+  | (sval l: Real) = (sval r: Real) -> if l == r then NoEqn
+                                       else {
+                                        def _ = dprintln e;
+                                        error "Inconsistent Equation"
+                                       }
+  | _ -> e
+}
+
 def elaborate(e: Equations) -> Equations = {
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
@@ -491,7 +512,7 @@ def elaborate(e: Equations) -> Equations = {
             mkVector3TopolEquations aves e;
 
   // def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
-  e
+  removeTrivialEquations e
 }
 
 def mkE(q: SRMatrix) = {
