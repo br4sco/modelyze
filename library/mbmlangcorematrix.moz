@@ -253,12 +253,15 @@ def (') = matrixDer
 //   mkQuaternion (cos(th / 2.)) (sin(th / 2.) * n1) (sin(th /2.) * n2) (sin(th /2.) * n3)
 // }
 
+def electricalEdge: Node -> Node -> <Real> -> <Real> -> Equations
 def translationEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
+def rotationalEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
 def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Equations
 def initialRotationEdge: Frame -> Frame -> SRMatrix -> Equations
 
 type VectorPairEdge = (Edge, (SRMatrix, SRMatrix))
 type VectorEdge = (Edge, SRMatrix)
+type ScalarPairEdge = (Edge, (<Real>,<Real>))
 
 def mkGraph(mes: [VectorPairEdge]) -> [Edge] = {
   map (fun me: VectorPairEdge -> fst me) mes
@@ -266,6 +269,21 @@ def mkGraph(mes: [VectorPairEdge]) -> [Edge] = {
 
 def mkVarsList(mes: [VectorPairEdge]) -> [(SRMatrix, SRMatrix)] = {
   map (fun me: VectorPairEdge -> snd me) mes
+}
+
+def getElectricalEdges(e: Equations) -> ([ScalarPairEdge], Equations) = {
+  def work(e: Equations, a: ([ScalarPairEdge], Equations))
+    -> ([ScalarPairEdge], Equations) = {
+
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | translationEdge n_1 n_2 (sval x: <Real>) (sval y: <Real>) ->
+        (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+
+  };
+
+  work e ([], NoEqn)
 }
 
 def getTranslationEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
@@ -289,6 +307,20 @@ def getAngularVelocityEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | angularVelocityEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) ->
+        (((n_1, n_2), (x, y))::(fst a), snd a)
+    | _ -> (fst a, (snd a); e)
+  };
+
+  work e ([], NoEqn)
+}
+
+def getRotationalEdges(e: Equations) -> ([VectorPairEdge], Equations) = {
+  def work(e: Equations, a: ([VectorPairEdge], Equations))
+    -> ([VectorPairEdge], Equations) = {
+
+    match e with
+    | e_1; e_2 -> work e_2 (work e_1 a)
+    | rotationalEdge n_1 n_2 (sval x: SRMatrix) (sval y: SRMatrix) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
@@ -384,6 +416,14 @@ def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn),
       }) isvs
 }
 
+def mkPriScndVarsRelScalar(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>])
+  -> [(<Real>, <Real>)] = {
+
+  def uop(c: Int, v: <Real>) -> <Real> = { - (int2real c) * v };
+  def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l - (int2real c) * r };
+  mkPriScndVarsRel uop bop 0. C svs pvs
+}
+
 def mkPriScndVarsRelVector3(C: MatrixMapInt, svs: [SRMatrix], pvs: [SRMatrix])
   -> [(SRMatrix, SRMatrix)] = {
 
@@ -403,6 +443,20 @@ def mkPriScndVarsRelQuaternion(C: MatrixMapInt, sqs: [SRMatrix],
   mkPriScndVarsRel uop bop (mkQuaternion idq) C sqs pqs
 }
 
+def mkScalarCutsetRelation(Ays: (MatrixMapInt, ([<Real>], [<Real>])))
+  -> [(<Real>, <Real>)] = {
+
+  def (A, (y_t, y_c)) = Ays;
+  mkPriScndVarsRelScalar A y_t y_c
+}
+
+def mkScalarCircuitRelation(Bxs: (MatrixMapInt, ([<Real>], [<Real>])))
+  -> [(<Real>, <Real>)] = {
+
+  def (B, (x_t, x_c)) = Bxs;
+  mkPriScndVarsRelScalar B x_c x_t
+}
+
 def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
   -> [(SRMatrix, SRMatrix)] = {
 
@@ -417,8 +471,8 @@ def mkVector3CircuitRelation(Bxs: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
   mkPriScndVarsRelVector3 B x_c x_t
 }
 
-def mkCutsetCircuitData(mes: [VectorPairEdge]) -> ((MatrixMapInt,
-  ([SRMatrix], [SRMatrix])), (MatrixMapInt, ([SRMatrix], [SRMatrix]))) = {
+def mkCutsetCircuitData(mes: [Dyn]) -> ((MatrixMapInt,
+  ([Dyn], [Dyn])), (MatrixMapInt, ([Dyn], [Dyn]))) = {
 
   def (A, (T, C)) = mkCutsetMatrix mes;
   def B = -tr A;
@@ -440,7 +494,7 @@ def mkCircuitData(mies: [VectorEdge]) -> (MatrixMapInt, ([Dyn], [Dyn])) = {
 
 type MkEqsFun = (MatrixMapInt, ([Dyn], [Dyn])) -> Equations -> Equations
 
-def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [VectorPairEdge],
+def mkTopolEquations(f_a: MkEqsFun, f_t: MkEqsFun, mes: [Dyn],
   a: Equations) -> Equations = {
 
   if isEmpty mes then a else {
@@ -456,6 +510,22 @@ def mkTopolInitEquations(f_a: MkEqsFun, mies: [VectorEdge], a: Equations)
     def (B, (x_t, x_c)) = mkCircuitData mies;
     f_a (B, (x_c, x_t)) a
   }
+}
+
+def mkScalarTopolEquations(Cvs: (MatrixMapInt, ([<Real>], [<Real>])),
+  a: Equations) -> Equations = {
+
+  def (C, (svs, pvs)) = Cvs;
+  def rs = mkPriScndVarsRelScalar C svs pvs;
+
+  def work(rs: [(<Real>, <Real>)], a: Equations) -> Equations = {
+    match rs with
+    | [] -> a
+    | r::rs -> work rs (a; fst r = snd r)
+    | _ -> error "Unmatched"
+  };
+
+  work rs a
 }
 
 def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])),
@@ -502,9 +572,14 @@ def removeTrivialEquations(e: Equations) -> Equations = {
 }
 
 def elaborate(e: Equations) -> Equations = {
+  def (ees, e) = getElectricalEdges e;
   def (tes, e) = getTranslationEdges e;
   def (aves, e) = getAngularVelocityEdges e;
   def (ries, e) = getRotationInitEdges e;
+
+  def e = mkTopolEquations mkScalarTopolEquations
+            mkScalarTopolEquations ees e;
+
   def e = mkTopolEquations mkVector3TopolEquations
             mkVector3TopolEquations tes e;
 
