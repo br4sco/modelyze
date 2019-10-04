@@ -975,3 +975,54 @@ def rotationalSpringEAA(k: Real, q: SRMatrix, world: Frame,
   def T = mkVector3 Tk1 Tk2 Tk3;
   rotationalSpringEAA k q world f1 f2
 }
+
+type FrameFunEquations1 = Frame -> Equations
+type FrameFunEquations2 = Frame -> Frame -> Equations
+
+def inParallel(l: FrameFunEquations2, r: FrameFunEquations2,
+  f_1: Frame, f_2: Frame) -> Equations = {
+
+  l f_1 f_2; r f_1 f_2
+}
+def (||) = inParallel
+
+def inSeries(l: Frame, r: FrameFunEquations1) -> Equations = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFunEquations1, r: Frame) -> Equations = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: Frame, r: FrameFunEquations2) -> FrameFunEquations1 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFunEquations1, r: FrameFunEquations2) = {
+  fun f_2: Frame ->
+      def f_1: Frame;
+      l f_1; r f_1 f_2
+}
+def (--) = inSeries
+
+def inSeriesExposeFrame(l: FrameFunEquations2, f_2: Frame) = {
+  (l, f_2)
+}
+def (-.-) = inSeriesExposeFrame
+
+def inSeriesExposeFrame(lf_2: (FrameFunEquations2, Frame), r: FrameFunEquations2) = {
+  fun f_1: Frame -> fun f_3: Frame ->
+      def (l, f_2) = lf_2;
+      l f_1 f_2; r f_2 f_3
+}
+def (-.-) = inSeriesExposeFrame
+
+def inSeries(l: FrameFunEquations2, r: FrameFunEquations2) = {
+  fun f_1: Frame -> fun f_3: Frame ->
+    def f_2: Frame;
+    l f_1 f_2;r f_2 f_3
+}
+def (--) = inSeries

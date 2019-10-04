@@ -298,7 +298,7 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
   x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
 
   fun fm: Frame ->
-    equationsElement (body m Jd x q world fm) ++ visualElement x q vd
+    equationsElement (world -- body m Jd x q -- fm) ++ visualElement x q vd
 }
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
