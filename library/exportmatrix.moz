@@ -19,7 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 */
 
-include MBMLANGCOREMATRIX
+include GRAPHSIMCORE
 include Base
 
 def MODEL_FILENAME = "/tmp/model.mo"
