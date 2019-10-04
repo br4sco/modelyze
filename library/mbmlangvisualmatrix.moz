@@ -37,10 +37,8 @@ def invisible: VisualData
 def visualSolid: Geometry3D -> Material -> VisualData
 def visualAxes: Real -> VisualData
 
-type ModelElement
-def (++) : ModelElement -> ModelElement -> ModelElement
 def visualElement: SRMatrix -> SRMatrix -> VisualData -> ModelElement
-def equationsElement: Equations -> ModelElement
+def equationsElement: ModelElement -> ModelElement
 def NoElement: ModelElement
 
 type FrameFun1 = Frame -> ModelElement
@@ -49,7 +47,7 @@ type FrameFun2 = Frame -> Frame -> ModelElement
 def inParallel(l: FrameFun2, r: FrameFun2,
   f_1: Frame, f_2: Frame) -> ModelElement = {
 
-  l f_1 f_2 ++ r f_1 f_2
+  l f_1 f_2 ; r f_1 f_2
 }
 def (||) = inParallel
 
@@ -71,7 +69,7 @@ def (--) = inSeries
 def inSeries(l: FrameFun1, r: FrameFun2) = {
   fun f_2: Frame ->
       def f_1: Frame;
-      l f_1 ++ r f_1 f_2
+      l f_1 ; r f_1 f_2
 }
 def (--) = inSeries
 
@@ -83,14 +81,14 @@ def (-.-) = inSeriesExposeFrame
 def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
   fun f_1: Frame -> fun f_3: Frame ->
       def (l, f_2) = lf_2;
-      l f_1 f_2 ++ r f_2 f_3
+      l f_1 f_2 ; r f_2 f_3
 }
 def (-.-) = inSeriesExposeFrame
 
 def inSeries(l: FrameFun2, r: FrameFun2) = {
   fun f_1: Frame -> fun f_3: Frame ->
     def f_2: Frame;
-    l f_1 f_2 ++ r f_2 f_3
+    l f_1 f_2 ; r f_2 f_3
 }
 def (--) = inSeries
 
@@ -178,7 +176,7 @@ def visualData2Json(d: VisualData) -> String = {
 def visualElement2Json(o: ModelElement) -> String = {
   def work(o: ModelElement) -> String = {
     match o with
-    | o_1 ++ o_2 -> work o_1 ++ ", " ++ work o_2
+    | o_1 ; o_2 -> work o_1 ++ ", " ++ work o_2
     | visualElement (sval v: SRMatrix)  (sval q: SRMatrix) vd -> {
         def (x, y, z) = toRealVector3 v;
         def (w, i, j, k) = toRealQauternion q;
@@ -201,9 +199,9 @@ def visualElement2Json(o: ModelElement) -> String = {
 def getVisibleVisualElements(o: ModelElement) -> ModelElement = {
   def work(o: ModelElement, a: ModelElement) -> ModelElement = {
     match o with
-    | o_1 ++ o_2 -> work o_2 (work o_1 a)
+    | o_1 ; o_2 -> work o_2 (work o_1 a)
     | visualElement _ _ invisible -> a
-    | visualElement _ _ _ -> a ++ o
+    | visualElement _ _ _ -> a ; o
     | _ -> a
   };
   work o NoElement
@@ -211,27 +209,27 @@ def getVisibleVisualElements(o: ModelElement) -> ModelElement = {
 
 def cleanupModelElements(o: ModelElement) -> ModelElement = {
     match o with
-    | o_1 ++ o_2 -> {
+    | o_1 ; o_2 -> {
           match (cleanupModelElements o_1, cleanupModelElements o_2) with
           | (NoElement, NoElement) -> NoElement
           | (NoElement, o) -> o
           | (o, NoElement) -> o
-          | (o_1b,o_2b) -> o_1b ++ o_2b
+          | (o_1b,o_2b) -> o_1b ; o_2b
        }
     | _ -> o
 }
 
-def getModel(o: ModelElement) -> Equations = {
-  def work(o: ModelElement, a: Equations) -> Equations = {
+def getModel(o: ModelElement) -> ModelElement = {
+  def work(o: ModelElement, a: ModelElement) -> ModelElement = {
     match o with
-    | o_1 ++ o_2 -> (work o_2 (work o_1 a))
+    | o_1 ; o_2 -> (work o_2 (work o_1 a))
     | equationsElement e -> a; e
     | _ -> a
   };
   work o NoEqn
 }
 
-def elaborateToFile(exportfun: (Equations -> ()), o: ModelElement) -> () = {
+def elaborateToFile(exportfun: (ModelElement -> ()), o: ModelElement) -> () = {
   def m = elaborate (getModel o);
   def vo = getVisibleVisualElements o;
   def vo = cleanupModelElements vo;
@@ -298,7 +296,7 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
   x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
 
   fun fm: Frame ->
-    equationsElement (world -- body m Jd x q -- fm) ++ visualElement x q vd
+    equationsElement (world -- body m Jd x q -- fm) ; visualElement x q vd
 }
 
 def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
@@ -306,7 +304,7 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
 
   fun fm: Frame ->
     def (x, q) = _mkBodyVars ();
-    body1 world m Jd vd x q fm ++
+    body1 world m Jd vd x q fm ;
     equationsElement (norm2 q ~= 1.; q <~~ mkQuaternion q0)
 }
 
@@ -315,7 +313,7 @@ def body1(world: Frame, m: Real, Jd: RealVector3, vd: VisualData)
 
   fun fm: Frame ->
     def (x, q) = _mkBodyVars ();
-    body1 world m Jd vd x q fm ++ equationsElement (norm2 q ~= 1.)
+    body1 world m Jd vd x q fm ; equationsElement (norm2 q ~= 1.)
 }
 
 def gravity1(world: Frame, m: Real) -> FrameFun1 = {
@@ -338,7 +336,7 @@ def sphericalJoint1(world: Frame, vd: VisualData) -> FrameFun2 = {
                       ; q == mkQuaternion idq
                       ; q <~~ mkQuaternion idq
                      )
-    ++ visualElement x q vd
+    ; visualElement x q vd
 }
 
 def sphericalJoint1(world: Frame, r: Real, c: Color, o: Real) -> FrameFun2 = {
@@ -358,7 +356,7 @@ def revoluteJoint1(world: Frame, u: RealVector3, vd: VisualData,
                       ; revoluteJoint u q world f1 f2
                       ; q <~~ mkQuaternion q0
                      )
-    ++ visualElement x q vd
+    ; visualElement x q vd
 }
 
 def revoluteJoint1(world: Frame, r: Real, h: Real, c: Color, o: Real,
@@ -385,14 +383,14 @@ def rigidArm1(world: Frame, r: RealVector3, q: SRMatrix) -> FrameFun2 = {
 def rigidArm1(world: Frame, r: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def q = _mkRigidArmVar ();
-    rigidArm1 world r q f1 f2 ++
+    rigidArm1 world r q f1 f2 ;
     equationsElement (q <~~ mkQuaternion q0; norm2 q ~= 1.)
 }
 
 def rigidArm1(world: Frame, r: RealVector3) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def q = _mkRigidArmVar ();
-    rigidArm1 world r q f1 f2 ++ equationsElement (norm2 q ~= 1.)
+    rigidArm1 world r q f1 f2 ; equationsElement (norm2 q ~= 1.)
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
@@ -405,8 +403,8 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
     def larm = rigidArm1 world (-w / 2., 0., 0.) qr;
     def rarm = rigidArm1 world (-w / 2., 0., 0.) ql;
     fw -- larm  -.- fm -.- rarm -- fe
-    ++ body1 world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) xm qm fm
-    ++ gravity1 world m fm
+    ; body1 world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) xm qm fm
+    ; gravity1 world m fm
 
 }
 
@@ -417,7 +415,7 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
     def qr = _mkRigidArmVar ();
     def ql = _mkRigidArmVar ();
     bar1 world m w h d c o x q ql qr fw fe
-    ++ equationsElement (qr~== q; ql ~== q)
+    ; equationsElement (qr~== q; ql ~== q)
 }
 
 def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
@@ -429,7 +427,7 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real,
     def (x, q) = _mkBodyVars ();
     // bar1 world m w h d c o x q ql qr fw fe
     bar1 world m w h d c o x q fw fe
-    ++ equationsElement (norm2 q ~= 1. ; q <~~ mkQuaternion q0
+    ; equationsElement (norm2 q ~= 1. ; q <~~ mkQuaternion q0
                          // ; norm2 ql ~= 1. ; ql <~~ mkQuaternion q0
                          // ; norm2 qr ~= 1. ; qr <~~ mkQuaternion q0
                         )
@@ -440,7 +438,7 @@ def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Real)
 
   fun fw: Frame -> fun fe: Frame ->
     def (x, q) = _mkBodyVars ();
-    bar1 world m w h d c o x q fw fe ++ equationsElement (norm2 q ~= 1.)
+    bar1 world m w h d c o x q fw fe ; equationsElement (norm2 q ~= 1.)
 }
 
 def sphere1(world: Frame, m: Real, r: Real, c: Color, o: Real,
@@ -449,7 +447,7 @@ def sphere1(world: Frame, m: Real, r: Real, c: Color, o: Real,
   fun fm: Frame ->
     def Jd = mkSphericalInertia m r;
     body1 world m Jd (visualSolid (sphere r) (stdMaterial c o)) x q fm
-    ++ gravity1 world m fm
+    ; gravity1 world m fm
 }
 
 def translationalSpring1(k: Real, s: Real) -> FrameFun2 = {
