@@ -44,7 +44,7 @@ def (<-): Real -> Real -> ModelElement
 def (<~): Real -> Real -> ModelElement
 def (~=): Real -> Real -> ModelElement
 def probe: Real -> ModelElement
-def NoEqn: ModelElement
+def NoElement: ModelElement
 
 type Frame = Node
 
@@ -283,7 +283,7 @@ def getElectricalEdges(e: ModelElement) -> ([ScalarPairEdge], ModelElement) = {
 
   };
 
-  work e ([], NoEqn)
+  work e ([], NoElement)
 }
 
 def getTranslationEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement) = {
@@ -297,7 +297,7 @@ def getTranslationEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement) = {
     | _ -> (fst a, (snd a); e)
   };
 
-  work e ([], NoEqn)
+  work e ([], NoElement)
 }
 
 def getAngularVelocityEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement) = {
@@ -311,7 +311,7 @@ def getAngularVelocityEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement)
     | _ -> (fst a, (snd a); e)
   };
 
-  work e ([], NoEqn)
+  work e ([], NoElement)
 }
 
 def getRotationalEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement) = {
@@ -325,7 +325,7 @@ def getRotationalEdges(e: ModelElement) -> ([VectorPairEdge], ModelElement) = {
     | _ -> (fst a, (snd a); e)
   };
 
-  work e ([], NoEqn)
+  work e ([], NoElement)
 }
 
 def getRotationInitEdges(e: ModelElement) -> ([VectorEdge], ModelElement) = {
@@ -338,7 +338,7 @@ def getRotationInitEdges(e: ModelElement) -> ([VectorEdge], ModelElement) = {
     | _ -> (fst a, (snd a); e)
   };
 
-  work e ([], NoEqn)
+  work e ([], NoElement)
 }
 
 def mkCutsetMatrix(mes: [Dyn]) -> (MatrixMapInt, (Dyn, Dyn)) = {
@@ -563,7 +563,7 @@ def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt,
 def removeTrivialEquations(e: ModelElement) -> ModelElement = {
   match e with
   | e_1; e_2 -> removeTrivialEquations e_1; removeTrivialEquations e_2
-  | (sval l: Real) = (sval r: Real) -> if l == r then NoEqn
+  | (sval l: Real) = (sval r: Real) -> if l == r then NoElement
                                        else {
                                         def _ = dprintln e;
                                         error "Inconsistent Equation"
