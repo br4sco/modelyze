@@ -28,7 +28,7 @@ def NAME = "Model"
 type InitValMap = (<Real> => (Real, Bool))
 type VarNameMap = (<Real> => String)
 
-def getUknowns(e: ModelElement) -> Set(<Real>) = {
+def getUknowns(e: Model) -> Set(<Real>) = {
   def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
     | e_1 e_2 -> workMore e_2 (workMore e_1 a)
@@ -36,7 +36,7 @@ def getUknowns(e: ModelElement) -> Set(<Real>) = {
     | _ -> a
   };
 
-  def work(e: ModelElement, a: Set(<Real>)) -> Set(<Real>) = {
+  def work(e: Model, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
@@ -46,8 +46,8 @@ def getUknowns(e: ModelElement) -> Set(<Real>) = {
   work e (Set.empty)
 }
 
-def getInitalValMap(e: ModelElement) -> InitValMap = {
-  def work(e: ModelElement, a: InitValMap) -> InitValMap = {
+def getInitalValMap(e: Model) -> InitValMap = {
+  def work(e: Model, a: InitValMap) -> InitValMap = {
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
     | u <- r -> {
@@ -82,8 +82,8 @@ def getInitalValMap(e: ModelElement) -> InitValMap = {
   work e (Map.empty)
 }
 
-def getProbedUknowns(e: ModelElement) -> Set(<Real>) = {
-  def work(e: ModelElement, a: Set(<Real>)) -> Set(<Real>) = {
+def getProbedUknowns(e: Model) -> Set(<Real>) = {
+  def work(e: Model, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
     | probe x -> Set.add x a
     | e_1; e_2 -> work e_2 (work e_1 a)
@@ -147,21 +147,21 @@ def pprintUnknowns(ivm: InitValMap, probed: Set(<Real>), us: Set(<Real>)) -> Str
   foldLeft f "" us
 }
 
-def pprintInitEqs(e: ModelElement) -> String = {
+def pprintInitEqs(e: Model) -> String = {
   match e with
   | e_1; e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
   | e_1 ~= e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
   | _ -> ""
 }
 
-def pprintEqs(e: ModelElement) -> String  = {
+def pprintEqs(e: Model) -> String  = {
   match e with
   | e_1; e_2 -> pprintEqs e_1 ++ pprintEqs e_2
   | e_1 = e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
   | _ -> ""
 }
 
-def export2ModelicaDebug(e: ModelElement) -> String = {
+def export2ModelicaDebug(e: Model) -> String = {
   def ivm = getInitalValMap e;
   def us = getUknowns e;
 
@@ -174,11 +174,11 @@ def export2ModelicaDebug(e: ModelElement) -> String = {
   ++ "end " ++ NAME ++ ";\n"
 }
 
-def export2ModelicaFileDebug(e: ModelElement) -> () = {
+def export2ModelicaFileDebug(e: Model) -> () = {
   writeFile MODEL_FILENAME (export2ModelicaDebug e ++ "\n");
 }
 
-def export2Modelica(e: ModelElement) -> String = {
+def export2Modelica(e: Model) -> String = {
   def probed = getProbedUknowns e;
   def ivm = getInitalValMap e;
    def us = getUknowns e;
@@ -193,18 +193,18 @@ def export2Modelica(e: ModelElement) -> String = {
   ++ "end " ++ NAME ++ ";\n"
 }
 
-def export2ModelicaFile(e: ModelElement) -> () = {
+def export2ModelicaFile(e: Model) -> () = {
   writeFile MODEL_FILENAME (export2Modelica e ++ "\n");
 }
 
-// def export2Matlab(e: ModelElement) -> String = {
+// def export2Matlab(e: Model) -> String = {
 
 //   def r2mr(r: Real) -> String = {
 //       if r < 0. then "(" ++ real2string r  ++ ")"
 //       else real2string r
 //   };
 
-//   def pprintUnknowns(e: ModelElement) -> String = {
+//   def pprintUnknowns(e: Model) -> String = {
 //     def f(a: String, u: <Real>) -> String = {
 //       a ++ " " ++ symstr(u) ++ "(t)"
 //     };
@@ -241,7 +241,7 @@ def export2ModelicaFile(e: ModelElement) -> () = {
 //       | _ -> error "Unmatched"
 //   };
 
-//   def pprintEqs(e: ModelElement) -> String  = {
+//   def pprintEqs(e: Model) -> String  = {
 //     match e with
 //     | e_1; e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
 //     | e_1 = e_2 -> pprintExpr e_1 ++ " == " ++ pprintExpr e_2

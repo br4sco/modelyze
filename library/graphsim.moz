@@ -1,0 +1,42 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include GRAPHSIMCORE
+include GRAPHSIMMECHANICAL
+include GRAPHSIMELECTRICAL
+
+def elaborate(e: Model) -> Model = {
+  def (ees, e) = getElectricalEdges e;
+  def (tes, e) = getTranslationEdges e;
+  def (aves, e) = getAngularVelocityEdges e;
+  // def (ries, e) = getRotationInitEdges e;
+
+  def e = mkTopolEquations mkScalarTopolEquations
+            mkScalarTopolEquations ees e;
+
+  def e = mkTopolEquations mkVector3TopolEquations
+            mkVector3TopolEquations tes e;
+
+  def e = mkTopolEquations mkVector3TopolEquations
+            mkVector3TopolEquations aves e;
+
+  // def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
+  removeTrivialEquations e
+}
