@@ -188,30 +188,30 @@ def _mkBodyVars(t: ()) = {
   (x, q)
 }
 
-def visBody(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
+def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
   x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
 
   fun fm: Frame ->
     visualObject x q vd;
-    world -- body m Jd x q -- fm
+    world -- Body m Jd x q -- fm
 }
 
-def visBody(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
+def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
   q0: RealQuaternion) -> FrameFun1 = {
 
   fun fm: Frame ->
     def (x, q) = _mkBodyVars ();
-    visBody world m Jd vd x q fm;
+    BodyV world m Jd vd x q fm;
     norm2 q ~= 1.;
     q <~~ mkQuaternion q0
 }
 
-def visBody(world: Frame, m: Real, Jd: RealVector3, vd: VisualData)
+def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData)
   -> FrameFun1 = {
 
   fun fm: Frame ->
     def (x, q) = _mkBodyVars ();
-    visBody world m Jd vd x q fm;
+    BodyV world m Jd vd x q fm;
     norm2 q ~= 1.
 }
 
@@ -221,115 +221,91 @@ def _mkTransSensVar(t: ()) = {
   x
 }
 
-def visSphericalJoint(world: Frame, vd: VisualData) -> FrameFun2 = {
+def SphericalJointV(world: Frame, vd: VisualData) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def x = _mkTransSensVar ();
     def q = mkQuaternion ();
-    sphericalJoint f1 f2;
-    translationSensor x world f1;
+    visualObject x q vd;    
+    f1 -- SphericalJoint -- f2;
+    world -- TranslationSensor x -- f1;
     q == mkQuaternion idq;
-    q <~~ mkQuaternion idq;
-    visualObject x q vd
+    q <~~ mkQuaternion idq
 }
 
-def visSphericalJoint(world: Frame, r: Real, c: Color, o: Opacity) -> FrameFun2 = {
-  visSphericalJoint world (visualSolid (sphere r) (stdMaterial c o))
+def SphericalJointV(world: Frame, r: Real, c: Color, o: Opacity) -> FrameFun2 = {
+  SphericalJointV world (visualSolid (sphere r) (stdMaterial c o))
 }
 
-def visRevoluteJoint(world: Frame, u: RealVector3, vd: VisualData,
+def RevoluteJointV(world: Frame, u: RealVector3, vd: VisualData,
   q0: RealQuaternion) -> FrameFun2 = {
 
   fun f1: Frame -> fun f2: Frame ->
     def qrj1, qrj2, qrj3, qrj4: Real;
     def q = mkQuaternion qrj1 qrj2 qrj3 qrj4;
     def x = _mkTransSensVar ();
-    sphericalJoint f1 f2;
-    translationSensor x world f1;
-    revoluteJoint u q world f1 f2;
-    q <~~ mkQuaternion q0;
-    visualObject x q vd
+    visualObject x q vd;
+    f1 -- (RevoluteJoint u q world || SphericalJoint) -- f2;    
+    world -- TranslationSensor x -- f1;
+    q <~~ mkQuaternion q0
 }
 
-def visRevoluteJoint(world: Frame, r: Real, h: Real, c: Color, o: Opacity,
+def RevoluteJointV(world: Frame, r: Real, h: Real, c: Color, o: Opacity,
   u: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
 
-  visRevoluteJoint world u (visualSolid (cylinder r h u) (stdMaterial c o)) q0
+  RevoluteJointV world u (visualSolid (cylinder r h u) (stdMaterial c o)) q0
 }
 
-def _mkRigidArmVar(t: ()) = {
-  def qra1, qra2, qra3, qra4: Real;
-  def q = mkQuaternion qra1 qra2 qra3 qra4;
-  q
-}
-
-def rigidArm1(world: Frame, r: RealVector3, q: SRMatrix) -> FrameFun2 = {
-  fun f1: Frame -> fun f2: Frame ->
-    rigidArm r q world f1 f2
-}
-
-def rigidArm1(world: Frame, r: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
-  fun f1: Frame -> fun f2: Frame ->
-    def q = _mkRigidArmVar ();
-    rigidArm1 world r q f1 f2 ;
-    q <~~ mkQuaternion q0; norm2 q ~= 1.
-}
-
-def rigidArm1(world: Frame, r: RealVector3) -> FrameFun2 = {
-  fun f1: Frame -> fun f2: Frame ->
-    def q = _mkRigidArmVar ();
-    rigidArm1 world r q f1 f2 ; norm2 q ~= 1.
-}
-
-def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
+def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
   xm: SRMatrix, qm: SRMatrix, ql: SRMatrix, qr: SRMatrix) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def fm: Frame;
     def Jd = mkCuboidInertia m w h d;
-    // def Jd = (1., 2., 3.);
-    def larm = rigidArm1 world (-w / 2., 0., 0.) qr;
-    def rarm = rigidArm1 world (-w / 2., 0., 0.) ql;
-    fw -- larm  -.- fm -.- rarm -- fe
-    ; visBody world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) xm qm fm
-    ; gravity world m fm
+    def larm = RigidArm world (-w / 2., 0., 0.) qr;
+    def rarm = RigidArm world (-w / 2., 0., 0.) ql;
+    fw -- larm  -.- fm -.- rarm -- fe;
+    BodyV world m Jd (visualSolid (cuboid w h d) (stdMaterial c o)) xm qm fm;
+    Gravity world m fm
 
 }
 
-def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
+def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
   x: SRMatrix, q: SRMatrix) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def qr = _mkRigidArmVar ();
     def ql = _mkRigidArmVar ();
-    bar1 world m w h d c o x q ql qr fw fe
-    ; qr~== q; ql ~== q
+    fw -- BarV world m w h d c o x q ql qr -- fe;
+    qr ~== q;
+    ql ~== q
 }
 
-def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
+def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
   q0: RealQuaternion) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def qr = _mkRigidArmVar ();
     def ql = _mkRigidArmVar ();
     def (x, q) = _mkBodyVars ();
-    bar1 world m w h d c o x q fw fe;
-    norm2 q ~= 1. ;
+    fw -- BarV world m w h d c o x q -- fe;
+    norm2 q ~= 1.;
     q <~~ mkQuaternion q0
 }
 
-def bar1(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity)
+def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity)
   -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def (x, q) = _mkBodyVars ();
-    bar1 world m w h d c o x q fw fe ; norm2 q ~= 1.
+    fw -- BarV world m w h d c o x q -- fe;
+    norm2 q ~= 1.
 }
 
-def sphere1(world: Frame, m: Real, r: Real, c: Color, o: Opacity,
+def SphereV(world: Frame, m: Real, r: Real, c: Color, o: Opacity,
   x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
 
   fun fm: Frame ->
     def Jd = mkSphericalInertia m r;
-    visBody world m Jd (visualSolid (sphere r) (stdMaterial c o)) x q fm
-    ; gravity world m fm
+    BodyV world m Jd (visualSolid (sphere r) (stdMaterial c o)) x q fm;
+    Gravity world m fm
 }

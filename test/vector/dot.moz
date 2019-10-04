@@ -1,4 +1,4 @@
-include MBMLANGCOREMATRIX
+include GRAPHSIMMECHANICAL
 
 def xh = mkVector3 xhat
 def yh = mkVector3 yhat

@@ -1,4 +1,4 @@
-include MBMLANGCOREMATRIX
+include GRAPHSIMMECHANICAL
 
 def x, y, z: Real
 def v = mkVector3 1. 2. 3.

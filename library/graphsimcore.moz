@@ -272,7 +272,7 @@ def removeTrivialEquations(e: Model) -> Model = {
   | _ -> e
 }
 
-def clock(t0: Real, t: <Real>) -> Model = {
+def Clock(t0: Real, t: <Real>) -> Model = {
   t' = 1.;
   t <- t0
 }
