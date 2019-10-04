@@ -78,6 +78,15 @@ def mkTestQuaternion(t: ()) -> SRMatrix = {
   mkQuaternion q1_test q2_test q3_test q4_test
 }
 
+def mkTestVars(t: ()) = {
+  def xm1_test, xm2_test, xm3_test,
+    qm1_test, qm2_test, qm3_test, qm4_test: Real;
+
+  def x = mkVector3 xm1_test xm2_test xm3_test;
+  def q = mkQuaternion qm1_test qm2_test qm3_test qm4_test;
+  (x, q)
+}
+
 def toRealVector3(v: SRMatrix) -> (<Real>, <Real>, <Real>) = {
   if dim v != (3, 1) then error EXPECTED_VECTOR3
   else (find (1, 1) v, find (2, 1) v, find (3, 1) v)
@@ -423,7 +432,6 @@ def mkSphericalInertia(m: Real, r: Real) -> RealVector3 = {
   (m * r^2. / 5., m * r^2. / 5., m * r^2. / 5.)
 }
 
-
 def forceActuator(f: SRMatrix, x: SRMatrix, f1: Frame, f2: Frame)
   -> Model = {
 
@@ -499,11 +507,21 @@ def bodyT(m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix,
   F == m *. v';
 }
 
+def bodyT(world: Frame, m: Real, v: SRMatrix, x: SRMatrix, F: SRMatrix,
+  fm: Frame) -> Model = {
+
+  world -- bodyT m v x F -- fm
+}
+
 def bodyT(m: Real, x: SRMatrix, world: Frame, fm: Frame) -> Model = {
   def vm1, vm2, vm3, Fm1, Fm2, Fm3: Real;
   def v = mkVector3 vm1 vm2 vm3;
   def F = mkVector3 Fm1 Fm2 Fm3;
   bodyT m v x F world fm
+}
+
+def bodyT(fm: Frame, m: Real, x: SRMatrix, world: Frame) -> Model = {
+  world -- bodyT m x -- fm
 }
 
 def bodyR(Jd: RealVector3, om: SRMatrix, q: SRMatrix, T: SRMatrix,
@@ -563,6 +581,10 @@ def gravity(m: Real, world: Frame, fm: Frame) -> Model = {
   forceActuator ((m * GRAVITATIONAL_CONSTANT) *. mkVector3 zhat) world fm
 }
 
+def gravity(world: Frame, m: Real, fm: Frame) -> Model = {
+  world -- gravity m -- fm
+}
+
 def sphericalJoint(f1: Frame, f2: Frame) -> Model = {
   translationActuator zero3 f1 f2
 }
@@ -594,7 +616,7 @@ def revoluteJoint(u: RealVector3, q: SRMatrix, world: Frame,
   revoluteJointR (R * u1) (R * u2) (R * u3) f1 f2
 }
 
-def damperR(d: Real, f1: Frame, f2: Frame) -> Model = {
+def rotationDamper(d: Real, f1: Frame, f2: Frame) -> Model = {
   def omd1, omd2, omd3, Td1, Td2, Td3: Real;
   def om = mkVector3 omd1 omd2 omd3;
   def T = mkVector3 Td1 Td2 Td3;
@@ -729,4 +751,14 @@ def rotationalSpringEAA(k: Real, q: SRMatrix, world: Frame,
   def om = mkVector3 omk1 omk2 omk3;
   def T = mkVector3 Tk1 Tk2 Tk3;
   rotationalSpringEAA k q world f1 f2
+}
+
+def rotationalSpring(world: Frame, k: Real, u: RealVector3,
+  q0: RealQuaternion) -> FrameFun2 = {
+
+  fun f1: Frame -> fun f2: Frame ->
+    def q = mkQuaternion ();
+    rotationalSpring k u q world f1 f2;
+    norm2 q ~= 1.;
+    q <~~ mkQuaternion q0
 }
