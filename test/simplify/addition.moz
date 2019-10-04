@@ -1,0 +1,14 @@
+include base
+
+def x, y, z: Real
+
+def _ = dprintln (simplify (x + 0.))
+def _ = dprintln (simplify (0. + x))
+def _ = dprintln (simplify (x + y + 0.))
+def _ = dprintln (simplify (x + 0. + y))
+def _ = dprintln (simplify (-(x + 0. + y)))
+
+def _ = dprintln (simplify (x + 1.))
+def _ = dprintln (simplify (1. + x))
+def _ = dprintln (simplify (x + y + 1.))
+def _ = dprintln (simplify (x + 1. + y))

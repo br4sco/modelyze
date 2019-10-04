@@ -1,0 +1,30 @@
+include base
+
+def x, y, z: Real
+
+def _ = dprintln (simplify (x * 0.))
+def _ = dprintln (simplify (0. * x))
+def _ = dprintln (simplify (x - y * 0.))
+def _ = dprintln (simplify (x * 0. - y))
+def _ = dprintln (simplify (x - 0. * y))
+def _ = dprintln (simplify ((x - y) * 0.))
+def _ = dprintln (simplify (0. * (x - y)))
+def _ = dprintln (simplify (-(x * 0. - y)))
+
+def _ = dprintln (simplify (x * 1.))
+def _ = dprintln (simplify (1. * x))
+def _ = dprintln (simplify (x - y * 1.))
+def _ = dprintln (simplify (x * 1. - y))
+def _ = dprintln (simplify (x - 1. * y))
+def _ = dprintln (simplify ((x - y) * 1.))
+def _ = dprintln (simplify (1. * (x - y)))
+def _ = dprintln (simplify (-(x * 1. - y)))
+
+def _ = dprintln (simplify (x * 2.))
+def _ = dprintln (simplify (2. * x))
+def _ = dprintln (simplify (x - y * 2.))
+def _ = dprintln (simplify (x * 2. - y))
+def _ = dprintln (simplify (x - 2. * y))
+def _ = dprintln (simplify ((x - y) * 2.))
+def _ = dprintln (simplify (2. * (x - y)))
+def _ = dprintln (simplify (-(x * 2. - y)))

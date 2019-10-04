@@ -1,0 +1,7 @@
+include base
+
+def x, y: Real
+
+def _ = dprintln (simplify (-(-x)))
+def _ = dprintln (simplify (-(-x) + y))
+def _ = dprintln (simplify (-(x + y)))

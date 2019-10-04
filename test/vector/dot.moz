@@ -1,8 +1,8 @@
 include GRAPHSIMMECHANICAL
 
-def xh = mkVector3 xhat
-def yh = mkVector3 yhat
-def zh = mkVector3 zhat
+def xh = XHAT
+def yh = YHAT
+def zh = ZHAT
 
 def _ = dprintln (dot xh xh)
 

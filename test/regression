@@ -80,5 +80,6 @@ test_files "matrix"
 test_files "sreal"
 test_files "graph"
 test_files "vector"
+# test_files "simplify"
 
 rm -f test.out

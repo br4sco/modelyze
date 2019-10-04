@@ -20,7 +20,11 @@ written by Oscar Eriksson oerikss@kth.se
 
 include GRAPHSIMCORE
 
-def electricalEdge: Node -> Node -> <Real> -> <Real> -> Model
+type Current = <Real>
+type Voltage = <Real>
+type NodeFun2 = Node -> Node -> Model
+
+def electricalEdge: Node -> Node -> Voltage -> Current -> Model
 
 def getElectricalEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   def work(e: Model, a: ([ScalarPairEdge], Model))
@@ -28,11 +32,37 @@ def getElectricalEdges(e: Model) -> ([ScalarPairEdge], Model) = {
 
     match e with
     | e_1; e_2 -> work e_2 (work e_1 a)
-    | translationEdge n_1 n_2 (sval x: <Real>) (sval y: <Real>) ->
+    | electricalEdge n_1 n_2 x y ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
 
   };
 
   work e ([], NoElement)
+}
+
+def VoltageActuator(f: Voltage, i: Current) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node -> electricalEdge n1 n2 f i
+}
+
+def VoltageActuator(f: Voltage) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def i: Current;
+    n1 -- VoltageActuator f i -- n2
+}
+
+def CurrentActuator(f: Current, u: Voltage) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node -> electricalEdge n1 n2 u f
+}
+
+def CurrentActuator(f: Current) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u: Voltage;
+    n1 -- CurrentActuator f u -- n2
+}
+
+def Resistor(R: Real, u: Voltage, i: Current) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    electricalEdge n1 n2 u i;
+    u = R * i
 }

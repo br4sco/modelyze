@@ -37,6 +37,6 @@ def elaborate(e: Model) -> Model = {
   def e = mkTopolEquations mkVector3TopolEquations
             mkVector3TopolEquations aves e;
 
-  // def e = mkTopolInitEquations mkQuaternionTopolInitEquations ries e;
+  // def e = mkTopolInitEquations quatTopolInitEquations ries e;
   removeTrivialEquations e
 }
