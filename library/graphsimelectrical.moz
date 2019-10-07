@@ -30,7 +30,7 @@ def getElectricalEdges(e: Model) -> ([ScalarPairEdge], Model) = {
     -> ([ScalarPairEdge], Model) = {
 
     match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
     | electricalEdge n_1 n_2 x y ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)

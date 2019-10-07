@@ -26,12 +26,21 @@ def der: Real -> Real
 def (') = der
 
 type Model
-def (;): Model -> Model -> Model
+def Comp: Model -> Model -> Model
+def (;) = Comp
+
 def Eq: Real -> Real -> Model
 def (=) = Eq
-def (<-): Real -> Real -> Model
-def (<~): Real -> Real -> Model
-def (~=): Real -> Real -> Model
+
+def IVal: Real -> Real -> Model
+def (<-) = IVal
+
+def IValGuess: Real -> Real -> Model
+def (<~) = IValGuess
+
+def IEq: Real -> Real -> Model
+def (~=) = IEq
+
 def probe: Real -> Model
 def NoElement: Model
 
@@ -252,7 +261,7 @@ def mkScalarTopolEquations(Cvs: (MatrixMapInt, ([<Real>], [<Real>])),
 
 def removeTrivialEquations(e: Model) -> Model = {
   match e with
-  | e_1; e_2 -> removeTrivialEquations e_1; removeTrivialEquations e_2
+  | Comp e_1 e_2 -> removeTrivialEquations e_1; removeTrivialEquations e_2
   | (sval l: Real) = (sval r: Real) -> if l == r then NoElement
                                        else {
                                          def _ = dprintln e;

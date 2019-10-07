@@ -42,8 +42,8 @@ def getUknowns(e: Model) -> Set(<Real>) = {
 def getInitalValMap(e: Model) -> InitValMap = {
   def work(e: Model, a: InitValMap) -> InitValMap = {
     match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
-    | u <- r -> {
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
+    | IVal u r -> {
         match (u, r) with
         | (sym: Real, sval r: Real) -> {
             if Map.mem u a then {
@@ -54,7 +54,7 @@ def getInitalValMap(e: Model) -> InitValMap = {
           }
         | _ -> error "Invalid initial value assignment"
       }
-    | u <~ r -> {
+    | IValGuess u r -> {
         match (u, r) with
         | (sym: Real, sval r: Real) -> {
             if Map.mem u a then {
@@ -79,7 +79,7 @@ def getProbedUknowns(e: Model) -> Set(<Real>) = {
   def work(e: Model, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
     | probe x -> Set.add x a
-    | e_1; e_2 -> work e_2 (work e_1 a)
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
     | _ -> a
   };
   work e (Set.empty)
@@ -142,14 +142,14 @@ def pprintUnknowns(ivm: InitValMap, probed: Set(<Real>), us: Set(<Real>)) -> Str
 
 def pprintInitEqs(e: Model) -> String = {
   match e with
-  | e_1; e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
-  | e_1 ~= e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+  | Comp e_1 e_2 -> pprintInitEqs e_1 ++ pprintInitEqs e_2
+  | IEq e_1 e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
   | _ -> ""
 }
 
 def pprintEqs(e: Model) -> String  = {
   match e with
-  | e_1; e_2 -> pprintEqs e_1 ++ pprintEqs e_2
+  | Comp e_1 e_2 -> pprintEqs e_1 ++ pprintEqs e_2
   | Eq e_1 e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
   | _ -> ""
 }
@@ -236,7 +236,7 @@ def export2ModelicaFile(e: Model) -> () = {
 
 //   def pprintEqs(e: Model) -> String  = {
 //     match e with
-//     | e_1; e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
+//     | Comp e_1 e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
 //     | e_1 = e_2 -> pprintExpr e_1 ++ " == " ++ pprintExpr e_2
 //     | _ -> ""
 //   };

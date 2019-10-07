@@ -112,7 +112,7 @@ def visualData2Json(d: VisualData) -> String = {
 def visualObject2JSON(m: Model) -> String = {
   def work(m: Model) -> String = {
     match m with
-    | m_1 ; m_2 -> work m_1 ++ ", " ++ work m_2
+    | Comp m_1 m_2 -> work m_1 ++ ", " ++ work m_2
     | visualObject (sval x: Position)  (sval q: Orientation) vd -> {
         def (x, y, z) = toRealVector3 x;
         def (w, i, j, k) = toRealQauternion q;
@@ -135,7 +135,7 @@ def visualObject2JSON(m: Model) -> String = {
 def getVisibleVisualObjects(m: Model) -> Model = {
   def work(m: Model, a: Model) -> Model = {
     match m with
-    | m_1 ; m_2 -> work m_2 (work m_1 a)
+    | Comp m_1 m_2 -> work m_2 (work m_1 a)
     | visualObject _ _ invisible -> a
     | visualObject _ _ _ -> a ; m
     | _ -> a
@@ -145,7 +145,7 @@ def getVisibleVisualObjects(m: Model) -> Model = {
 
 def cleanupModel(m: Model) -> Model = {
     match m with
-    | m_1 ; m_2 -> {
+    | Comp m_1 m_2 -> {
           match (cleanupModel m_1, cleanupModel m_2) with
           | (NoElement, NoElement) -> NoElement
           | (NoElement, m) -> m
@@ -203,7 +203,7 @@ def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
     def (x, q) = _mkBodyVars ();
     BodyV world m Jd vd x q fm;
     norm2 q ~= 1.;
-    q <~~ quat q0
+    q <~ quat q0
 }
 
 def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData)
@@ -229,7 +229,7 @@ def SphericalJointV(world: Frame, vd: VisualData) -> FrameFun2 = {
     f1 -- SphericalJoint -- f2;
     world -- TranslationSensor x -- f1;
     q = IDQ;
-    q <~~ IDQ
+    q <~ IDQ
 }
 
 def SphericalJointV(world: Frame, r: Real, c: Color, o: Opacity) -> FrameFun2 = {
@@ -246,7 +246,7 @@ def RevoluteJointV(world: Frame, u: RealVector3, vd: VisualData,
     visualObject x q vd;
     f1 -- (RevoluteJoint u q world || SphericalJoint) -- f2;
     world -- TranslationSensor x -- f1;
-    q <~~ quat q0
+    q <~ quat q0
 }
 
 def RevoluteJointV(world: Frame, r: Real, h: Real, c: Color, o: Opacity,
@@ -276,8 +276,8 @@ def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
     def qr = _mkRigidArmVar ();
     def ql = _mkRigidArmVar ();
     fw -- BarV world m w h d c o x q ql qr -- fe;
-    qr ~== q;
-    ql ~== q
+    qr ~= q;
+    ql ~= q
 }
 
 def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
@@ -289,7 +289,7 @@ def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
     def (x, q) = _mkBodyVars ();
     fw -- BarV world m w h d c o x q -- fe;
     norm2 q ~= 1.;
-    q <~~ quat q0
+    q <~ quat q0
 }
 
 def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity)

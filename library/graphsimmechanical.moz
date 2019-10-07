@@ -255,14 +255,14 @@ def vectorInitEqual(l: Vector, r: Vector) -> Model = {
   def f(l: <Real>, r: <Real>) -> Model = { l ~= r };
   vectorFoldHead2 fa f l r
 }
-def (~==) = vectorInitEqual
+def (~=) = vectorInitEqual
 
 def vectorInit(l: Vector, r: Vector) -> Model = {
   def fa(a: Model, e: Model) -> Model = { a; e };
   def f(l: <Real>, r: <Real>) -> Model = { l <~ r };
   vectorFoldHead2 fa f l r
 }
-def (<~~) = vectorInit
+def (<~) = vectorInit
 
 def matrixDer(M: SRMatrix) -> SRMatrix = {
   def f(e: <Real>) -> <Real> = { e' };
@@ -288,7 +288,7 @@ def getTranslationEdges(e: Model) -> ([VectorPairEdge], Model) = {
     -> ([VectorPairEdge], Model) = {
 
     match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
     | translationEdge n_1 n_2 (sval x: Position) (sval y: Force) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
@@ -302,7 +302,7 @@ def getAngularVelocityEdges(e: Model) -> ([VectorPairEdge], Model) = {
     -> ([VectorPairEdge], Model) = {
 
     match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
     | angularVelocityEdge n_1 n_2 (sval x: AngularVelocity) (sval y: Torque) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
@@ -316,7 +316,7 @@ def getRotationalEdges(e: Model) -> ([VectorPairEdge], Model) = {
     -> ([VectorPairEdge], Model) = {
 
     match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
     | rotationalEdge n_1 n_2 (sval x: Orientation) (sval y: Torque) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
@@ -329,7 +329,7 @@ def getRotationalEdges(e: Model) -> ([VectorPairEdge], Model) = {
 //   def work(e: Model, a: ([VectorEdge], Model))
 //     -> ([VectorEdge], Model) = {
 //     match e with
-//     | e_1; e_2 -> work e_2 (work e_1 a)
+//     | Comp e_1 e_2 -> work e_2 (work e_1 a)
 //     | initialRotationEdge n_1 n_2 (sval x: SRMatrix) ->
 //         (((n_1, n_2), x)::(fst a), snd a)
 //     | _ -> (fst a, (snd a); e)
@@ -382,7 +382,7 @@ def mkQuaternionTopolInitEquations(Cvs: (MatrixMapInt,
   def work(rs: [(Quaternion, Quaternion)], a: Model) -> Model = {
     match rs with
     | [] -> a
-    | r::rs -> work rs (a; fst r ~== snd r)
+    | r::rs -> work rs (a; fst r ~= snd r)
     | _ -> error "Unmatched"
   };
 
@@ -592,9 +592,9 @@ def RevoluteJointR(u1: Vector3, u2: Vector3, u3: Vector, om: AngularVelocity,
   T: Torque, f1: Frame, f2: Frame) -> Model = {
 
   angularVelocityEdge f1 f2 om T;
-  (tr u1) * T = ZERO1;
-  (tr u2) * om = ZERO1;
-  (tr u3) * om = ZERO1
+  dot u1 T = 0.;
+  dot u2 om = 0.;
+  dot u3 om = 0.
 }
 
 def RevoluteJointR(u1: Vector3, u2: Vector3, u3: Vector3,
@@ -656,7 +656,7 @@ def RigidArm(world: Frame, r: RealVector3, q0: RealQuaternion) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def q = _mkRigidArmVar ();
     f1 -- RigidArm world r q -- f2;
-    q <~~ quat q0; norm2 q ~= 1.
+    q <~ quat q0; norm2 q ~= 1.
 }
 
 def RigidArm(world: Frame, r: RealVector3) -> FrameFun2 = {
@@ -784,5 +784,5 @@ def RotationalSpring(world: Frame, k: Real, u: RealVector3,
     def q = quat ();
     f1 -- RotationalSpring k u q world -- f2;
     norm2 q ~= 1.;
-    q <~~ quat q0
+    q <~ quat q0
 }
