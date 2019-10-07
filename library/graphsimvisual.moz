@@ -39,7 +39,7 @@ def invisible: VisualData
 def visualSolid: Geometry3D -> Material -> VisualData
 def visualAxes: Real -> VisualData
 
-def visualObject: SRMatrix -> SRMatrix -> VisualData -> Model
+def visualObject: Position -> Position -> VisualData -> Model
 
 def WHITE = "#ffffff"
 def RED = "#ff0000"
@@ -113,8 +113,8 @@ def visualObject2JSON(m: Model) -> String = {
   def work(m: Model) -> String = {
     match m with
     | m_1 ; m_2 -> work m_1 ++ ", " ++ work m_2
-    | visualObject (sval v: SRMatrix)  (sval q: SRMatrix) vd -> {
-        def (x, y, z) = toRealVector3 v;
+    | visualObject (sval x: Position)  (sval q: Orientation) vd -> {
+        def (x, y, z) = toRealVector3 x;
         def (w, i, j, k) = toRealQauternion q;
         "{ " ++
         "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
@@ -189,7 +189,7 @@ def _mkBodyVars(t: ()) = {
 }
 
 def BodyV(world: Frame, m: Real, Jd: RealVector3, vd: VisualData,
-  x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
+  x: Position, q: Orientation) -> FrameFun1 = {
 
   fun fm: Frame ->
     visualObject x q vd;
@@ -225,7 +225,7 @@ def SphericalJointV(world: Frame, vd: VisualData) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def x = _mkTransSensVar ();
     def q = quat ();
-    visualObject x q vd;    
+    visualObject x q vd;
     f1 -- SphericalJoint -- f2;
     world -- TranslationSensor x -- f1;
     q == IDQ;
@@ -244,7 +244,7 @@ def RevoluteJointV(world: Frame, u: RealVector3, vd: VisualData,
     def q = quat qrj1 qrj2 qrj3 qrj4;
     def x = _mkTransSensVar ();
     visualObject x q vd;
-    f1 -- (RevoluteJoint u q world || SphericalJoint) -- f2;    
+    f1 -- (RevoluteJoint u q world || SphericalJoint) -- f2;
     world -- TranslationSensor x -- f1;
     q <~~ quat q0
 }
@@ -256,7 +256,7 @@ def RevoluteJointV(world: Frame, r: Real, h: Real, c: Color, o: Opacity,
 }
 
 def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
-  xm: SRMatrix, qm: SRMatrix, ql: SRMatrix, qr: SRMatrix) -> FrameFun2 = {
+  xm: Position, qm: Orientation, ql: Orientation, qr: Orientation) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def fm: Frame;
@@ -270,7 +270,7 @@ def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
 }
 
 def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity,
-  x: SRMatrix, q: SRMatrix) -> FrameFun2 = {
+  x: Position, q: Orientation) -> FrameFun2 = {
 
   fun fw: Frame -> fun fe: Frame ->
     def qr = _mkRigidArmVar ();
@@ -302,7 +302,7 @@ def BarV(world: Frame, m: Real, w: Real, h: Real, d: Real, c: Color, o: Opacity)
 }
 
 def SphereV(world: Frame, m: Real, r: Real, c: Color, o: Opacity,
-  x: SRMatrix, q: SRMatrix) -> FrameFun1 = {
+  x: Position, q: Orientation) -> FrameFun1 = {
 
   fun fm: Frame ->
     def Jd = mkSphericalInertia m r;

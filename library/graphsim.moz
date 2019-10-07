@@ -19,8 +19,7 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include GRAPHSIMCORE
-include GRAPHSIMMECHANICAL
-include GRAPHSIMELECTRICAL
+include GRAPHSIMELECTROMECHANICAL
 
 def elaborate(e: Model) -> Model = {
   def (ees, e) = getElectricalEdges e;

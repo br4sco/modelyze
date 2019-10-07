@@ -18,7 +18,7 @@ along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 written by Oscar Eriksson oerikss@kth.se
 */
 
-include Graph
+include GRAPH
 
 def EPSILON = 1.e-15
 
