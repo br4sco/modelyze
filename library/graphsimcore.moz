@@ -34,61 +34,63 @@ def (~=): Real -> Real -> Model
 def probe: Real -> Model
 def NoElement: Model
 
-type Frame = Node
+type NodeFun2 = Node -> Node -> Model
+type NodeFun1 = Node -> Model
 
-type FrameFun1 = Frame -> Model
-type FrameFun2 = Frame -> Frame -> Model
+def inParallel(l: NodeFun2, r: NodeFun2,
+  f_1: Node, f_2: Node) -> Model = {
 
-def inParallel(l: FrameFun2, r: FrameFun2,
-  f_1: Frame, f_2: Frame) -> Model = {
-
-  l f_1 f_2 ; r f_1 f_2
+  l f_1 f_2;
+  r f_1 f_2
 }
 def (||) = inParallel
 
-def inSeries(l: Frame, r: FrameFun1) -> Model = {
+def inSeries(l: Node, r: NodeFun1) -> Model = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: FrameFun1, r: Frame) -> Model = {
+def inSeries(l: NodeFun1, r: Node) -> Model = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
+def inSeries(f: Node, r: NodeFun2) -> NodeFun1 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: FrameFun1, r: FrameFun2) = {
-  fun f_2: Frame ->
-      def f_1: Frame;
-      l f_1 ; r f_1 f_2
+def inSeries(l: NodeFun1, r: NodeFun2) = {
+  fun f_2: Node ->
+      def f_1: Node;
+      l f_1 ;
+      r f_1 f_2
 }
 def (--) = inSeries
 
-def inSeriesExposeFrame(l: FrameFun2, f_2: Frame) = {
+def inSeriesExposeNode(l: NodeFun2, f_2: Node) = {
   (l, f_2)
 }
-def (-.-) = inSeriesExposeFrame
+def (-.-) = inSeriesExposeNode
 
-def inSeriesExposeFrame(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
-  fun f_1: Frame -> fun f_3: Frame ->
+def inSeriesExposeNode(lf_2: (NodeFun2, Node), r: NodeFun2) = {
+  fun f_1: Node -> fun f_3: Node ->
       def (l, f_2) = lf_2;
-      l f_1 f_2 ; r f_2 f_3
+      l f_1 f_2;
+      r f_2 f_3
 }
-def (-.-) = inSeriesExposeFrame
+def (-.-) = inSeriesExposeNode
 
-def inSeries(l: FrameFun2, r: FrameFun2) = {
-  fun f_1: Frame -> fun f_3: Frame ->
-    def f_2: Frame;
-    l f_1 f_2 ; r f_2 f_3
+def inSeries(l: NodeFun2, r: NodeFun2) = {
+  fun f_1: Node -> fun f_3: Node ->
+    def f_2: Node;
+    l f_1 f_2;
+    r f_2 f_3
 }
 def (--) = inSeries
 
-def serializei(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
-  def work(a: FrameFun2, i: Int) -> FrameFun2 = {
+def serializei(f: (Int -> NodeFun2), n: Int) -> NodeFun2 = {
+  def work(a: NodeFun2, i: Int) -> NodeFun2 = {
     if n - i < 0 then error "n is not a positive number"
     else if n - i == 0 then a
     else work (a -- f (i + 1)) (i + 1)
@@ -96,7 +98,7 @@ def serializei(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
   work (f 1) 1
 }
 
-def serialize(f: FrameFun2, n: Int) -> FrameFun2 = {
+def serialize(f: NodeFun2, n: Int) -> NodeFun2 = {
   serializei (fun i: Int -> f) n
 }
 
@@ -266,8 +268,8 @@ def removeTrivialEquations(e: Model) -> Model = {
   | e_1; e_2 -> removeTrivialEquations e_1; removeTrivialEquations e_2
   | (sval l: Real) = (sval r: Real) -> if l == r then NoElement
                                        else {
-                                        def _ = dprintln e;
-                                        error "Inconsistent Equation"
+                                         def _ = dprintln e;
+                                         error "Inconsistent Equation"
                                        }
   | _ -> e
 }

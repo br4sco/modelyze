@@ -22,7 +22,6 @@ include GRAPHSIMCORE
 
 type Current = <Real>
 type Voltage = <Real>
-type NodeFun2 = Node -> Node -> Model
 
 def electricalEdge: Node -> Node -> Voltage -> Current -> Model
 
@@ -65,4 +64,16 @@ def Resistor(R: Real, u: Voltage, i: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     electricalEdge n1 n2 u i;
     u = R * i
+}
+
+def Capacitor(C: Real, u: Voltage, i: Current) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    electricalEdge n1 n2 u i;
+    i = C * u'
+}
+
+def Inductor(L: Real, u: Voltage, i: Current) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    electricalEdge n1 n2 u i;
+    u = L * i'
 }

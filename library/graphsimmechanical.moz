@@ -34,6 +34,10 @@ def XHAT_R = (1., 0., 0.)
 def YHAT_R = (0., 1., 0.)
 def ZHAT_R = (0., 0., 1.)
 
+type Frame = Node
+type FrameFun1 = Frame -> Model
+type FrameFun2 = Frame -> Frame -> Model
+
 type SRMatrix = MatrixMapSReal
 type RealVector3 = (Real, Real, Real)
 type RealQuaternion = (Real, Real, Real, Real)
