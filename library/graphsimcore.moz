@@ -73,7 +73,7 @@ def (--) = inSeries
 def inSeries(l: NodeFun1, r: NodeFun2) = {
   fun f_2: Node ->
       def f_1: Node;
-      l f_1 ;
+      l f_1;
       r f_1 f_2
 }
 def (--) = inSeries

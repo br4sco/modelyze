@@ -114,7 +114,7 @@ def visualObject2JSON(m: Model) -> String = {
     match m with
     | Comp m_1 m_2 -> work m_1 ++ ", " ++ work m_2
     | visualObject (sval x: Position)  (sval q: Orientation) vd -> {
-        def (x, y, z) = toRealVector3 x;
+        def (x, y, z) = toRealVector3 world x;
         def (w, i, j, k) = toRealQauternion q;
         "{ " ++
         "\"xLabel\": \"" ++ symstr(x) ++ "\", " ++
