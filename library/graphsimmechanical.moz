@@ -270,7 +270,6 @@ def angularVelocityEdge: Frame -> Frame -> SRMatrix -> SRMatrix -> Model
 type VectorPairEdge = (Edge, (SRMatrix, SRMatrix))
 type VectorEdge = (Edge, SRMatrix)
 
-
 def getTranslationEdges(e: Model) -> ([VectorPairEdge], Model) = {
   def work(e: Model, a: ([VectorPairEdge], Model))
     -> ([VectorPairEdge], Model) = {
@@ -344,29 +343,6 @@ def mkPriScndVarsRelQuaternion(C: MatrixMapInt, sqs: [SRMatrix],
   def bop(c: Int, l: SRMatrix, r: SRMatrix) -> SRMatrix = { qprod l (uop c r) };
   mkPriScndVarsRel uop bop (IDQ) C sqs pqs
 }
-
-def mkVector3CutsetRelation(Ays: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
-  -> [(SRMatrix, SRMatrix)] = {
-
-  def (A, (y_t, y_c)) = Ays;
-  mkPriScndVarsRelVector3 A y_t y_c
-}
-
-def vec3CircuitRelation(Bxs: (MatrixMapInt, ([SRMatrix], [SRMatrix])))
-  -> [(SRMatrix, SRMatrix)] = {
-
-  def (B, (x_t, x_c)) = Bxs;
-  mkPriScndVarsRelVector3 B x_c x_t
-}
-
-// def mkTopolInitEquations(f_a: MkEqsFun, mies: [VectorEdge], a: Model)
-//   -> Model = {
-
-//   if isEmpty mies then a else {
-//     def (B, (x_t, x_c)) = mkCircuitData mies;
-//     f_a (B, (x_c, x_t)) a
-//   }
-// }
 
 def mkVector3TopolEquations(Cvs: (MatrixMapInt, ([SRMatrix], [SRMatrix])),
   a: Model) -> Model = {

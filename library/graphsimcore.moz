@@ -201,20 +201,6 @@ def mkPriScndVarsRelScalar(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>])
   mkPriScndVarsRel uop bop 0. C svs pvs
 }
 
-def mkScalarCutsetRelation(Ays: (MatrixMapInt, ([<Real>], [<Real>])))
-  -> [(<Real>, <Real>)] = {
-
-  def (A, (y_t, y_c)) = Ays;
-  mkPriScndVarsRelScalar A y_t y_c
-}
-
-def mkScalarCircuitRelation(Bxs: (MatrixMapInt, ([<Real>], [<Real>])))
-  -> [(<Real>, <Real>)] = {
-
-  def (B, (x_t, x_c)) = Bxs;
-  mkPriScndVarsRelScalar B x_c x_t
-}
-
 def mkCutsetCircuitData(mes: [Dyn]) -> ((MatrixMapInt,
   ([Dyn], [Dyn])), (MatrixMapInt, ([Dyn], [Dyn]))) = {
 
