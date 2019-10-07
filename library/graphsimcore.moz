@@ -27,7 +27,8 @@ def (') = der
 
 type Model
 def (;): Model -> Model -> Model
-def (=): Real -> Real -> Model
+def Eq: Real -> Real -> Model
+def (=) = Eq
 def (<-): Real -> Real -> Model
 def (<~): Real -> Real -> Model
 def (~=): Real -> Real -> Model

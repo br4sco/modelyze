@@ -29,17 +29,10 @@ type InitValMap = (<Real> => (Real, Bool))
 type VarNameMap = (<Real> => String)
 
 def getUknowns(e: Model) -> Set(<Real>) = {
-  def workMore(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
+  def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
-    | e_1 e_2 -> workMore e_2 (workMore e_1 a)
+    | e_1 e_2 -> work e_2 (work e_1 a)
     | sym: Real -> Set.add e a
-    | _ -> a
-  };
-
-  def work(e: Model, a: Set(<Real>)) -> Set(<Real>) = {
-    match e with
-    | e_1; e_2 -> work e_2 (work e_1 a)
-    | r_1 = r_2 -> workMore r_1 (workMore r_2 a)
     | _ -> a
   };
 
@@ -157,7 +150,7 @@ def pprintInitEqs(e: Model) -> String = {
 def pprintEqs(e: Model) -> String  = {
   match e with
   | e_1; e_2 -> pprintEqs e_1 ++ pprintEqs e_2
-  | e_1 = e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
+  | Eq e_1 e_2 -> " " ++ pprintExpr e_1 ++ " = " ++ pprintExpr e_2 ++ ";\n"
   | _ -> ""
 }
 

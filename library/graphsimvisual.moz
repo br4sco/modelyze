@@ -228,7 +228,7 @@ def SphericalJointV(world: Frame, vd: VisualData) -> FrameFun2 = {
     visualObject x q vd;
     f1 -- SphericalJoint -- f2;
     world -- TranslationSensor x -- f1;
-    q == IDQ;
+    q = IDQ;
     q <~~ IDQ
 }
 
