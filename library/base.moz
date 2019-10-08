@@ -461,3 +461,53 @@ def sub(a: {Dyn}, s: Int, len: Int) -> {Dyn} = {
 def foldLeft(f: (Dyn -> Dyn -> Dyn), a: Dyn, s: Set(Dyn)) -> Dyn = {
   foldLeft f a (Set.toList s)
 }
+
+def simplify(e: <Real>) -> <Real> = {
+  def work(e: <Dyn>) -> <Dyn> = {
+    match e with
+    | sym: Real -> e
+    | l + r -> {
+        def l = work l;
+        def r = work r;
+        match (l, r) with
+        | (sval l: Real, r) -> if l == 0. then r else l + r
+        | (l, sval r: Real) -> if r == 0. then l else l + r
+        | _ -> l + r
+      }
+    | l - r -> {
+        def l = work l;
+        def r = work r;
+        match (l, r) with
+        | (sval l: Real, r) -> if l == 0. then -r else l - r
+        | (l, sval r: Real) -> if r == 0. then l else l - r
+        | _ -> l - r
+      }
+    | l * r -> {
+        def l = work l;
+        def r = work r;
+        match (l, r) with
+        | (sval l: Real, r) -> if l == 0. then 0.
+                               else if l == 1. then r
+                               else l * r
+        | (l, sval r: Real) -> if r == 0. then 0.
+                               else if r == 1. then l
+                               else l * r
+        | _ -> l * r
+      }
+    | l / r -> {
+        def l = work l;
+        def r = work r;
+        match (l, r) with
+        | (sval l: Real, r) -> if l == 0. then 0.
+                               else l / r
+        | (l, sval r: Real) -> if r == 1. then l
+                               else l / r
+        | _ -> l / r
+      }
+    | f e -> (work f) (work e)
+    | sval r: Real -> r
+    | sval v: Dyn -> v
+    | _ -> error "Unsupported construct"
+  };
+  work e
+}
