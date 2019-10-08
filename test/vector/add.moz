@@ -1,0 +1,20 @@
+include VECTOR
+
+def f1, f2: Frame
+def x, y, th: Real
+
+def v = vec [x, y] f1
+def u = vec [x, y] f2
+
+def R = listToMatrix [
+          [cos(th), -sin(th)],
+          [sin(th), cos(th)]
+        ] (mmSRealZero (2, 2))
+
+def tmf(ff: Frame, tf: Frame) -> SRMatrix = {
+  if seq ff f1 then R else (tr R)
+}
+
+def _ = dpln (v + u)
+def _ = dpln (evaluate tmf f1 (v + u))
+def _ = dpln (evaluate tmf f2 (v + u))

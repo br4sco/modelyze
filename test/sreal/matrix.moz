@@ -42,22 +42,22 @@ def C = listToMatrix [[r_1 - r_3],
                       [r_1 + r_3]
                      ] (mmSRealZero (3, 1))
 
-def _ = dp A
-def _ = dp (A + M)
+def _ = dpln A
+def _ = dpln (A + M)
 
-def _ = dp M
-def _ = dp (I * M)
+def _ = dpln M
+def _ = dpln (I * M)
 
-def _ = dp A
-def _ = dp (I * A)
+def _ = dpln A
+def _ = dpln (I * A)
 
-def _ = dp C
-def _ = dp (B * (tr v))
+def _ = dpln C
+def _ = dpln (B * (tr v))
 
-def _ = dp A
-def _ = dp (A * (real2sreal Ir))
+def _ = dpln A
+def _ = dpln (A * (real2sreal Ir))
 
-def _ = dp (r_1 *. I)
-def _ = dp (2. *. I)
-def _ = dp (sqrt(r_1) *. I)
-def _ = dp (sqrt(r_1 + 1.) *. I)
+def _ = dpln (r_1 *. I)
+def _ = dpln (2. *. I)
+def _ = dpln (sqrt(r_1) *. I)
+def _ = dpln (sqrt(r_1 + 1.) *. I)

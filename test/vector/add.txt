@@ -1,0 +1,9 @@
+([x_1, y_1] in frame: f1_1) + ([x_1, y_1] in frame: f2_1)
+[
+  [x_1 + cos(th_1) * x_1 + sin(th_1) * y_1]
+  [y_1 + -(sin(th_1)) * x_1 + cos(th_1) * y_1]
+] d = (2, 1)
+[
+  [cos(th_1) * x_1 + -(sin(th_1)) * y_1 + x_1]
+  [sin(th_1) * x_1 + cos(th_1) * y_1 + y_1]
+] d = (2, 1)

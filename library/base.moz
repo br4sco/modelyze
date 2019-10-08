@@ -462,7 +462,7 @@ def foldLeft(f: (Dyn -> Dyn -> Dyn), a: Dyn, s: Set(Dyn)) -> Dyn = {
   foldLeft f a (Set.toList s)
 }
 
-def simplify(e: <Real>) -> <Real> = {
+def simplify(e: <Dyn>) -> <Dyn> = {
   def work(e: <Dyn>) -> <Dyn> = {
     match e with
     | sym: Real -> e
@@ -504,10 +504,22 @@ def simplify(e: <Real>) -> <Real> = {
                                else l / r
         | _ -> l / r
       }
+    | l ^ r -> {
+        def l = work l;
+        def r = work r;
+        match (l, r) with
+        | (sval l: Real, sval r: Real) -> if l == 0. && r != 0. then 0.
+                                          else if r == 0. then 1.
+                                          else l ^ r
+        | (l, sval r: Real) -> if r == 0. then 1.
+                               else if r == 1. then l
+                               else l ^ r
+        | _ -> l ^ r
+      }
     | f e -> (work f) (work e)
     | sval r: Real -> r
     | sval v: Dyn -> v
-    | _ -> error "Unsupported construct"
+    | _ -> e
   };
   work e
 }

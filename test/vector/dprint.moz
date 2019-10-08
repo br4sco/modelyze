@@ -1,0 +1,10 @@
+include VECTOR
+
+def f1, f2: Frame
+def x, y: Real
+
+def v = vec [x, y] f1
+def u = vec [x, y] f2
+
+def _ = dpln v
+def _ = dpln u

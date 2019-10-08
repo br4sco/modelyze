@@ -66,6 +66,13 @@ def Resistor(R: Real, u: Voltage, i: Current) -> NodeFun2 = {
     u = R * i
 }
 
+def Resistor(R: Real) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u_R: Voltage;
+    def i_R: Current;
+    n1 -- Resistor R u_R i_R -- n2
+}
+
 def Capacitor(C: Real, u: Voltage, i: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     electricalEdge n1 n2 u i;

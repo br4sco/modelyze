@@ -38,5 +38,5 @@ def C = listToMatrix [[r_1 - r_3],
 def f(v: <Real>) = { der v }
 def ff(v: <Real>) = { sin v }
 
-def _ = dp (map f A)
-def _ = dp (map ff C)
+def _ = dpln (map f A)
+def _ = dpln (map ff C)

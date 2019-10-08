@@ -34,8 +34,10 @@ def EMFM(k: Real, u: Vector3, omu: AngularVelocityU, Tu: TorqueU, i: Current) ->
     def T = vec3 T1 T2 T3;
     def n = normalize u;
     angularVelocityEdge f1 f2 om T;
-    omu = dot n om;
+    // omu = dot n om;
     Tu = dot n T;
+    // T = Tu *. n;
+    om = omu *. n;
     Tu = k * i
 }
 
@@ -52,4 +54,8 @@ def EMF(k: Real, uu: Vector3, f1: Frame, f2: Frame) -> NodeFun2 = {
     def u: Voltage;
     def i: Current;
     n1 -- EMF k uu omu Tu u i f1 f2 -- n2
+}
+ def EMFff(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, u: Voltage, i: Current, n1: Node, n2: Node) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    EMF k uu omu Tu u i f1 f2 n1 n2
 }

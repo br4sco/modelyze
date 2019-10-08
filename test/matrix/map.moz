@@ -28,8 +28,8 @@ def C = listToMatrix [[1, 1, 1], [1, 1, 1], [1, 1, 1]] M
 
 def f(v: Int) -> Int = { 2 * v }
 
-def _ = dp (map f M)
-def _ = dp (map f I)
-def _ = dp (map f A)
-def _ = dp (map f B)
-def _ = dp (map f C)
+def _ = dpln (map f M)
+def _ = dpln (map f I)
+def _ = dpln (map f A)
+def _ = dpln (map f B)
+def _ = dpln (map f C)

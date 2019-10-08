@@ -1,15 +1,15 @@
 include Matrix
 
 def v_1 = listToMatrix [[1], [2], [-3]] (mmIntZero (3, 1))
-def _ = dp (ss v_1)
+def _ = dpln (ss v_1)
 
 def v_2 = listToMatrix [[1.], [2.], [-3.]] (mmRealZero (3, 1))
-def _ = dp (ss v_2)
+def _ = dpln (ss v_2)
 
 def x, y, z: Real
 def v_3 = listToMatrix [[x], [y], [-z]] (mmSRealZero (3, 1))
-def _ = dp (ss v_3)
+def _ = dpln (ss v_3)
 
 def a1, a2, a3: Real
 def v_4 = listToMatrix [[a1], [a2], [a3]] (mmSRealZero (3, 1))
-def _ = dp (ss v_4)
+def _ = dpln (ss v_4)

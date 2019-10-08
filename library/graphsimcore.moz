@@ -206,9 +206,10 @@ def mkPriScndVarsRel(uop: (Int -> Dyn -> Dyn), bop: (Int -> Dyn -> Dyn -> Dyn),
 def mkPriScndVarsRelScalar(C: MatrixMapInt, svs: [<Real>], pvs: [<Real>])
   -> [(<Real>, <Real>)] = {
 
+  def z: <Real> = 0.;
   def uop(c: Int, v: <Real>) -> <Real> = { - (int2real c) * v };
   def bop(c: Int, l: <Real>, r: <Real>) -> <Real> = { l - (int2real c) * r };
-  mkPriScndVarsRel uop bop 0. C svs pvs
+  mkPriScndVarsRel uop bop z C svs pvs
 }
 
 def mkCutsetCircuitData(mes: [Dyn]) -> ((MatrixMapInt,

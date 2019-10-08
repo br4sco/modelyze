@@ -251,12 +251,22 @@ def dp(mfind: MatrixFind, M: Matrix) -> Matrix = {
       def _ = print("  "); def _ = dprintln(r); ()
     }) (matrixToList mfind M);
   def _ = print("] d = ");
-  def _ = dprintln(dim M);
+  def _ = dprint(dim M);
   M
 }
 def dp(M: MatrixMapInt) -> MatrixMapInt = { dp mmIntFind M }
 def dp(M: MatrixMapReal) -> MatrixMapReal = { dp mmRealFind M }
 def dp(M: MatrixMapSReal) -> MatrixMapSReal = { dp mmSRealFind M }
+
+def dpln(mfind: MatrixFind, M: Matrix) -> Matrix = {
+  def _ = dp mfind M;
+  def _ = print "\n";
+  M
+}
+
+def dpln(M: MatrixMapInt) -> MatrixMapInt = { dpln mmIntFind M }
+def dpln(M: MatrixMapReal) -> MatrixMapReal = { dpln mmRealFind M }
+def dpln(M: MatrixMapSReal) -> MatrixMapSReal = { dpln mmSRealFind M }
 
 def mmAdd(isz: (Dyn -> Bool), ij: Pos, v: Dyn, M: MatrixMap)
   -> MatrixMap = {
