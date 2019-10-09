@@ -79,8 +79,22 @@ def Capacitor(C: Real, u: Voltage, i: Current) -> NodeFun2 = {
     i = C * u'
 }
 
+def Capacitor(C: Real) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u_C: Voltage;
+    def i_C: Current;
+    n1 -- Capacitor C u_C i_C -- n2
+}
+
 def Inductor(L: Real, u: Voltage, i: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     electricalEdge n1 n2 u i;
     u = L * i'
+}
+
+def Inductor(L: Real) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u_L: Voltage;
+    def i_L: Current;
+    n1 -- Inductor L u_L i_L -- n2
 }
