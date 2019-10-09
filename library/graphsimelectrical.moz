@@ -20,6 +20,77 @@ written by Oscar Eriksson oerikss@kth.se
 
 include GRAPHSIMCORE
 
+type Node
+type NodeFun2 = Node -> Node -> Model
+type NodeFun1 = Node -> Model
+
+def inParallel(l: NodeFun2, r: NodeFun2,
+  f_1: Node, f_2: Node) -> Model = {
+
+  l f_1 f_2;
+  r f_1 f_2
+}
+def (||) = inParallel
+
+def inSeries(l: Node, r: NodeFun1) -> Model = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: NodeFun1, r: Node) -> Model = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: Node, r: NodeFun2) -> NodeFun1 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: NodeFun1, r: NodeFun2) = {
+  fun f_2: Node ->
+      def f_1: Node;
+      l f_1;
+      r f_1 f_2
+}
+def (--) = inSeries
+
+def inSeriesExposeNode(l: NodeFun2, f_2: Node) = {
+  (l, f_2)
+}
+def (-.-) = inSeriesExposeNode
+
+
+def inSeriesExposeNode(lf_2: (NodeFun2, Node), r: NodeFun2) = {
+  fun f_1: Node -> fun f_3: Node ->
+      def (l, f_2) = lf_2;
+      l f_1 f_2;
+      r f_2 f_3
+}
+def (-.-) = inSeriesExposeNode
+
+def inSeries(l: NodeFun2, r: NodeFun2) = {
+  fun f_1: Node -> fun f_3: Node ->
+    def f_2: Node;
+    l f_1 f_2;
+    r f_2 f_3
+}
+def (--) = inSeries
+
+def serializei(f: (Int -> NodeFun2), n: Int) -> NodeFun2 = {
+  def work(a: NodeFun2, i: Int) -> NodeFun2 = {
+    if n - i < 0 then error "n is not a positive number"
+    else if n - i == 0 then a
+    else work (a -- f (i + 1)) (i + 1)
+  };
+  work (f 1) 1
+}
+
+def serialize(f: NodeFun2, n: Int) -> NodeFun2 = {
+  serializei (fun i: Int -> f) n
+}
+
+
 type Current = <Real>
 type Voltage = <Real>
 
@@ -58,6 +129,14 @@ def CurrentActuator(f: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     def u: Voltage;
     n1 -- CurrentActuator f u -- n2
+}
+
+def VoltageSensor(u: Voltage) -> NodeFun2 = {
+  CurrentActuator 0. u
+}
+
+def CurrentSensor(i: Current) -> NodeFun2 = {
+  VoltageActuator 0. i
 }
 
 def Resistor(R: Real, u: Voltage, i: Current) -> NodeFun2 = {

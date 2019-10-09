@@ -20,7 +20,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Graph
 
-def n1, n2, n3, n4, n5: Node
+def n1, n2, n3, n4, n5: Dyn
 def G = listToMap [(n1, [n2, n3]), (n2, [n3, n1]), (n3, [n2, n3])]
 def p1 = [[n1]]
 def p2 = [[n1, n2]]

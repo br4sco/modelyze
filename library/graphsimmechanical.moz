@@ -26,7 +26,76 @@ def QUATERNION_CORRECTION_CONSTANT = 2.0
 
 def GRAVITATIONAL_CONSTANT = 9.81
 
-type Frame = Node
+type Frame
+type FrameFun1 = Frame -> Model
+type FrameFun2 = Frame -> Frame -> Model
+
+def inParallel(l: FrameFun2, r: FrameFun2,
+  f_1: Frame, f_2: Frame) -> Model = {
+
+  l f_1 f_2;
+  r f_1 f_2
+}
+def (||) = inParallel
+
+def inSeries(l: Frame, r: FrameFun1) -> Model = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFun1, r: Frame) -> Model = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: FrameFun1, r: FrameFun2) = {
+  fun f_2: Frame ->
+      def f_1: Frame;
+      l f_1;
+      r f_1 f_2
+}
+def (--) = inSeries
+
+def inSeriesExposeNode(l: FrameFun2, f_2: Frame) = {
+  (l, f_2)
+}
+def (-.-) = inSeriesExposeNode
+
+
+def inSeriesExposeNode(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
+  fun f_1: Frame -> fun f_3: Frame ->
+      def (l, f_2) = lf_2;
+      l f_1 f_2;
+      r f_2 f_3
+}
+def (-.-) = inSeriesExposeNode
+
+def inSeries(l: FrameFun2, r: FrameFun2) = {
+  fun f_1: Frame -> fun f_3: Frame ->
+    def f_2: Frame;
+    l f_1 f_2;
+    r f_2 f_3
+}
+def (--) = inSeries
+
+def serializei(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
+  def work(a: FrameFun2, i: Int) -> FrameFun2 = {
+    if n - i < 0 then error "n is not a positive number"
+    else if n - i == 0 then a
+    else work (a -- f (i + 1)) (i + 1)
+  };
+  work (f 1) 1
+}
+
+def serialize(f: FrameFun2, n: Int) -> FrameFun2 = {
+  serializei (fun i: Int -> f) n
+}
+
 
 def EXPECTED_VECTOR3 = "Expected vector3"
 def EXPECTED_QUATERNION = "Expected quaternion"
@@ -61,6 +130,16 @@ def vec3(v: RealVector3) -> Vector3 = {
 def vec3T(t: ()) -> Vector3 = {
   def v1_test, v2_test, v3_test: Real;
   vec3 v1_test v2_test v3_test
+}
+
+def mkTestT(t: ()) -> Vector3 = {
+  def T1_test, T2_test, T3_test: Real;
+  vec3 T1_test T2_test T3_test
+}
+
+def mkTestOm(t: ()) -> Vector3 = {
+  def om1_test, om2_test, om3_test: Real;
+  vec3 om1_test om2_test om3_test
 }
 
 def quat(w: <Real>, i: <Real>, j: <Real>, k: <Real>) -> Quaternion = {
@@ -230,10 +309,6 @@ def matrixDer(M: SRMatrix) -> SRMatrix = {
   map f M
 }
 def (') = matrixDer
-
-
-type FrameFun1 = Frame -> Model
-type FrameFun2 = Frame -> Frame -> Model
 
 type Position = Vector
 type Velocity = Vector3
@@ -472,6 +547,45 @@ def AngularVelocitySensor(om: AngularVelocity, f1: Frame, f2: Frame) -> Model = 
   TorqueActuator ZERO3 om f1 f2
 }
 
+def AngularVelocitySensorU(u: Vector3, omu: AngularVelocityU,
+  f1: Frame, f2: Frame) -> Model = {
+
+  def oms1, oms2, oms3: Real;
+  def om = vec3 oms1 oms2 oms3;
+  def n = normalize u;
+  f1 -- AngularVelocitySensor om -- f2;
+  omu = dot n om
+}
+
+def AngularVelocitySensorU(u: RealVector3, omu: AngularVelocityU,
+  f1: Frame, f2: Frame) -> Model = {
+
+  f1 -- AngularVelocitySensorU (vec3 u) omu -- f2
+}
+
+def AngularSensorU(u: Vector3, th0: Real, th: AngleU,
+  f1: Frame, f2: Frame) -> Model = {
+
+  def omu: AngularVelocityU;
+  th' = omu;
+  th <- th0;
+  f1 -- AngularVelocitySensorU u omu -- f2
+}
+
+def AngularSensorU(u: RealVector3, th0: Real, th: AngleU,
+  f1: Frame, f2: Frame) -> Model = {
+
+  def omu: AngularVelocityU;
+  th' = omu;
+  th <- th0;
+  f1 -- AngularVelocitySensorU u omu -- f2
+}
+
+def TorqueSensor(T: Torque) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    AngularVelocityActuator ZERO3 T f1 f2
+}
+
 def TranslationSensor(x: Position, f1: Frame, f2: Frame) -> Model = {
   if seq f1 f2 then x = ZERO3
   else ForceActuator ZERO3 x f1 f2
@@ -641,40 +755,6 @@ def RigidArm(world: Frame, r: RealVector3) -> FrameFun2 = {
     def q = _mkRigidArmVar ();
     f1 -- RigidArm world r q -- f2;
     norm2 q ~= 1.
-}
-
-def AngularVelocitySensorU(u: Vector3, omu: AngularVelocityU,
-  f1: Frame, f2: Frame) -> Model = {
-
-  def oms1, oms2, oms3: Real;
-  def om = vec3 oms1 oms2 oms3;
-  def n = normalize u;
-  f1 -- AngularVelocitySensor om -- f2;
-  omu = dot n om
-}
-
-def AngularVelocitySensorU(u: RealVector3, omu: AngularVelocityU,
-  f1: Frame, f2: Frame) -> Model = {
-
-  f1 -- AngularVelocitySensorU (vec3 u) omu -- f2
-}
-
-def AngularSensorU(u: Vector3, th0: Real, th: AngleU,
-  f1: Frame, f2: Frame) -> Model = {
-
-  def omu: AngularVelocityU;
-  th' = omu;
-  th <- th0;
-  f1 -- AngularVelocitySensorU u omu -- f2
-}
-
-def AngularSensorU(u: RealVector3, th0: Real, th: AngleU,
-  f1: Frame, f2: Frame) -> Model = {
-
-  def omu: AngularVelocityU;
-  th' = omu;
-  th <- th0;
-  f1 -- AngularVelocitySensorU u omu -- f2
 }
 
 def TranslationalSpring(k: Real, s: Real, x: Position, F: Force,

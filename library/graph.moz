@@ -20,29 +20,28 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Matrix
 
-type Node
-type Edge = (Node, Node)
-type AdjList = (Node => [Node])
+type Edge = (Dyn, Dyn)
+type AdjList = (Dyn => [Dyn])
 
-def findPath(G: AdjList, s: Node, e: Node) -> [[Node]] = {
+def findPath(G: AdjList, s: Dyn, e: Dyn) -> [[Dyn]] = {
 
-  def work(v: Set(Node), ps: [[Node]]) -> [[Node]] = {
-    def eps = filter (fun p: [Node] -> seq (hd p) e) ps;
+  def work(v: Set(Dyn), ps: [[Dyn]]) -> [[Dyn]] = {
+    def eps = filter (fun p: [Dyn] -> seq (hd p) e) ps;
     if !(isEmpty eps) then eps
     else {
-      def nvps = filter (fun p: [Node] -> !(Set.mem (hd p) v)) ps;
-      concat (map (fun p: [Node] ->
+      def nvps = filter (fun p: [Dyn] -> !(Set.mem (hd p) v)) ps;
+      concat (map (fun p: [Dyn] ->
                    def n = hd p;
                    def adj = (Map.find n G);
-                   work (Set.add n v) (map (fun n: Node -> (n::p)) adj)
+                   work (Set.add n v) (map (fun n: Dyn -> (n::p)) adj)
                   ) ps)
     }
   };
-  map (fun p: [Node] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
+  map (fun p: [Dyn] -> reverse p) (work (Set.add s (Set.empty)) [[s]])
 }
 
-def pathToEdgePath(p: [Node]) -> [Edge] = {
-  def f(a: [Edge], n: Node) -> [Edge] = {
+def pathToEdgePath(p: [Dyn]) -> [Edge] = {
+  def f(a: [Edge], n: Dyn) -> [Edge] = {
     def (_, n_1) = hd a;
     (n_1, n)::a
   };
@@ -55,10 +54,10 @@ def pathToEdgePath(p: [Node]) -> [Edge] = {
 
 def edgeList2AdjList(G: [Edge]) -> AdjList = {
   def f(a: AdjList, e: Edge) -> AdjList = {
-    def get(n: Node) -> [Node] = {
+    def get(n: Dyn) -> [Dyn] = {
       if Map.mem n a then Map.find n a else []
     };
-    def add(n1: Node, n2: Node, a: AdjList) -> AdjList = {
+    def add(n1: Dyn, n2: Dyn, a: AdjList) -> AdjList = {
       Map.add n1 (n2::(get n1)) a
     };
     def (n1, n2) = e;
@@ -76,8 +75,8 @@ def OUT_EDGE = 1.
 def NO_EDGE = 0.
 
 def mkIncidenceMatrix(G: [Edge]) -> MatrixMapReal = {
-  def f(a: (Int, (Node => Int)), e: Edge) -> (Int, (Node => Int)) = {
-    def ff(a: (Int, Node => Int), n: Node) -> (Int, (Node => Int)) = {
+  def f(a: (Int, (Dyn => Int)), e: Edge) -> (Int, (Dyn => Int)) = {
+    def ff(a: (Int, Dyn => Int), n: Dyn) -> (Int, (Dyn => Int)) = {
       def (c, m) = a;
       if Map.mem n m then a else (c + 1, Map.add n (c + 1) m)
     };

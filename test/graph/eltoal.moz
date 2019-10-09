@@ -20,7 +20,7 @@ written by Oscar Eriksson oerikss@kth.se
 
 include Graph
 
-def n1, n2, n3, n4, n5: Node
+def n1, n2, n3, n4, n5: Dyn
 def G = [(n1, n2), (n1, n3), (n2, n3)]
 def G2 = [(n1, n2), (n1, n4), (n2, n3), (n3, n4)]
 def G3 = [(n1, n2), (n2, n3), (n2, n4), (n2, n5)]

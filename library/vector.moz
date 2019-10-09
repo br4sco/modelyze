@@ -21,7 +21,7 @@ written by Oscar Eriksson oerikss@kth.se
 include GRAPH
 include MATRIX
 
-type Frame = Node
+type Frame
 type SRMatrix = MatrixMapSReal
 type Frames2TransMatrixFun = Frame -> Frame -> SRMatrix
 
