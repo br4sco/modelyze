@@ -21,41 +21,69 @@ written by Oscar Eriksson oerikss@kth.se
 include GRAPHSIMMECHANICAL
 include GRAPHSIMELECTRICAL
 
+// type FrameNodeFun4 = Frame -> Frame -> Node -> Node -> Model
+// type NodeFrameFun4 = Node -> Node -> Frame -> Frame -> Model
+
+// def inSeries(ff: FrameNodeFun4, f1: Frame, f2: Frame) -> NodeFun2 = {
+//   fun n1: Node -> fun n2: Node ->
+//     ff f1 f2 n1 n2
+// }
+// def (--) = inSeries
+
+// def inSeries(ff: FrameNodeFun4, n1: Node, n2: Node) -> FrameFun2 = {
+//   fun f1: Node -> fun f2: Node ->
+//     ff n1 n2 f1 f2
+// }
+// def (--) = inSeries
+
 def EMFE(k: Real, u: Voltage, i: Current, omu: AngularVelocityU) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     electricalEdge n1 n2 u i;
     u = k * omu
 }
 
-def EMFM(k: Real, u: Vector3, omu: AngularVelocityU, Tu: TorqueU, i: Current) -> FrameFun2 = {
+def EMFE(k: Real, omu: AngularVelocityU) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u_EMF: Voltage;
+    def i_EMF: Current;
+    n1 -- EMFE k u_EMF i_EMF omu -- n2
+}
+
+def EMFM(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, i: Current) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     def om1, om2, om3, T1, T2, T3: Real;
     def om = vec3 om1 om2 om3;
     def T = vec3 T1 T2 T3;
-    def n = normalize u;
+    def n = normalize uu;
     angularVelocityEdge f1 f2 om T;
-    // omu = dot n om;
     Tu = dot n T;
-    // T = Tu *. n;
     om = omu *. n;
     Tu = k * i
 }
 
-def EMF(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, u: Voltage, i: Current, f1: Frame, f2: Frame) -> NodeFun2 = {
-  fun n1: Node -> fun n2: Node ->
-    f1 -- EMFM k uu omu Tu i -- f2;
-    n1 -- EMFE k u i omu -- n2
+def EMFM(k: Real, uu: Vector3, i: Current) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    def omu_EMF: AngularVelocityU;
+    def Tu_EMF: TorqueU;
+    f1 -- EMFM k uu omu_EMF Tu_EMF i -- f2
 }
 
-def EMF(k: Real, uu: Vector3, f1: Frame, f2: Frame) -> NodeFun2 = {
-  fun n1: Node -> fun n2: Node ->
-    def omu: AngularVelocityU;
-    def Tu: TorqueU;
-    def u: Voltage;
-    def i: Current;
-    n1 -- EMF k uu omu Tu u i f1 f2 -- n2
-}
- def EMFff(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, u: Voltage, i: Current, n1: Node, n2: Node) -> FrameFun2 = {
-  fun f1: Frame -> fun f2: Frame ->
-    EMF k uu omu Tu u i f1 f2 n1 n2
-}
+// def EMF(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, u: Voltage, i: Current) -> FrameNodeFun4 = {
+//   fun f1: Frame -> fun f2: Frame -> fun n1: Node -> fun n2: Node ->
+//     f1 -- EMFM k uu omu Tu i -- f2;
+//     n1 -- EMFE k u i omu -- n2
+// }
+
+// def EMF(k: Real, uu: Vector3) -> FrameNodeFun4 = {
+//   fun f1: Frame -> fun f2: Frame -> fun n1: Node -> fun n2: Node ->
+//     def omu: AngularVelocityU;
+//     def Tu: TorqueU;
+//     def u: Voltage;
+//     def i: Current;
+//     n1 -- EMF k uu omu Tu u i f1 f2 -- n2
+// }
+
+// def EMFm(k: Real, uu: Vector3, omu: AngularVelocityU, Tu: TorqueU, u: Voltage, i: Current) -> FrameNodeFun4 = {
+//   fun n1: Node -> fun n2: Node -> fun f1: Frame -> fun f2: Frame ->
+//     EMF k uu omu Tu u i f1 f2 n1 n2
+// }
