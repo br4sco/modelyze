@@ -1,0 +1,10 @@
+1: electricalEdge_1(node1_1, node2_1, lu_1, li_1)
+2: electricalEdge_1(node1_1, n1_1, lu_2, li_2);
+electricalEdge_1(n1_1, node2_1, ru_1, ri_1)
+3: electricalEdge_1(node1_1, node2_1, lu_3, li_3);
+electricalEdge_1(node1_1, node2_1, ru_2, ri_2)
+4: electricalEdge_1(node1_1, node3_1, lu_4, li_4);
+electricalEdge_1(node3_1, node2_1, ru_3, ri_3)
+5: electricalEdge_1(node1_1, n2_1, lu_5, li_5);
+electricalEdge_1(n2_1, node2_1, ru_5, ri_5);
+electricalEdge_1(node1_1, node2_1, ru_4, ri_4)

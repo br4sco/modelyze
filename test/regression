@@ -81,5 +81,6 @@ test_files "sreal"
 test_files "graph"
 test_files "vector"
 # test_files "simplify"
+test_files "serial_parallel_operators"
 
 rm -f test.out

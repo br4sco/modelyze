@@ -24,11 +24,10 @@ type Node
 type NodeFun2 = Node -> Node -> Model
 type NodeFun1 = Node -> Model
 
-def inParallel(l: NodeFun2, r: NodeFun2,
-  f_1: Node, f_2: Node) -> Model = {
-
-  l f_1 f_2;
-  r f_1 f_2
+def inParallel(l: NodeFun2, r: NodeFun2) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+  l n1 n2;
+  r n1 n2
 }
 def (||) = inParallel
 
@@ -47,33 +46,32 @@ def inSeries(f: Node, r: NodeFun2) -> NodeFun1 = {
 }
 def (--) = inSeries
 
-def inSeries(l: NodeFun1, r: NodeFun2) = {
-  fun f_2: Node ->
-      def f_1: Node;
-      l f_1;
-      r f_1 f_2
+def inSeries(l: NodeFun1, r: NodeFun2) -> NodeFun1 = {
+  fun n2: Node ->
+    def n1: Node;
+    l n1;
+    r n1 n2
 }
 def (--) = inSeries
 
-def inSeriesExposeNode(l: NodeFun2, f_2: Node) = {
-  (l, f_2)
+def inSeriesExposeNode(l: NodeFun2, n2: Node) -> (NodeFun2, Node) = {
+  (l, n2)
 }
 def (-.-) = inSeriesExposeNode
 
-
-def inSeriesExposeNode(lf_2: (NodeFun2, Node), r: NodeFun2) = {
-  fun f_1: Node -> fun f_3: Node ->
-      def (l, f_2) = lf_2;
-      l f_1 f_2;
-      r f_2 f_3
+def inSeriesExposeNode(ln2: (NodeFun2, Node), r: NodeFun2) -> NodeFun2 = {
+  fun n1: Node -> fun n3: Node ->
+      def (l, n2) = ln2;
+      l n1 n2;
+      r n2 n3
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeries(l: NodeFun2, r: NodeFun2) = {
-  fun f_1: Node -> fun f_3: Node ->
-    def f_2: Node;
-    l f_1 f_2;
-    r f_2 f_3
+def inSeries(l: NodeFun2, r: NodeFun2) -> NodeFun2 = {
+  fun n1: Node -> fun n3: Node ->
+    def n2: Node;
+    l n1 n2;
+    r n2 n3
 }
 def (--) = inSeries
 
@@ -89,7 +87,6 @@ def serializei(f: (Int -> NodeFun2), n: Int) -> NodeFun2 = {
 def serialize(f: NodeFun2, n: Int) -> NodeFun2 = {
   serializei (fun i: Int -> f) n
 }
-
 
 type Current = <Real>
 type Voltage = <Real>

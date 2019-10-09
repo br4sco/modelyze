@@ -1,0 +1,10 @@
+1: testEdge_1(frame1_1, frame2_1, lx_1, lF_1)
+2: testEdge_1(frame1_1, f1_1, lx_2, lF_2);
+testEdge_1(f1_1, frame2_1, rx_1, rF_1)
+3: testEdge_1(frame1_1, frame2_1, lx_3, lF_3);
+testEdge_1(frame1_1, frame2_1, rx_2, rF_2)
+4: testEdge_1(frame1_1, frame3_1, lx_4, lF_4);
+testEdge_1(frame3_1, frame2_1, rx_3, rF_3)
+5: testEdge_1(frame1_1, f2_1, lx_5, lF_5);
+testEdge_1(f2_1, frame2_1, rx_5, rF_5);
+testEdge_1(frame1_1, frame2_1, rx_4, rF_4)

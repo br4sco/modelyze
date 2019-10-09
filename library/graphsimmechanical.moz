@@ -30,11 +30,10 @@ type Frame
 type FrameFun1 = Frame -> Model
 type FrameFun2 = Frame -> Frame -> Model
 
-def inParallel(l: FrameFun2, r: FrameFun2,
-  f_1: Frame, f_2: Frame) -> Model = {
-
-  l f_1 f_2;
-  r f_1 f_2
+def inParallel(l: FrameFun2, r: FrameFun2) -> FrameFun2 = {
+  fun f1: Frame -> fun f2: Frame ->
+    l f1 f2;
+    r f1 f2
 }
 def (||) = inParallel
 
@@ -53,33 +52,32 @@ def inSeries(f: Frame, r: FrameFun2) -> FrameFun1 = {
 }
 def (--) = inSeries
 
-def inSeries(l: FrameFun1, r: FrameFun2) = {
-  fun f_2: Frame ->
-      def f_1: Frame;
-      l f_1;
-      r f_1 f_2
+def inSeries(l: FrameFun1, r: FrameFun2) -> FrameFun1 = {
+  fun f2: Frame ->
+    def f1: Frame;
+    l f1;
+    r f1 f2
 }
 def (--) = inSeries
 
-def inSeriesExposeNode(l: FrameFun2, f_2: Frame) = {
-  (l, f_2)
+def inSeriesExposeNode(l: FrameFun2, f2: Frame) -> (FrameFun2, Frame) = {
+  (l, f2)
 }
 def (-.-) = inSeriesExposeNode
 
-
-def inSeriesExposeNode(lf_2: (FrameFun2, Frame), r: FrameFun2) = {
-  fun f_1: Frame -> fun f_3: Frame ->
-      def (l, f_2) = lf_2;
-      l f_1 f_2;
-      r f_2 f_3
+def inSeriesExposeNode(lf2: (FrameFun2, Frame), r: FrameFun2) -> FrameFun2 = {
+  fun f1: Frame -> fun f3: Frame ->
+    def (l, f2) = lf2;
+    l f1 f2;
+    r f2 f3
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeries(l: FrameFun2, r: FrameFun2) = {
-  fun f_1: Frame -> fun f_3: Frame ->
-    def f_2: Frame;
-    l f_1 f_2;
-    r f_2 f_3
+def inSeries(l: FrameFun2, r: FrameFun2) -> FrameFun2 = {
+  fun f1: Frame -> fun f3: Frame ->
+    def f2: Frame;
+    l f1 f2;
+    r f2 f3
 }
 def (--) = inSeries
 
@@ -95,7 +93,6 @@ def serializei(f: (Int -> FrameFun2), n: Int) -> FrameFun2 = {
 def serialize(f: FrameFun2, n: Int) -> FrameFun2 = {
   serializei (fun i: Int -> f) n
 }
-
 
 def EXPECTED_VECTOR3 = "Expected vector3"
 def EXPECTED_QUATERNION = "Expected quaternion"

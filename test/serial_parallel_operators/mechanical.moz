@@ -1,0 +1,29 @@
+include GRAPHSIMMECHANICAL
+
+def frame1, frame2, frame3: Frame
+def testEdge: Frame -> Frame -> Real -> Real -> Model
+
+def l = fun f1: Frame -> fun f2: Frame ->
+          def lx: Real;
+          def lF: Real;
+          testEdge f1 f2 lx lF
+
+def r = fun f1: Frame -> fun f2: Frame ->
+          def rx: Real;
+          def rF: Real;
+          testEdge f1 f2 rx rF
+
+def _ = print("1: ")
+def _ = dprintln (frame1 -- l -- frame2)
+
+def _ = print("2: ")
+def _ = dprintln (frame1 -- l -- r -- frame2)
+
+def _ = print("3: ")
+def _ = dprintln (frame1 -- (l || r) -- frame2)
+
+def _ = print("4: ")
+def _ = dprintln (frame1 -- l -.- frame3 -.- r -- frame2)
+
+def _ = print("5: ")
+def _ = dprintln (frame1 -- (l -- r || r) -- frame2)

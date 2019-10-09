@@ -1,0 +1,28 @@
+include GRAPHSIMELECTRICAL
+
+def node1, node2, node3: Node
+
+def l = fun n1: Node -> fun n2: Node ->
+          def lu: Voltage;
+          def li: Current;
+          electricalEdge n1 n2 lu li
+
+def r = fun n1: Node -> fun n2: Node ->
+          def ru: Voltage;
+          def ri: Current;
+          electricalEdge n1 n2 ru ri
+
+def _ = print("1: ")
+def _ = dprintln (node1 -- l -- node2)
+
+def _ = print("2: ")
+def _ = dprintln (node1 -- l -- r -- node2)
+
+def _ = print("3: ")
+def _ = dprintln (node1 -- (l || r) -- node2)
+
+def _ = print("4: ")
+def _ = dprintln (node1 -- l -.- node3 -.- r -- node2)
+
+def _ = print("5: ")
+def _ = dprintln (node1 -- (l -- r || r) -- node2)

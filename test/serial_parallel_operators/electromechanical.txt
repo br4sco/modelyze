@@ -1,0 +1,42 @@
+1: testEdge_1(frame1_1, frame2_1, lx_1, lF_1)
+2: testEdge_1(frame1_1, f1_1, lx_2, lF_2);
+testEdge_1(f1_1, frame2_1, rx_1, rF_1)
+3: testEdge_1(frame1_1, frame2_1, lx_3, lF_3);
+testEdge_1(frame1_1, frame2_1, rx_2, rF_2)
+4: testEdge_1(frame1_1, frame3_1, lx_4, lF_4);
+testEdge_1(frame3_1, frame2_1, rx_3, rF_3)
+5: testEdge_1(frame1_1, frame2_1, lx_5, lF_5);
+electricalEdge_1(node1_1, node2_1, lu_1, li_1)
+6: testEdge_1(frame1_1, f1_2, lx_6, lF_6);
+electricalEdge_1(node1_1, node2_1, lu_2, li_2);
+testEdge_1(f1_2, frame2_1, rx_4, rF_4);
+electricalEdge_1(node1_1, node2_1, ru_1, ri_1)
+7: testEdge_1(frame1_1, frame2_1, lx_7, lF_7);
+electricalEdge_1(node1_1, node2_1, lu_3, li_3);
+testEdge_1(frame1_1, frame2_1, rx_5, rF_5);
+electricalEdge_1(node1_1, node2_1, ru_2, ri_2)
+8: testEdge_1(frame1_1, f1_3, lx_8, lF_8);
+electricalEdge_1(node1_1, node2_1, lu_4, li_4);
+testEdge_1(f1_3, frame2_1, rx_6, rF_6)
+9: testEdge_1(frame1_1, f1_4, lx_9, lF_9);
+testEdge_1(f1_4, frame2_1, rx_7, rF_7);
+electricalEdge_1(node1_1, node2_1, ru_3, ri_3)
+10: testEdge_1(frame1_1, frame2_1, lx_10, lF_10);
+electricalEdge_1(node1_1, node2_1, lu_5, li_5);
+testEdge_1(frame1_1, frame2_1, rx_8, rF_8)
+11: testEdge_1(frame1_1, frame2_1, rx_9, rF_9);
+electricalEdge_1(node1_1, node2_1, ru_4, ri_4);
+testEdge_1(frame1_1, frame2_1, lx_11, lF_11)
+12: testEdge_1(frame1_1, f2_1, lx_12, lF_12);
+electricalEdge_1(node1_1, node2_1, lu_6, li_6);
+testEdge_1(f2_1, frame2_1, rx_11, rF_11);
+electricalEdge_1(node1_1, node2_1, ru_5, ri_5);
+testEdge_1(frame1_1, frame2_1, rx_10, rF_10)
+13: testEdge_1(frame1_1, f2_2, lx_13, lF_13);
+electricalEdge_1(node1_1, node2_1, lu_7, li_7);
+testEdge_1(f2_2, frame2_1, rx_13, rF_13);
+testEdge_1(frame1_1, frame2_1, rx_12, rF_12)
+13: testEdge_1(frame1_1, f2_3, lx_14, lF_14);
+testEdge_1(f2_3, frame2_1, rx_15, rF_15);
+electricalEdge_1(node1_1, node2_1, ru_6, ri_6);
+testEdge_1(frame1_1, frame2_1, rx_14, rF_14)
