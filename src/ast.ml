@@ -184,6 +184,9 @@ and setop =
   | SetOpRemove
   | SetOpToList
 
+and sysop =
+  | SysOpArgv
+
 and daesolverop =
   | DAESolverOpInit
   | DAESolverOpInitWithRootf
@@ -246,6 +249,8 @@ and tm =
   | TmMapOp       of info * level * mapop * tm list
   (* Set *)
   | TmSetOp       of info * level * setop * tm list
+  (* Sys *)
+  | TmSysOp       of info * level * sysop * tm list
   (* Simulation *)
   | TmDAESolverOp of  info * level * daesolverop * tm list
   | TmNLEQSolverOp of info * level * nleqsolverop * tm list
@@ -397,6 +402,10 @@ and pprint_set_op op =
   | SetOpRemove -> us"remove"
   | SetOpToList -> us"toList"
 
+and pprint_sys_op op =
+  match op with
+  | SysOpArgv -> us"argv"
+
 and pprint_daesolver_op op =
   match op with
   | DAESolverOpInit -> us"init"
@@ -510,7 +519,9 @@ and pprint tm =
   | TmMapOp(_,l,op,tms) -> metastr l ^. pprint_map_op op ^. us" " ^.
                            (tms |> List.map pprint |> Ustring.fast_concat (us" "))
   | TmSetOp(_,l,op,tms) -> metastr l ^. pprint_set_op op ^. us" " ^.
-                           (tms |> List.map pprint |> Ustring.fast_concat (us" "))
+                             (tms |> List.map pprint |> Ustring.fast_concat (us" "))
+  | TmSysOp(_,l,op,tms) -> metastr l ^. pprint_sys_op op ^. us" " ^.
+                             (tms |> List.map pprint |> Ustring.fast_concat (us" "))
   | TmDAESolverOp(_,l,op,tms) -> metastr l ^. pprint_daesolver_op op ^. us" " ^.
                                  (tms |> List.map pprint |> Ustring.fast_concat (us" "))
   | TmNLEQSolverOp(_,l,op,tms) -> metastr l ^. pprint_nleqsolver_op op ^. us" " ^.
@@ -894,6 +905,7 @@ let rec tm_info t =
   | TmArrayOp(fi,_,_,_) -> fi
   | TmMapOp(fi,_,_,_) -> fi
   | TmSetOp(fi,_,_,_) -> fi
+  | TmSysOp(fi,_,_,_) -> fi
   | TmDAESolverOp(fi,_,_,_) -> fi
   | TmNLEQSolverOp(fi,_,_,_) -> fi
   | TmDPrint(t) -> tm_info t
@@ -931,6 +943,7 @@ let rec set_tm_info newfi tm =
   | TmArrayOp(_,l,op,tms) -> TmArrayOp(newfi,l,op,tms)
   | TmMapOp(_,l,op,tms) -> TmMapOp(newfi,l,op,tms)
   | TmSetOp(_,l,op,tms) -> TmSetOp(newfi,l,op,tms)
+  | TmSysOp(_,l,op,tms) -> TmSysOp(newfi,l,op,tms)
   | TmDAESolverOp(_,l,op,tms) -> TmDAESolverOp(newfi,l,op,tms)
   | TmNLEQSolverOp(_,l,op,tms) -> TmNLEQSolverOp(newfi,l,op,tms)
   | TmDPrint(t) -> TmDPrint(set_tm_info newfi t)
@@ -1121,6 +1134,8 @@ and fv_tm t =
     tms |> List.map fv_tm |> List.fold_left VarSet.union VarSet.empty
   | TmSetOp(fi,l,op,tms) ->
     tms |> List.map fv_tm |> List.fold_left VarSet.union VarSet.empty
+  | TmSysOp(fi,l,op,tms) ->
+    tms |> List.map fv_tm |> List.fold_left VarSet.union VarSet.empty
   | TmDAESolverOp(fi,l,op,tms) ->
     tms |> List.map fv_tm |> List.fold_left VarSet.union VarSet.empty
   | TmNLEQSolverOp(fi,l,op,tms) ->
@@ -1171,6 +1186,12 @@ let mk_setop fi sid =
   | "mem" -> SetOpMem
   | "remove" -> SetOpRemove
   | "toList" -> SetOpToList
+  | _ -> raise (Mkl_lex_error (LEX_UNKNOWN_FUNCTION,ERROR, fi, [s]))
+
+let mk_sysop fi sid =
+  let s = Symtbl.get sid in
+  match Ustring.to_latin1 s with
+  | "argv" -> SysOpArgv
   | _ -> raise (Mkl_lex_error (LEX_UNKNOWN_FUNCTION,ERROR, fi, [s]))
 
 let mk_daesolverop fi sid =

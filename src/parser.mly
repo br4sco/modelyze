@@ -94,6 +94,7 @@ along with Modelyze toolchain.  If not, see <http://www.gnu.org/licenses/>.
 %token <unit Ast.tokendata> MAP
 %token <unit Ast.tokendata> LIST
 %token <unit Ast.tokendata> SET
+%token <unit Ast.tokendata> SYS
 %token <unit Ast.tokendata> DAESOLVER
 %token <unit Ast.tokendata> NLEQSOLVER
 %token <unit Ast.tokendata> INCLUDE
@@ -372,6 +373,11 @@ term:
                 else mkinfo $1.i (tm_info (List.hd $4)) in
        let op = mk_setop $3.i $3.v in
        TmSetOp(fi,$1.l,op,List.rev $4) }
+  | SYS DOT IDENT op_atom_list_rev
+     { let fi = if $4 = [] then mkinfo $1.i $3.i
+                else mkinfo $1.i (tm_info (List.hd $4)) in
+       let op = mk_sysop $3.i $3.v in
+       TmSysOp(fi,$1.l,op,List.rev $4) }
   | DAESOLVER DOT IDENT op_atom_list_rev
      { let fi = if $4 = [] then mkinfo $1.i $3.i
                 else mkinfo $1.i (tm_info (List.hd $4)) in

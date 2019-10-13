@@ -309,6 +309,15 @@ and typeof_set_op fi l op ts env  =
 	          (TYPE_UNEXPECTED_NO_ARGS,ERROR,fi,
                    [ustring_of_int (List.length ts)]))
 
+and typeof_sys_op fi l op ts env =
+  match op,ts with
+  | SysOpArgv,[] ->
+     (TyArray(fi,l,TyString(fi,l)),[])
+  | _ -> raise (Mkl_type_error
+	          (TYPE_UNEXPECTED_NO_ARGS,ERROR,fi,
+                   [ustring_of_int (List.length ts)]))
+
+
 and typeof_daesolver_op fi l op ts env  =
   match op,ts with
   | DAESolverOpInit,[tmres;t0;ar_yy0;ar_yp0] ->
@@ -688,6 +697,9 @@ and typeof env t =
   | TmSetOp(fi,l,op,ts) ->
     let (ty',ts') = typeof_set_op fi l op ts env  in
     (ty',TmSetOp(fi,l,op,ts'))
+  | TmSysOp(fi,l,op,ts) ->
+    let (ty',ts') = typeof_sys_op fi l op ts env  in
+    (ty',TmSysOp(fi,l,op,ts'))
   | TmDAESolverOp(fi,l,op,ts) ->
     let (ty',ts') = typeof_daesolver_op fi l op ts env  in
     (ty',TmDAESolverOp(fi,l,op,ts'))

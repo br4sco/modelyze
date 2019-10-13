@@ -261,6 +261,7 @@ and pp prec t  =
         pp 0 t1 ^. us"," ^. pp 0 t2 ^. us"," ^. pp 0 t3 ^. us")"
     | TmGenSym(ty) -> us"TmGenSym()"
     | TmSetOp(op,tms) -> us"TmSetOp()"
+    | TmSysOp(op,tms) -> us"TmSysOp()"
     | TmSymStr(t) -> us"TmSetOp(" ^. pp 0 t ^. us")"
     | TmDAESolverOp(op,tms) -> us"TmDAESolverOp()"
     | TmNLEQSolverOp(op,tms) -> us"TmNLEQSolverOp()"

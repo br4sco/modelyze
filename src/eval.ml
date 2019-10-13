@@ -116,6 +116,12 @@ let eval_set_op op arg_lst =
     PMap.foldi (fun k _ a -> TmCons(k,a)) m TmNil
   | _ -> TmSetOp(op,arg_lst)
 
+let eval_sys_op op arg_lst =
+  match op,arg_lst with
+  | Ast.SysOpArgv,[] ->
+     TmArray(Array.map (fun a -> TmConst(Ast.ConstString(Ustring.from_utf8 a))) Sys.argv)
+  | _ -> TmSysOp(op,arg_lst)
+
 let from_tm ar =
   let ar' = Array.map (fun t -> match t with TmConst(Ast.ConstReal(r)) -> r
                                            | _ -> assert false) ar in
@@ -347,6 +353,7 @@ let rec readback syms d tm =
   | TmMapOp(op,tms) -> TmMapOp(op,List.map (readback syms d) tms)
   | TmSet(size,tms) -> tm
   | TmSetOp(op,tms) -> TmSetOp(op,List.map (readback syms d) tms)
+  | TmSysOp(op,tms) -> TmSysOp(op,List.map (readback syms d) tms)
   | TmDAESolver(st,_,_) -> tm
   | TmDAESolverOp(op,tms) -> TmDAESolverOp(op,List.map (readback syms d) tms)
   | TmNLEQSolver(st, uu) -> tm
@@ -494,6 +501,7 @@ and eval venv norec t =
   | TmMapOp(op,tms) -> eval_map_op op (List.map (eval venv norec) tms)
   | TmSet(size,tms) -> TmSet(size,tms)
   | TmSetOp(op,tms) -> eval_set_op op (List.map (eval venv norec) tms)
+  | TmSysOp(op,tms) -> eval_sys_op op (List.map (eval venv norec) tms)
   | TmDAESolver(st,yy,yp) -> TmDAESolver(st,yy,yp)
   | TmDAESolverOp(op,tms) ->
     eval_daesolver_op (eval venv norec) op (List.map (eval venv norec) tms)

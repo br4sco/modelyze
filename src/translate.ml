@@ -119,6 +119,8 @@ let translate t =
           nl l d (TmMapOp(op,List.map (fun t -> trans t l denv ) tms))
       | Ast.TmSetOp(_,l,op,tms) ->
          nl l d (TmSetOp(op,List.map (fun t -> trans t l denv ) tms))
+      | Ast.TmSysOp(_,l,op,tms) ->
+         nl l d (TmSysOp(op,List.map (fun t -> trans t l denv ) tms))
       | Ast.TmDAESolverOp(_,l,op,tms) ->
          nl l d (TmDAESolverOp(op,List.map (fun t -> trans t l denv ) tms))
       | Ast.TmNLEQSolverOp(_,l,op,tms) ->

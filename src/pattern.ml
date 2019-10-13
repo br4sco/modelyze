@@ -123,6 +123,7 @@ and subst_var (x:int) (y:int) (tm:tm)  =
       | TmArrayOp(fi,l,op,ts) -> TmArrayOp(fi,l,op,List.map (subst_var x y) ts)
       | TmMapOp(fi,l,op,ts) -> TmMapOp(fi,l,op,List.map (subst_var x y) ts)
       | TmSetOp(fi,l,op,ts) -> TmSetOp(fi,l,op,List.map (subst_var x y) ts)
+      | TmSysOp(fi,l,op,ts) -> TmSysOp(fi,l,op,List.map (subst_var x y) ts)
       | TmDAESolverOp(fi,l,op,ts) ->
          TmDAESolverOp(fi,l,op,List.map (subst_var x y) ts)
       | TmNLEQSolverOp(fi,l,op,ts) ->
@@ -349,6 +350,7 @@ and desugar tm =
       | TmArrayOp(fi,l,op,ts) -> TmArrayOp(fi,l,op,List.map ds ts)
       | TmMapOp(fi,l,op,ts) -> TmMapOp(fi,l,op,List.map ds ts)
       | TmSetOp(fi,l,op,ts) -> TmSetOp(fi,l,op,List.map ds ts)
+      | TmSysOp(fi,l,op,ts) -> TmSysOp(fi,l,op,List.map ds ts)
       | TmDAESolverOp(fi,l,op,ts) -> TmDAESolverOp(fi,l,op,List.map ds ts)
       | TmNLEQSolverOp(fi,l,op,ts) -> TmNLEQSolverOp(fi,l,op,List.map ds ts)
       | TmDPrint(t) -> TmDPrint(ds t)

@@ -158,6 +158,7 @@ and tm_typesubst typemap numap tm =
     | TmArrayOp(fi,l,op,tms) -> TmArrayOp(fi,l,op,List.map tmsub tms)
     | TmMapOp(fi,l,op,tms) -> TmMapOp(fi,l,op,List.map tmsub tms)
     | TmSetOp(fi,l,op,tms) -> TmSetOp(fi,l,op,List.map tmsub tms)
+    | TmSysOp(fi,l,op,tms) -> TmSysOp(fi,l,op,List.map tmsub tms)
     | TmDAESolverOp(fi,l,op,tms) -> TmDAESolverOp(fi,l,op,List.map tmsub tms)
     | TmNLEQSolverOp(fi,l,op,tms) -> TmNLEQSolverOp(fi,l,op,List.map tmsub tms)
     | TmDPrint(t) -> TmDPrint(tmsub t)
