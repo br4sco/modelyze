@@ -82,5 +82,6 @@ test_files "graph"
 test_files "vector"
 # test_files "simplify"
 test_files "serial_parallel_operators"
+test_files "argv"
 
 rm -f test.out

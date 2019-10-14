@@ -1,0 +1,15 @@
+include ARGS
+
+def usage = "prog [OPTIONS] [FILE]"
+
+def kvspec = [
+  ("-this", ": beacuse"),
+  ("-more", ": this")
+]
+
+def ospec = [
+  ("-flag", ": because"),
+  ("-anotherflag", ": another reason")
+]
+
+def _ = dprintln (usageMsg usage (concat [ospec, kvspec]))

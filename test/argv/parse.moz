@@ -1,0 +1,19 @@
+include Args
+
+def usage = ""
+
+def uspec = [
+  ("-a", ""),
+  ("-b", ""),
+  ("-c", "")
+]
+
+def kvspec = [
+  ("-d", ""),
+  ("-e", ""),
+  ("-f", "")
+]
+
+def args = ["-a", "-d", "v1", "a1", "-b", "-c","-e", "v2", "a2", "-f", "v3", "a3"]
+
+def _ = dprintln (parseOptions kvspec uspec usage args)

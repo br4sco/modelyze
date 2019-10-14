@@ -1,0 +1,6 @@
+"prog [OPTIONS] [FILE]
+	-flag: because
+	-anotherflag: another reason
+	-this: beacuse
+	-more: this
+"

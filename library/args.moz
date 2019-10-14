@@ -1,0 +1,63 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include BASE
+
+type OptionsSpecification = (String, String)
+
+def usageMsg(usage: String, spec: [OptionsSpecification]) -> String = {
+  usage ++ "\n" ++
+  foldLeft (fun a: String -> fun x: OptionsSpecification ->
+              a ++ "\t" ++ fst x ++ snd x ++ "\n") "" spec
+}
+
+def parseKeyValueOptions(spec: [OptionsSpecification], args: [String]) -> (String => String) = {
+  def keys = listToSet (map (fun e: OptionsSpecification -> fst e) spec);
+  def work(args: [String], a: (String => String)) -> (String => String) = {
+    match args with
+    | [] -> a
+    | e::[] -> a
+    | k::(v::args) -> if (Set.mem k keys) then work args (Map.add k v a)
+                      else work (v::args) a
+  };
+
+  work args (Map.empty)
+}
+
+def parseUnitOptions(spec: [OptionsSpecification], args: [String]) -> Set(String) = {
+  def opts = listToSet (map (fun e: OptionsSpecification -> fst e) spec);
+  def work(args: [String], a: Set(String)) -> Set(String) = {
+    match args with
+    | [] -> a
+    | o::args -> if (Set.mem o opts) then work args (Set.add o a)
+                 else work (args) a
+  };
+
+  work args (Set.empty)
+}
+
+def parseOptions(kvspec: [OptionsSpecification], uspec: [OptionsSpecification], usage: String, args: [String]) = {
+  def kvopts = parseKeyValueOptions kvspec args;
+  def uopts = parseUnitOptions uspec args;
+  def (ks,vs) = unzip (Map.toList kvopts);
+  def ksvs = union (listToSet ks) (listToSet vs);
+  def aopts = listToSet (filter (fun o: String -> !(Set.mem o uopts) && !(Set.mem o ksvs)) args);
+  (kvopts, uopts, aopts)
+}
