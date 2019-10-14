@@ -16,18 +16,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
 
 written by Oscar Eriksson oerikss@kth.se
+
 */
 
-include BASE
 
-def argl = {
-  def as = (arrayToList (Sys.argv));
+include SYS
+include ARGS
+include GRAPHSIM
+include GRAPHSIMEXPORT
 
-  def f(a: ([String], Bool), e: String) -> ([String], Bool) = {
-    def (args, collect) = a;
-    if collect then (e::args, collect)
-    else if seq e "--" then (args, true) else a
+def usage = "moz .. [-n string]"
+
+def spec = [
+  ("-n", " : Modelica model name")
+]
+
+def export2ModelicaCLI(e: Model) -> () = {
+  def (kvopts, _, _) = parseOptions spec [] usage argl;
+  def name = {
+    if (Map.mem "-n" kvopts) then (Map.find "-n" kvopts)
+    else NAME
   };
-
-  reverse (fst (foldLeft f ([], false) as))
+  println (export2Modelica name (elaborate e))
 }

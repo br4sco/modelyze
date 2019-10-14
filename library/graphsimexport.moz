@@ -154,36 +154,48 @@ def pprintEqs(e: Model) -> String  = {
   | _ -> ""
 }
 
-def export2ModelicaDebug(e: Model) -> String = {
+def export2ModelicaDebug(name: String, e: Model) -> String = {
   def ivm = getInitalValMap e;
   def us = getUknowns e;
 
-  "model " ++ NAME ++ "\n"
+  "model " ++ name ++ "\n"
   ++ pprintUnknowns ivm us us
   ++ "initial equation\n"
   ++ pprintInitEqs e
   ++ "equation\n"
   ++ pprintEqs e
-  ++ "end " ++ NAME ++ ";\n"
+  ++ "end " ++ name ++ ";\n"
+}
+
+def export2ModelicaDebug(e: Model) -> String = {
+  export2ModelicaDebug NAME e
+}
+
+def export2ModelicaFileDebug(file: String, name: String, e: Model) -> () = {
+  writeFile file (export2ModelicaDebug name e ++ "\n");
 }
 
 def export2ModelicaFileDebug(e: Model) -> () = {
-  writeFile MODEL_FILENAME (export2ModelicaDebug e ++ "\n");
+  export2ModelicaFileDebug MODEL_FILENAME NAME e
 }
 
-def export2Modelica(e: Model) -> String = {
+def export2Modelica(name: String, e: Model) -> String = {
   def probed = getProbedUknowns e;
   def ivm = getInitalValMap e;
    def us = getUknowns e;
 
-  "model " ++ NAME ++ "\n"
+  "model " ++ name ++ "\n"
   ++ "protected\n"
   ++ pprintUnknowns ivm probed us
   ++ "initial equation\n"
   ++ pprintInitEqs e
   ++ "equation\n"
   ++ pprintEqs e
-  ++ "end " ++ NAME ++ ";\n"
+  ++ "end " ++ name ++ ";\n"
+}
+
+def export2Modelica(e: Model) -> String = {
+  export2Modelica NAME e
 }
 
 def export2ModelicaFile(e: Model) -> () = {
