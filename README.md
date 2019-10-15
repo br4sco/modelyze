@@ -198,10 +198,12 @@ python interface uses
 [https://openmodelica.org](https://openmodelica.org) as a simulation
 backend.
 
-In order to use this python interface you need to first install *open
-modelica*.
+In order to use this python interface you need to first
+install *open modelica*.
 
-In addition you need to install the python interface to *open modelica*
+In addition you need to install the python interface to *open
+modelica*. This is easily done using the [The Python Package
+Installer](https://pip.pypa.io/en/stable/).
 
 ```console
 pip install ompython
