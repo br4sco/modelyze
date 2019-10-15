@@ -55,7 +55,7 @@ a docker engine installed.
 1. Install the Docker engine for your platform [installation
    instructions here](https://docs.docker.com/install/).
 
-2. Run the python script [./docker_build.py](./docker_build.py) to
+2. Run the python script [docker_build.py](./docker_build.py) to
    build the docker image. This will create a an image with the *tag*
    `moz`.
 
@@ -63,7 +63,7 @@ a docker engine installed.
 python docker_build.py
 ```
 
-3. For convenience a python script [./docker_moz.py](./docker_moz.py)
+3. For convenience a python script [docker_moz.py](./docker_moz.py)
  is included that runs the Modelyze interpreter from within a docker
  container on a `.moz` file on your hosts file system.
 
@@ -188,6 +188,37 @@ The implementation can be found in [`library/dill.moz`](library/dill.moz),
 [`library/dillmodels.moz`](library/dillmodels.moz) and
 [`library/graphelaboration.moz`](library/graphelaboration.moz).  Examples using
 this implementation can be found in [`demo/dill`](demo/dill).
+
+Python Interface
+----------------
+
+In [`env/python`](env/python) there is an python interface to Modelyze
+along with an example [*JuPyter*](https://jupyter.org) notebook. The
+python interface uses
+[https://openmodelica.org](https://openmodelica.org) as a simulation
+backend.
+
+In order to use this python interface you need to first install *open
+modelica*.
+
+In addition you need to install the python interface to *open modelica*
+
+```console
+pip install ompython
+```
+To run the *jupyter notebook* example in [`env/python`](env/python) you
+also need to install *jupyter* and *matplotlib*
+
+```console
+pip install matplotlib jupyter
+```
+
+Thereafter you should be able to run the example in
+[`env/python`](env/python) as:
+
+```console
+jupyter notebook springmassdamper.ipynb
+```
 
 LICENSE
 -------
