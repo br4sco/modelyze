@@ -7,6 +7,8 @@ RUN apt-get install m4 libsundials-dev wget -y
 # RUN apt-get update
 # RUN apt-get install omc -y
 USER opam
+run opam update
+RUN opam switch 4.05
 RUN opam install sundialsml ocamlbuild
 COPY . ./modelyze
 RUN sudo chown -R opam:opam ./modelyze

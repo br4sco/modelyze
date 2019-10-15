@@ -5,12 +5,12 @@ Modelyze toolchain
 Copyright (C) 2010-2017 David Broman
 
 
-This project contains a simple interpreter for the 
+This project contains a simple interpreter for the
 Modelyze language. For a detailed overview of the
 Modelyze language, please see the technical report:
 
-David Broman and Jeremy G. Siek. "Modelyze: a Gradually Typed Host Language 
-for Embedding Equation-Based Modeling Languages", Technical Report No. 
+David Broman and Jeremy G. Siek. "Modelyze: a Gradually Typed Host Language
+for Embedding Equation-Based Modeling Languages", Technical Report No.
 UCB/EECS-2012-173, University of California, Berkeley, June 30, 2012.
 Available at: http://www.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-173.html
 
@@ -23,25 +23,62 @@ If you have any comments or questions, please send an email to
 <!--
  INSTALLATION (Mac OS)
  --------------------
- The following has been tested on OS X 10.12.6, but should work on 
+ The following has been tested on OS X 10.12.6, but should work on
  other Mac OS versions as well.
 
  1. Install [Homebrew](https://brew.sh/).
 
- 2. Install the Objective Caml compiler, Gnuplot, and Sundials via Homebew.  
-  
+ 2. Install the Objective Caml compiler, Gnuplot, and Sundials via Homebew.
+
     `>> brew install ocaml opam homebrew/science/sundials`
-  
+
     `>> brew install gnuplot --qt`
  3. If you have not done it already, clone the Modelyze project from GitHub:
-  
+
     `>> git clone https://github.com/david-broman/modelyze.git`
  5. Compile the code:
-  
+
     `>> cd modelyze`
-  
+
     `>> make`
 -->
+
+INSTALLATION (Docker)
+---------------------
+
+This method will build and install Modelyze along its dependencies
+inside a docker image. The benefit is that the dependencies does not
+have to be installed directly on your host and that you will be able
+to run Modelyze across different operating systems as long as there is
+a docker engine installed.
+
+1. Install the Docker engine for your platform [installation
+   instructions here](https://docs.docker.com/install/).
+
+2. Run the python script <./docker_build.py> to build the docker
+   image. This will create a an image with the *tag* `moz`.
+
+```console
+python docker_build.py
+```
+
+3. For convenience a python script <./docker_moz.py> is included that
+ runs the Modelyze interpreter from within a docker container on a
+ `.moz` file on your hosts file system.
+
+ To use it:
+
+```console
+python docker_moz.py <file.moz>
+```
+
+To open an interactive *pseudo-tty* to explore the Modelyze from within
+the container you can issue:
+
+```console
+docker run --tty --interactive moz
+```
+
 INSTALLATION (Linux)
 ---------------------
 
@@ -174,7 +211,7 @@ REVISIONS
   * Updated regression tests
   * Updated Makefile and build instructions
 
-* Version 1.14 
+* Version 1.14
   - Improved error messages.
   - Added support for function overloading.
   - Fixed a bug when using Sundials via Macports.
@@ -198,23 +235,23 @@ REVISIONS
   - Full gradual typing is now implemented according to the technical report
     http://www.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-173.html. The
     type system and the symbol lifting analysis correspond to the description.
-    Cast insertion has not been implemented.  
+    Cast insertion has not been implemented.
   - Pattern matching on symbols do not need to have the ~ anymore. Instead, the
-    compiler recognized if the pattern variable equal to a globally defined 
+    compiler recognized if the pattern variable equal to a globally defined
     symbol and in such a case it is treated as a symbol matching instead of
-    a pattern variable 
+    a pattern variable
   - Simplified the way of creating symbolic data types. Now these are always
     symbolic types. Defintions of equations and nodes are now simpler.
   - Add def-syntax, which is closer to Java or C. { } are used as
     grouping of expressions, not as defining arrays.
   - Added new syntax for derivatives, e.g., der(x) can be written x' and
     der(der(y)) can be written y''
-  - Changed the syntax for polymorphic equality from == to <==>. Added 
+  - Changed the syntax for polymorphic equality from == to <==>. Added
     operators == and ==. meaning real and integer equality test respectively.
     The rationale is that == can now be used as part of a model.
-  - Added two new keywords "begin" and "end", which have the same 
+  - Added two new keywords "begin" and "end", which have the same
     functionality as parentheses.
-  - Renamed initialization keyword from "Init" to "init". Also, the 
+  - Renamed initialization keyword from "Init" to "init". Also, the
     init operator "<-" can be used instead of "init".
   - Renamed the "when" guard on patterns to use keyword "if". In this
     way, "when" can be used in the DSLs.
