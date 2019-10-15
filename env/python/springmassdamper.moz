@@ -1,0 +1,28 @@
+include GRAPHSIMCLI
+
+def x1, x2, y, F, t: <Real>
+
+def k = 10.
+def d = 2.
+def m = 3.
+
+def model = {
+
+  F = -m * GRAVITATIONAL_CONSTANT;
+  // F = sin(t);
+  t' = 1.;
+
+  x1' = x2;
+  x2' = (-k / m) * x1 + (-d / m) * x2 + (F / m);
+  y = x1;
+
+  x1 <- 1.;
+  y <- 1.;
+  x2 <~ 0.;
+
+  probe t;
+  probe F;
+  probe y
+}
+
+def main = (export2ModelicaCLI model)
