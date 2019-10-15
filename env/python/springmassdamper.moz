@@ -1,12 +1,12 @@
 include GRAPHSIMCLI
 
 def x1, x2, y, F, t: <Real>
-
-def k = 10.
-def d = 2.
-def m = 3.
+def k, d, m: <Real>
 
 def model = {
+  param k 10.;
+  param d 2.;
+  param m 3.;
 
   F = -m * GRAVITATIONAL_CONSTANT;
   // F = sin(t);

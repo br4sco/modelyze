@@ -27,12 +27,13 @@ def NAME = "Model"
 
 type InitValMap = (<Real> => (Real, Bool))
 type VarNameMap = (<Real> => String)
+type ParamsMap = (<Real> => Real)
 
-def getUknowns(e: Model) -> Set(<Real>) = {
+def getUknowns(e: Model, ps: ParamsMap) -> Set(<Real>) = {
   def work(e: <?>, a: Set(<Real>)) -> Set(<Real>) = {
     match e with
     | e_1 e_2 -> work e_2 (work e_1 a)
-    | sym: Real -> Set.add e a
+    | sym: Real -> if Map.mem e ps then a else Set.add e a
     | _ -> a
   };
 
@@ -85,6 +86,21 @@ def getProbedUknowns(e: Model) -> Set(<Real>) = {
   work e (Set.empty)
 }
 
+def getParameters(e: Model) -> ParamsMap = {
+  def work(e: Model, a: ParamsMap) -> ParamsMap = {
+    match e with
+    | param p (sval v: Real) -> {
+          match p with
+          | sym: Real -> Map.add p v a
+          | _ -> { def _ = dprintln p; error "Is not an unknown" }
+        }
+    | param _ _ -> { def _ = dprintln e; error "Invalid paramater defintion" }
+    | Comp e_1 e_2 -> work e_2 (work e_1 a)
+    | _ -> a
+  };
+  work e (Map.empty)
+}
+
 def r2mr(r: Real) -> String = {
     if r < 0. then "(" ++ real2string r  ++ ")"
     else real2string r
@@ -121,11 +137,15 @@ def pprintExpr(e: <Real>) -> String = {
   work e
 }
 
+def mkIVString(u: <Real>, ivm: InitValMap) = {
+  if Map.mem u ivm then {
+    def (u_0, fix) = (Map.find u ivm);
+    " (start=" ++ r2mr u_0 ++ (if fix then ", fixed=true)" else ")")
+  } else ""
+}
+
 def pprintUnknown(u: <Real>, ivm: InitValMap, probed: Set(<Real>)) -> String = {
-  def iv = (if Map.mem u ivm then {
-              def (u_0, fix) = (Map.find u ivm);
-              " (start=" ++ r2mr u_0 ++ (if fix then ", fixed=true)" else ")")
-            } else "");
+  def iv = mkIVString u ivm;
 
   def show = (if Set.mem u probed then " annotation(HideResult=false)"
               else  " annotation(HideResult=true)");
@@ -138,6 +158,18 @@ def pprintUnknowns(ivm: InitValMap, probed: Set(<Real>), us: Set(<Real>)) -> Str
     a ++ " " ++ pprintUnknown u ivm probed ++ ";\n"
   };
   foldLeft f "" us
+}
+
+def pprintParameter(p: <Real>, v: Real) -> String = {
+  "parameter Real " ++ symstr(p) ++ " = " ++ r2mr v
+}
+
+def pprintParameters(ps: ParamsMap) -> String  = {
+  def f(a: String, pv: (<Real>, Real)) -> String = {
+    def (p, v) = pv;
+    a ++ " " ++ pprintParameter p v ++ ";\n"
+  };
+  foldLeft f "" (Map.toList ps)
 }
 
 def pprintInitEqs(e: Model) -> String = {
@@ -156,9 +188,11 @@ def pprintEqs(e: Model) -> String  = {
 
 def export2ModelicaDebug(name: String, e: Model) -> String = {
   def ivm = getInitalValMap e;
-  def us = getUknowns e;
+  def ps = getParameters e;
+  def us = getUknowns e ps;
 
   "model " ++ name ++ "\n"
+  ++ pprintParameters ps
   ++ pprintUnknowns ivm us us
   ++ "initial equation\n"
   ++ pprintInitEqs e
@@ -182,9 +216,11 @@ def export2ModelicaFileDebug(e: Model) -> () = {
 def export2Modelica(name: String, e: Model) -> String = {
   def probed = getProbedUknowns e;
   def ivm = getInitalValMap e;
-   def us = getUknowns e;
+  def ps = getParameters e;
+  def us = getUknowns e ps;
 
   "model " ++ name ++ "\n"
+  ++ pprintParameters ps
   ++ "protected\n"
   ++ pprintUnknowns ivm probed us
   ++ "initial equation\n"

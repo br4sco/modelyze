@@ -59,6 +59,15 @@ class Model:
         self._elaborate_modelica(modelica_file_path, model_name)
         return self
 
+    def getParameters(self):
+        return self._mmodel.getParameters()
+
+    def setParameters(self, **kwargs):
+        self._go_to_modeling_dir()
+        self._mmodel.setParameters(**kwargs)
+        self._go_to_cwd()
+        return self
+
     def simulate(self, t0=0, tf=20, h=0.01):
         self._go_to_modeling_dir()
         self._mmodel.setSimulationOptions(startTime=t0, stopTime=tf, stepSize=h, solver="ida")

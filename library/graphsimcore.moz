@@ -42,6 +42,8 @@ def IEq: Real -> Real -> Model
 def (~=) = IEq
 
 def probe: Real -> Model
+def param: Real -> Real -> Model
+
 def NoElement: Model
 
 def sw(a: {Dyn}, i: Int, j: Int) -> () = {
