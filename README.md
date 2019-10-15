@@ -55,8 +55,8 @@ a docker engine installed.
 1. Install the Docker engine for your platform [installation
    instructions here](https://docs.docker.com/install/).
 
-2. Run the python script [docker_build.py](./docker_build.py) to
-   build the docker image. This will create a an image with the *tag*
+2. Run the python script [docker_build.py](./docker_build.py) to build
+   the docker image. This will create a docker image with the *tag*
    `moz`.
 
 ```console
