@@ -1,3 +1,21 @@
+# Modeling Kernel Language (Modelyze) library
+# Copyright (C) 2010-2012 David Broman
+
+# Modelyze library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Modelyze library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public License
+# along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+# written by Oscar Eriksson oerikss@kth.se
+
 import os
 import tempfile
 from OMPython import ModelicaSystem
@@ -18,11 +36,11 @@ class Model:
     def _go_to_cwd(self):
         os.chdir(self.cwd)
 
-    def _build_moz_command(self, model_name):
+    def _mk_moz_command(self, model_name):
         return self._moz_executable + " " + self.model_file + " -- -n " + model_name
 
     def _execute_moz(self, model_name):
-        return os.popen(self._build_moz_command(model_name)).read()
+        return os.popen(self._mk_moz_command(model_name)).read()
 
     def _elaborate_modeyze(self, model_name):
         modelica_file_path = self.modeling_dir.name + "/" + self._modelica_file_name
