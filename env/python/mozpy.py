@@ -59,10 +59,10 @@ class Model:
         self._elaborate_modelica(modelica_file_path, model_name)
         return self
 
-    def getParameters(self):
+    def get_parameters(self):
         return self._mmodel.getParameters()
 
-    def setParameters(self, **kwargs):
+    def set_parameters(self, **kwargs):
         self._go_to_modeling_dir()
         self._mmodel.setParameters(**kwargs)
         self._go_to_cwd()
@@ -75,13 +75,13 @@ class Model:
         self._go_to_cwd()
         return self
 
-    def getSolvedVariables(self):
+    def get_solved_variables(self):
         self._go_to_modeling_dir()
         variables = self._mmodel.getSolutions()
         self._go_to_cwd()
         return variables
 
-    def getSolutions(self, var_list=None):
+    def get_solutions(self, var_list=None):
         self._go_to_modeling_dir()
         if var_list is None:
             res = self._mmodel.getSolutions(self.getSolvedVariables())
