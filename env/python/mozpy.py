@@ -16,8 +16,7 @@
 
 # written by Oscar Eriksson oerikss@kth.se
 
-import os
-import tempfile
+import os, tempfile, logging
 from OMPython import ModelicaSystem
 
 class Model:
@@ -28,22 +27,31 @@ class Model:
         self.model_file = model_file
         self._moz_executable = moz_executable
         self.modeling_dir = tempfile.TemporaryDirectory()
+        logging.debug("modeling dir: " + self.modeling_dir.name)
         self.cwd = os.getcwd()
+        logging.debug("current working dir: " + self.cwd)
 
     def _go_to_modeling_dir(self):
         os.chdir(self.modeling_dir.name)
+        logging.debug("changed to dir: " + self.modeling_dir.name)
 
     def _go_to_cwd(self):
         os.chdir(self.cwd)
+        logging.debug("changed to dir: " + self.cwd)
 
     def _mk_moz_command(self, model_name):
-        return self._moz_executable + " " + self.model_file + " -- -n " + model_name
+        moz_command = self._moz_executable + " " + self.model_file + " -- -n " + model_name
+        logging.debug("moz command: " + moz_command)
+        return moz_command
 
     def _execute_moz(self, model_name):
-        return os.popen(self._mk_moz_command(model_name)).read()
+        moz_command_output = os.popen(self._mk_moz_command(model_name)).read()
+        logging.debug("moz command output: \n" + moz_command_output)
+        return moz_command_output
 
     def _elaborate_modeyze(self, model_name):
         modelica_file_path = self.modeling_dir.name + "/" + self._modelica_file_name
+        logging.debug("modelica file path: " + modelica_file_path)
         fd = open(modelica_file_path, "w")
         fd.write(self._execute_moz(model_name))
         fd.close()
