@@ -16,45 +16,54 @@
 
 # written by Oscar Eriksson oerikss@kth.se
 
-import os, tempfile, logging
+import os
+import tempfile
+import logging
+
 from OMPython import ModelicaSystem
+
 
 class Model:
 
     _modelica_file_name = "model.mo"
 
     def __init__(self, model_file, moz_executable="moz"):
-        self.model_file = model_file
         self._moz_executable = moz_executable
+        self._mmodel = None
+        self.model_file = model_file
         self.modeling_dir = tempfile.TemporaryDirectory()
-        logging.debug("modeling dir: " + self.modeling_dir.name)
         self.cwd = os.getcwd()
-        logging.debug("current working dir: " + self.cwd)
+        logging.debug("modeling dir: %s", self.modeling_dir.name)
+        logging.debug("current working dir: %s", self.cwd)
 
     def _go_to_modeling_dir(self):
         os.chdir(self.modeling_dir.name)
-        logging.debug("changed to dir: " + self.modeling_dir.name)
+        logging.debug("changed to dir: %s", self.modeling_dir.name)
 
     def _go_to_cwd(self):
         os.chdir(self.cwd)
-        logging.debug("changed to dir: " + self.cwd)
+        logging.debug("changed to dir: %s", self.cwd)
 
     def _mk_moz_command(self, model_name):
-        moz_command = self._moz_executable + " " + self.model_file + " -- -n " + model_name
-        logging.debug("moz command: " + moz_command)
+        moz_command = f"{self._moz_executable} {self.model_file} -- -n  \
+            {model_name}"
+
+        logging.debug("moz command: %s", moz_command)
         return moz_command
 
     def _execute_moz(self, model_name):
         moz_command_output = os.popen(self._mk_moz_command(model_name)).read()
-        logging.debug("moz command output: \n" + moz_command_output)
+        logging.debug("moz command output: \n %s", moz_command_output)
         return moz_command_output
 
     def _elaborate_modeyze(self, model_name):
-        modelica_file_path = self.modeling_dir.name + "/" + self._modelica_file_name
-        logging.debug("modelica file path: " + modelica_file_path)
-        fd = open(modelica_file_path, "w")
-        fd.write(self._execute_moz(model_name))
-        fd.close()
+        modelica_file_path = \
+                f"{self.modeling_dir.name}/{self._modelica_file_name}"
+
+        logging.debug("modelica file path: %s", modelica_file_path)
+        file_descriptor = open(modelica_file_path, "w")
+        file_descriptor.write(self._execute_moz(model_name))
+        file_descriptor.close()
         return modelica_file_path
 
     def _elaborate_modelica(self, modelica_file_path, model_name):
@@ -76,9 +85,10 @@ class Model:
         self._go_to_cwd()
         return self
 
-    def simulate(self, t0=0, tf=20, h=0.01):
+    def simulate(self, start_time=0, stop_time=20, step_size=0.01):
         self._go_to_modeling_dir()
-        self._mmodel.setSimulationOptions(startTime=t0, stopTime=tf, stepSize=h, solver="ida")
+        self._mmodel.setSimulationOptions(
+            startTime=start_time, stopTime=stop_time, stepSize=step_size, solver="ida")
         self._mmodel.simulate()
         self._go_to_cwd()
         return self
@@ -92,7 +102,7 @@ class Model:
     def get_solutions(self, var_list=None):
         self._go_to_modeling_dir()
         if var_list is None:
-            res = self._mmodel.getSolutions(self.getSolvedVariables())
+            res = self._mmodel.getSolutions(self.get_solved_variables())
         else:
             res = self._mmodel.getSolutions(var_list)
         self._go_to_cwd()

@@ -19,22 +19,29 @@ written by Oscar Eriksson oerikss@kth.se
 */
 
 include GRAPHSIMCORE
+include GRAPHSIMELECTRICAL
+include GRAPHSIMMECHANICALONED
+include GRAPHSIMMECHANICAL
 include GRAPHSIMELECTROMECHANICAL
 
 def elaborate(e: Model) -> Model = {
   def (ees, e) = getElectricalEdges e;
   def (tes, e) = getTranslationEdges e;
-  def (aves, e) = getAngularVelocityEdges e;
+  def (tes3, e) = getTranslation3Edges e;
+  def (res3, e) = getRotation3Edges1 e;
   // def (ries, e) = getRotationInitEdges e;
 
   def e = mkTopolEquations mkScalarTopolEquations
             mkScalarTopolEquations ees e;
 
-  def e = mkTopolEquations mkVector3TopolEquations
-            mkVector3TopolEquations tes e;
+  def e = mkTopolEquations mkScalarTopolEquations
+            mkScalarTopolEquations tes e;
 
   def e = mkTopolEquations mkVector3TopolEquations
-            mkVector3TopolEquations aves e;
+            mkVector3TopolEquations tes3 e;
+
+  def e = mkTopolEquations mkVector3TopolEquations
+            mkVector3TopolEquations res3 e;
 
   // def e = mkTopolInitEquations quatTopolInitEquations ries e;
   removeTrivialEquations e

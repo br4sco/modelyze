@@ -307,15 +307,15 @@ def matrixDer(M: SRMatrix) -> SRMatrix = {
 }
 def (') = matrixDer
 
-type Position = Vector
-type Velocity = Vector3
-type Force = Vector3
-type Orientation = Quaternion
-type AngularVelocity = Vector3
-type Torque = Vector3
-type AngleU = <Real>
-type AngularVelocityU = <Real>
-type TorqueU = <Real>
+type Position3 = Vector3
+type Velocity3 = Vector3
+type Force3 = Vector3
+type Orientation3 = Quaternion
+type AngluarVelocity3 = Vector3
+type Torque3 = Vector3
+type Angle = <Real>
+type AngularVelocity = <Real>
+type Torque = <Real>
 
 def mkTestVars(t: ()) = {
   def xm1_test, xm2_test, xm3_test,
@@ -326,21 +326,21 @@ def mkTestVars(t: ()) = {
   (x, q)
 }
 
-def translationEdge: Frame -> Frame -> Position -> Force -> Model
-def rotationalEdge: Frame -> Frame -> Orientation -> Torque -> Model
-def angularVelocityEdge: Frame -> Frame -> AngularVelocity -> Torque -> Model
+def translation3Edge: Frame -> Frame -> Position3 -> Force3 -> Model
+def rotational3Edge0: Frame -> Frame -> Orientation3 -> Torque3 -> Model
+def rotational3Edge1: Frame -> Frame -> AngluarVelocity3 -> Torque3 -> Model
 // def initialRotationEdge: Frame -> Frame -> SRMatrix -> Model
 
 type VectorPairEdge = (Edge, (Vector, Vector))
 type VectorEdge = (Edge, Vector)
 
-def getTranslationEdges(e: Model) -> ([VectorPairEdge], Model) = {
+def getTranslation3Edges(e: Model) -> ([VectorPairEdge], Model) = {
   def work(e: Model, a: ([VectorPairEdge], Model))
     -> ([VectorPairEdge], Model) = {
 
     match e with
     | Comp e_1 e_2 -> work e_2 (work e_1 a)
-    | translationEdge n_1 n_2 (sval x: Position) (sval y: Force) ->
+    | translation3Edge n_1 n_2 (sval x: Position3) (sval y: Force3) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
@@ -348,13 +348,13 @@ def getTranslationEdges(e: Model) -> ([VectorPairEdge], Model) = {
   work e ([], NoElement)
 }
 
-def getAngularVelocityEdges(e: Model) -> ([VectorPairEdge], Model) = {
+def getRotation3Edges1(e: Model) -> ([VectorPairEdge], Model) = {
   def work(e: Model, a: ([VectorPairEdge], Model))
     -> ([VectorPairEdge], Model) = {
 
     match e with
     | Comp e_1 e_2 -> work e_2 (work e_1 a)
-    | angularVelocityEdge n_1 n_2 (sval x: AngularVelocity) (sval y: Torque) ->
+    | rotational3Edge1 n_1 n_2 (sval x: AngluarVelocity3) (sval y: Torque3) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
@@ -362,13 +362,13 @@ def getAngularVelocityEdges(e: Model) -> ([VectorPairEdge], Model) = {
   work e ([], NoElement)
 }
 
-def getRotationalEdges(e: Model) -> ([VectorPairEdge], Model) = {
+def getRotation3Edges(e: Model) -> ([VectorPairEdge], Model) = {
   def work(e: Model, a: ([VectorPairEdge], Model))
     -> ([VectorPairEdge], Model) = {
 
     match e with
     | Comp e_1 e_2 -> work e_2 (work e_1 a)
-    | rotationalEdge n_1 n_2 (sval x: Orientation) (sval y: Torque) ->
+    | rotational3Edge0 n_1 n_2 (sval x: Orientation3) (sval y: Torque3) ->
         (((n_1, n_2), (x, y))::(fst a), snd a)
     | _ -> (fst a, (snd a); e)
   };
@@ -458,10 +458,10 @@ def mkG(q: Quaternion) = {
                ] (mmSRealZero (3, 4))
 }
 
-def mkR(q: Orientation) = (mkE q) * (tr (mkG q))
-def mkH(q: Orientation) = 0.5 *. (tr (mkE q))
+def mkR(q: Orientation3) = (mkE q) * (tr (mkG q))
+def mkH(q: Orientation3) = 0.5 *. (tr (mkE q))
 
-def relateQtoOm(q: Orientation, om: AngularVelocity) = {
+def relateQtoOm(q: Orientation3, om: AngluarVelocity3) = {
   def H = mkH q;
   if DRIFT_ADJUST_QUATERNIONS then
     q' = (H * om) + (QUATERNION_CORRECTION_CONSTANT * (1. - sqrt(norm2 q))) *. q
@@ -482,10 +482,10 @@ def mkSphericalInertia(m: Real, r: Real) -> RealVector3 = {
   (m * r^2. / 5., m * r^2. / 5., m * r^2. / 5.)
 }
 
-def ForceActuator(f: Vector3, x: Position, f1: Frame, f2: Frame)
+def ForceActuator(f: Vector3, x: Position3, f1: Frame, f2: Frame)
   -> Model = {
 
-  translationEdge f1 f2 x f
+  translation3Edge f1 f2 x f
 }
 
 def ForceActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
@@ -494,10 +494,10 @@ def ForceActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
   f1 -- ForceActuator f x -- f2
 }
 
-def TranslationActuator(f: Vector3, F: Force, f1: Frame, f2: Frame)
+def TranslationActuator(f: Vector3, F: Force3, f1: Frame, f2: Frame)
   -> Model = {
 
-  translationEdge f1 f2 f F
+  translation3Edge f1 f2 f F
 }
 
 def TranslationActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
@@ -506,10 +506,10 @@ def TranslationActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
   f1 -- TranslationActuator f F -- f2
 }
 
-def AngularVelocityActuator(f: Vector3, T: Torque, f1: Frame, f2: Frame)
+def AngularVelocityActuator(f: Vector3, T: Torque3, f1: Frame, f2: Frame)
   -> Model = {
 
-  angularVelocityEdge f1 f2 f T
+  rotational3Edge1 f1 f2 f T
 }
 
 def AngularVelocityActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
@@ -518,10 +518,10 @@ def AngularVelocityActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
   f1 -- AngularVelocityActuator f T -- f2
 }
 
-def TorqueActuator(f: Vector3, om: AngularVelocity, f1: Frame, f2: Frame)
+def TorqueActuator(f: Vector3, om: AngluarVelocity3, f1: Frame, f2: Frame)
   -> Model = {
 
-  angularVelocityEdge f1 f2 om f
+  rotational3Edge1 f1 f2 om f
 }
 
 def TorqueActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
@@ -530,7 +530,7 @@ def TorqueActuator(f: Vector3, f1: Frame, f2: Frame) -> Model = {
   f1 -- TorqueActuator f om -- f2
 }
 
-def RotationSensor(q: Orientation, f1: Frame, f2: Frame) -> Model = {
+def RotationSensor(q: Orientation3, f1: Frame, f2: Frame) -> Model = {
   if seq f1 f2 then q = IDQ
   else {
     def oms1, oms2, oms3: Real;
@@ -540,11 +540,11 @@ def RotationSensor(q: Orientation, f1: Frame, f2: Frame) -> Model = {
   }
 }
 
-def AngularVelocitySensor(om: AngularVelocity, f1: Frame, f2: Frame) -> Model = {
+def AngularVelocitySensor(om: AngluarVelocity3, f1: Frame, f2: Frame) -> Model = {
   TorqueActuator ZERO3 om f1 f2
 }
 
-def AngularVelocitySensorU(u: Vector3, omu: AngularVelocityU,
+def AngularVelocitySensorU(u: Vector3, omu: AngularVelocity,
   f1: Frame, f2: Frame) -> Model = {
 
   def oms1, oms2, oms3: Real;
@@ -554,77 +554,77 @@ def AngularVelocitySensorU(u: Vector3, omu: AngularVelocityU,
   omu = dot n om
 }
 
-def AngularVelocitySensorU(u: RealVector3, omu: AngularVelocityU,
+def AngularVelocitySensorU(u: RealVector3, omu: AngularVelocity,
   f1: Frame, f2: Frame) -> Model = {
 
   f1 -- AngularVelocitySensorU (vec3 u) omu -- f2
 }
 
-def AngularSensorU(u: Vector3, th0: Real, th: AngleU,
+def AngularSensorU(u: Vector3, th0: Real, th: Angle,
   f1: Frame, f2: Frame) -> Model = {
 
-  def omu: AngularVelocityU;
+  def omu: AngularVelocity;
   th' = omu;
   th <- th0;
   f1 -- AngularVelocitySensorU u omu -- f2
 }
 
-def AngularSensorU(u: RealVector3, th0: Real, th: AngleU,
+def AngularSensorU(u: RealVector3, th0: Real, th: Angle,
   f1: Frame, f2: Frame) -> Model = {
 
-  def omu: AngularVelocityU;
+  def omu: AngularVelocity;
   th' = omu;
   th <- th0;
   f1 -- AngularVelocitySensorU u omu -- f2
 }
 
-def TorqueSensor(T: Torque) -> FrameFun2 = {
+def TorqueSensor(T: Torque3) -> FrameFun2 = {
   fun f1: Frame -> fun f2: Frame ->
     AngularVelocityActuator ZERO3 T f1 f2
 }
 
-def TranslationSensor(x: Position, f1: Frame, f2: Frame) -> Model = {
+def TranslationSensor(x: Position3, f1: Frame, f2: Frame) -> Model = {
   if seq f1 f2 then x = ZERO3
   else ForceActuator ZERO3 x f1 f2
 }
 
-def BodyT(m: Real, v: Velocity, x: Position, F: Force,
+def BodyT(m: Real, v: Velocity3, x: Position3, F: Force3,
   world: Frame, fm: Frame) -> Model = {
 
-  translationEdge world fm x F;
+  translation3Edge world fm x F;
   x' = v;
   F = m *. v';
 }
 
-def BodyT(world: Frame, m: Real, v: Velocity, x: Position, F: Force,
+def BodyT(world: Frame, m: Real, v: Velocity3, x: Position3, F: Force3,
   fm: Frame) -> Model = {
 
   world -- BodyT m v x F -- fm
 }
 
-def BodyT(m: Real, x: Position, world: Frame, fm: Frame) -> Model = {
+def BodyT(m: Real, x: Position3, world: Frame, fm: Frame) -> Model = {
   def vm1, vm2, vm3, Fm1, Fm2, Fm3: Real;
   def v = vec3 vm1 vm2 vm3;
   def F = vec3 Fm1 Fm2 Fm3;
   world -- BodyT m v x F -- fm
 }
 
-def BodyT(fm: Frame, m: Real, x: Position, world: Frame) -> Model = {
+def BodyT(fm: Frame, m: Real, x: Position3, world: Frame) -> Model = {
   world -- BodyT m x -- fm
 }
 
-def BodyR(Jd: RealVector3, om: AngularVelocity, q: Orientation, T: Orientation,
+def BodyR(Jd: RealVector3, om: AngluarVelocity3, q: Orientation3, T: Torque3,
   world: Frame, fm: Frame) -> Model = {
 
   def R = mkR q;
   def J = mkJ Jd;
   def Jw = R * J * (tr R);
-  angularVelocityEdge world fm om T;
+  rotational3Edge1 world fm om T;
   relateQtoOm q om;
   T = Jw * om' + (ss om) * Jw * om
 }
 
-def BodyR(Jd: RealVector3, q: Orientation, world: Frame, fm: Frame)
+def BodyR(Jd: RealVector3, q: Orientation3, world: Frame, fm: Frame)
   -> Model = {
 
   def omm1, omm2, omm3, Tm1, Tm2, Tm3: Real;
@@ -633,13 +633,13 @@ def BodyR(Jd: RealVector3, q: Orientation, world: Frame, fm: Frame)
   world -- BodyR Jd om q T -- fm
 }
 
-def RigidArm1T(r: RealVector3, F: Force, q2: Orientation, fm: Frame, fe: Frame)
+def RigidArm1T(r: RealVector3, F: Force3, q2: Orientation3, fm: Frame, fe: Frame)
   -> Model = {
 
   TranslationActuator ((mkR q2) * (vec3 r)) F fm fe
 }
 
-def RigidArm1R(T: Torque, fm: Frame, fe: Frame) -> Model = {
+def RigidArm1R(T: Torque3, fm: Frame, fe: Frame) -> Model = {
   AngularVelocityActuator ZERO3 T fm fe
 }
 
@@ -649,15 +649,15 @@ def RigidArm1R(fm: Frame, fe: Frame) -> Model = {
   fm -- RigidArm1R T -- fe
 }
 
-def RigidArm2R(r: RealVector3, F1: Force, om: AngularVelocity, q: Orientation,
-  T: Torque, world: Frame, fm: Frame) -> Model = {
+def RigidArm2R(r: RealVector3, F1: Force3, om: AngluarVelocity3, q: Orientation3,
+  T: Torque3, world: Frame, fm: Frame) -> Model = {
 
-  angularVelocityEdge world fm om T;
+  rotational3Edge1 world fm om T;
   relateQtoOm q om;
   T = -(ss ((mkR q) * (vec3 r))) * F1
 }
 
-def RigidArm2R(r: RealVector3, F1: Force, q: Orientation,
+def RigidArm2R(r: RealVector3, F1: Force3, q: Orientation3,
   world: Frame, fm: Frame) -> Model = {
 
   def omr21, omr22, omr23, Tr21, Tr22, Tr23: Real;
@@ -678,12 +678,12 @@ def SphericalJoint(f1: Frame, f2: Frame) -> Model = {
   TranslationActuator ZERO3 f1 f2
 }
 
-def RevoluteJointR(u: Vector3, om: AngularVelocity, T: Torque,
+def RevoluteJointR(u: Vector3, om: AngluarVelocity3, T: Torque3,
   f1: Frame, f2: Frame) -> Model = {
 
-  def omu: AngularVelocityU;
+  def omu: AngularVelocity;
   def n = normalize u;
-  angularVelocityEdge f1 f2 om T;
+  rotational3Edge1 f1 f2 om T;
   dot n T = 0.;
   om = omu *. n
 }
@@ -695,7 +695,7 @@ def RevoluteJointR(u: Vector3, f1: Frame, f2: Frame) -> Model = {
   f1 -- RevoluteJointR u om T -- f2
 }
 
-def RevoluteJoint(u: RealVector3, q: Orientation, world: Frame,
+def RevoluteJoint(u: RealVector3, q: Orientation3, world: Frame,
   f1: Frame, f2: Frame) -> Model = {
 
   def R = mkR q;
@@ -707,18 +707,18 @@ def RotationDamper(d: Real, f1: Frame, f2: Frame) -> Model = {
   def omd1, omd2, omd3, Td1, Td2, Td3: Real;
   def om = vec3 omd1 omd2 omd3;
   def T = vec3 Td1 Td2 Td3;
-  angularVelocityEdge f1 f2 om T;
+  rotational3Edge1 f1 f2 om T;
   T = d *. om
 }
 
-def Body(m: Real, Jd: RealVector3, x: Position, q: Orientation,
+def Body(m: Real, Jd: RealVector3, x: Position3, q: Orientation3,
   world: Frame, fm: Frame) -> Model = {
 
   BodyT m x world fm;
   BodyR Jd q world fm
 }
 
-def RigidArm(r: RealVector3, q: Orientation, world: Frame,
+def RigidArm(r: RealVector3, q: Orientation3, world: Frame,
   fe: Frame, fm: Frame) -> Model = {
 
   def Fr11, Fr12, Fr13: Real;
@@ -728,7 +728,7 @@ def RigidArm(r: RealVector3, q: Orientation, world: Frame,
   world -- RigidArm2R r Fr1 q -- fm
 }
 
-def RigidArm(world: Frame, r: RealVector3, q: Orientation,
+def RigidArm(world: Frame, r: RealVector3, q: Orientation3,
   fe: Frame, fm: Frame) -> Model = {
 
   fe -- RigidArm r q world -- fm
@@ -754,10 +754,10 @@ def RigidArm(world: Frame, r: RealVector3) -> FrameFun2 = {
     norm2 q ~= 1.
 }
 
-def TranslationalSpring(k: Real, s: Real, x: Position, F: Force,
+def TranslationalSpring(k: Real, s: Real, x: Position3, F: Force3,
   f1: Frame, f2: Frame) -> Model = {
 
-  translationEdge f1 f2 x F;
+  translation3Edge f1 f2 x F;
   F = (k * (1. - (s / (sqrt(norm2 x) + EPSILON)))) *. x;
 }
 
@@ -768,10 +768,10 @@ def TranslationalSpring(k: Real, s: Real, f1: Frame, f2: Frame) -> Model = {
   f1 -- TranslationalSpring k s x F -- f2
 }
 
-def TranslationalDamper(d: Real, v: Velocity, x: Position, F: Force,
+def TranslationalDamper(d: Real, v: Velocity3, x: Position3, F: Force3,
   f1: Frame, f2: Frame) -> Model = {
 
-  translationEdge f1 f2 x F;
+  translation3Edge f1 f2 x F;
   x' = v;
   F = (d / ((norm2 x) + EPSILON) * (dot x v))  *. x
 }
@@ -784,18 +784,18 @@ def TranslationalDamper(d: Real, f1: Frame, f2: Frame) -> Model = {
   f1 -- TranslationalDamper d v x F -- f2
 }
 
-def RotationalSpring(k: Real, n: Vector3, om: AngularVelocity, T: Torque,
+def RotationalSpring(k: Real, n: Vector3, om: AngluarVelocity3, T: Torque3,
   f1: Frame, f2: Frame) -> Model = {
 
   def th: Real;
-  angularVelocityEdge f1 f2 om T;
+  rotational3Edge1 f1 f2 om T;
   th' = dot n om;
   th <- 0.;
   T = (k * th) *. n
 }
 
-def RotationalSpring(k: Real, u: RealVector3, q: Orientation,
-  om: AngularVelocity, T: Torque, world: Frame, f1: Frame, f2: Frame)
+def RotationalSpring(k: Real, u: RealVector3, q: Orientation3,
+  om: AngluarVelocity3, T: Torque3, world: Frame, f1: Frame, f2: Frame)
   -> Model = {
 
   def R = mkR q;
@@ -804,7 +804,7 @@ def RotationalSpring(k: Real, u: RealVector3, q: Orientation,
   f1 -- RotationalSpring k (R * n) om T -- f2
 }
 
-def RotationalSpring(k: Real, u: RealVector3, q: Orientation,
+def RotationalSpring(k: Real, u: RealVector3, q: Orientation3,
   world: Frame, f1: Frame, f2: Frame) -> Model = {
 
   def omk1, omk2, omk3, Tk1, Tk2, Tk3: Real;
@@ -813,16 +813,16 @@ def RotationalSpring(k: Real, u: RealVector3, q: Orientation,
   f1 -- RotationalSpring k u q om T world -- f2
 }
 
-def RotationalSpringEAA(k: Real, q: Orientation, om: AngularVelocity, T: Torque,
+def RotationalSpringEAA(k: Real, q: Orientation3, om: AngluarVelocity3, T: Torque3,
   world: Frame, f1: Frame, f2: Frame) -> Model = {
 
   def (th, n) = quat2eaa q;
-  angularVelocityEdge f1 f2 om T;
+  rotational3Edge1 f1 f2 om T;
   world -- RotationSensor q -- f2;
   T = (k * th) *. n
 }
 
-def RotationalSpringEAA(k: Real, q: Orientation, world: Frame,
+def RotationalSpringEAA(k: Real, q: Orientation3, world: Frame,
   f1: Frame, f2: Frame) -> Model = {
 
   def omk1, omk2, omk3, Tk1, Tk2, Tk3: Real;
