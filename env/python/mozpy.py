@@ -30,6 +30,7 @@ class Model:
     def __init__(self, model_file, moz_executable="moz"):
         self._moz_executable = moz_executable
         self._mmodel = None
+        self.model = None
         self.model_file = model_file
         self.modeling_dir = tempfile.TemporaryDirectory()
         self.cwd = os.getcwd()
@@ -52,17 +53,17 @@ class Model:
         return moz_command
 
     def _execute_moz(self, model_name):
-        moz_command_output = os.popen(self._mk_moz_command(model_name)).read()
-        logging.debug("moz command output: \n %s", moz_command_output)
-        return moz_command_output
+        self.model = os.popen(self._mk_moz_command(model_name)).read()
+        logging.debug("moz command output: \n %s", self.model)
 
     def _elaborate_modeyze(self, model_name):
+        self._execute_moz(model_name)
         modelica_file_path = \
                 f"{self.modeling_dir.name}/{self._modelica_file_name}"
 
         logging.debug("modelica file path: %s", modelica_file_path)
         file_descriptor = open(modelica_file_path, "w")
-        file_descriptor.write(self._execute_moz(model_name))
+        file_descriptor.write(self.model)
         file_descriptor.close()
         return modelica_file_path
 

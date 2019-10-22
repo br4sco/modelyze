@@ -1,0 +1,23 @@
+include GRAPHSIMCLI
+
+def p1, p2: Point
+def d, k, m, t: Real
+def u: Force
+def y: Position
+
+def system = Spring1d(-k) || Damper1d(-d) || Mass1d(m)
+
+def model = {
+  param d 2.0;
+  param k 3.0;
+  param m 4.0;
+  probe y;
+
+  Clock(0., t);
+  u = -m * GRAVITATIONAL_CONSTANT;
+  // u = sin(t);
+  p1 -- system -- p2;
+  p1 -- (ForceActuator1d(u) || PositionSensor1d(-y)) -- p2
+}
+
+def main = (export2ModelicaCLI model)
