@@ -238,58 +238,76 @@ def export2ModelicaFile(e: Model) -> () = {
   writeFile MODEL_FILENAME (export2Modelica e ++ "\n");
 }
 
-// def export2Matlab(e: Model) -> String = {
+def export2Matlab(e: Model) -> String = {
 
-//   def r2mr(r: Real) -> String = {
-//       if r < 0. then "(" ++ real2string r  ++ ")"
-//       else real2string r
-//   };
+  def r2mr(r: Real) -> String = {
+      if r < 0. then "(" ++ real2string r  ++ ")"
+      else real2string r
+  };
 
-//   def pprintUnknowns(e: Model) -> String = {
-//     def f(a: String, u: <Real>) -> String = {
-//       a ++ " " ++ symstr(u) ++ "(t)"
-//     };
+  def ppSymFun(u: <Real>) -> String = { symstr(u) ++ "(t)" };
+  def ppSym(u: <Real>) -> String = { symstr(u) };
 
-//     def us = (Set.toList (getUknowns e));
-//     foldLeft f "" us
-//   };
+  def ppSymFuns(us: Set(<Real>)) -> String = {
+    def f(a: String, u: <Real>) -> String = {
+      a ++ " " ++ ppSymFun u
+    };
 
+    foldLeft f "" us
+  };
 
-//   def pprintExpr(e: <>) -> String = {
-//       match e with
-//       | e1 + e2 -> "(" ++ pprintExpr e1 ++ " + " ++ pprintExpr e2 ++ ")"
-//       | e1 - e2 -> "(" ++ pprintExpr e1 ++ " - " ++ pprintExpr e2 ++ ")"
-//       | e1 * e2 -> pprintExpr e1 ++ " * " ++ pprintExpr e2
-//       | e1 / e2 -> pprintExpr e1 ++ " / " ++ pprintExpr e2
-//       | -e -> "(-" ++ pprintExpr e ++ ")"
-//       | e1^e2 -> pprintExpr e1 ++ " ^ " ++ "(" ++ pprintExpr e2 ++ ")"
-//       | der e -> "diff(" ++ pprintExpr e ++ ")"
-//       | ~sin e -> "sin(" ++ pprintExpr e ++ ")"
-//       | ~cos e -> "cos(" ++ pprintExpr e ++ ")"
-//       | ~tan e -> "tan(" ++ pprintExpr e ++ ")"
-//       | ~asin e -> "asin(" ++ pprintExpr e ++ ")"
-//       | ~acos e -> "acos(" ++ pprintExpr e ++ ")"
-//       | ~atan e -> "atan(" ++ pprintExpr e ++ ")"
-//       | ~sinh e -> "sinh(" ++ pprintExpr e ++ ")"
-//       | ~cosh e -> "cosh(" ++ pprintExpr e ++ ")"
-//       | ~tanh e -> "tanh(" ++ pprintExpr e ++ ")"
-//       | ~sqrt e -> "sqrt(" ++ pprintExpr e ++ ")"
-//       | ~exp e -> "exp(" ++ pprintExpr e ++ ")"
-//       | ~log e -> "log(" ++ pprintExpr e ++ ")"
-//       | ~log10 e -> "log10(" ++ pprintExpr e ++ ")"
-//       | sym: Real -> symstr(e) ++ "(t)"
-//       | sval r: Real -> r2mr r
-//       | _ -> error "Unmatched"
-//   };
+  def pprintSymbols(ss: Set(<Real>)) -> String = {
+    def f(a: String, s: <Real>) -> String = {
+      a ++ " " ++ ppSym s
+    };
 
-//   def pprintEqs(e: Model) -> String  = {
-//     match e with
-//     | Comp e_1 e_2 -> pprintEqs e_1 ++ "\n" ++ pprintEqs e_2
-//     | e_1 = e_2 -> pprintExpr e_1 ++ " == " ++ pprintExpr e_2
-//     | _ -> ""
-//   };
+    foldLeft f "" ss
+  };
 
-//   "syms t " ++ pprintUnknowns e ++ "\n\n" ++
-//   "vars = [" ++pprintUnknowns e ++ " ];\n\n" ++
-//   "eqns = [" ++ pprintEqs e ++ "];\n\n"
-// }
+  def pprintExpr(e: <>, us: Set(<Real>)) -> String = {
+    def work(e: <>) -> String = {
+      match e with
+        | e1 + e2 -> "(" ++ work e1 ++ " + " ++ work e2 ++ ")"
+        | e1 - e2 -> "(" ++ work e1 ++ " - " ++ work e2 ++ ")"
+        | e1 * e2 -> work e1 ++ " * " ++ work e2
+        | e1 / e2 -> work e1 ++ " / " ++ work e2
+        | -e -> "(-" ++ work e ++ ")"
+        | e1^e2 -> work e1 ++ " ^ " ++ "(" ++ work e2 ++ ")"
+        | der e -> "diff(" ++ work e ++ ")"
+        | ~sin e -> "sin(" ++ work e ++ ")"
+        | ~cos e -> "cos(" ++ work e ++ ")"
+        | ~tan e -> "tan(" ++ work e ++ ")"
+        | ~asin e -> "asin(" ++ work e ++ ")"
+        | ~acos e -> "acos(" ++ work e ++ ")"
+        | ~atan e -> "atan(" ++ work e ++ ")"
+        | ~sinh e -> "sinh(" ++ work e ++ ")"
+        | ~cosh e -> "cosh(" ++ work e ++ ")"
+        | ~tanh e -> "tanh(" ++ work e ++ ")"
+        | ~sqrt e -> "sqrt(" ++ work e ++ ")"
+        | ~exp e -> "exp(" ++ work e ++ ")"
+        | ~log e -> "log(" ++ work e ++ ")"
+        | ~log10 e -> "log10(" ++ work e ++ ")"
+        | sym: Real -> if Set.mem e us then symstr(e) ++ "(t)" else symstr(e)
+        | sval r: Real -> r2mr r
+        | _ -> error "Unmatched"
+    };
+    work e
+  };
+
+  def pprintEqs(e: Model, us: Set(<Real>)) -> String  = {
+    match e with
+    | Comp e_1 e_2 -> pprintEqs e_1 us ++ "\n" ++ pprintEqs e_2 us
+    | Eq e_1 e_2 -> pprintExpr e_1 us ++ " == " ++ pprintExpr e_2 us
+    | _ -> ""
+  };
+
+  def probed = getProbedUknowns e;
+  def ivm = getInitalValMap e;
+  def ps = getParameters e;
+  def us = getUknowns e ps;
+
+  // "syms t " ++ pprintUnknowns e ++ "\n\n" ++
+  // "vars = [" ++pprintUnknowns e ++ " ];\n\n" ++
+  // "eqns = [" ++ pprintEqs e ++ "];\n\n"
+  ""
+}
