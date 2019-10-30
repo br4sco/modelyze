@@ -20,63 +20,63 @@ written by Oscar Eriksson oerikss@kth.se
 
 include GRAPHSIMCORE
 
-type Point
-type PointFun1 = Point -> Model
-type PointFun2 = Point -> Point -> Model
+type PointT
+type PointTFun1 = PointT -> Model
+type PointTFun2 = PointT -> PointT -> Model
 
-def inParallel(l: PointFun2, r: PointFun2) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def inParallel(l: PointTFun2, r: PointTFun2) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     l p1 p2;
     r p1 p2
 }
 def (||) = inParallel
 
-def inSeries(l: Point, r: PointFun1) -> Model = {
+def inSeries(l: PointT, r: PointTFun1) -> Model = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: PointFun1, r: Point) -> Model = {
+def inSeries(l: PointTFun1, r: PointT) -> Model = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: Point, r: PointFun2) -> PointFun1 = {
+def inSeries(f: PointT, r: PointTFun2) -> PointTFun1 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: PointFun1, r: PointFun2) -> PointFun1 = {
-  fun p2: Point ->
-    def p1: Point;
+def inSeries(l: PointTFun1, r: PointTFun2) -> PointTFun1 = {
+  fun p2: PointT ->
+    def p1: PointT;
     l p1;
     r p1 p2
 }
 def (--) = inSeries
 
-def inSeriesExposeNode(l: PointFun2, p2: Point) -> (PointFun2, Point) = {
+def inSeriesExposeNode(l: PointTFun2, p2: PointT) -> (PointTFun2, PointT) = {
   (l, p2)
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeriesExposeNode(lf2: (PointFun2, Point), r: PointFun2) -> PointFun2 = {
-  fun p1: Point -> fun p3: Point ->
+def inSeriesExposeNode(lf2: (PointTFun2, PointT), r: PointTFun2) -> PointTFun2 = {
+  fun p1: PointT -> fun p3: PointT ->
     def (l, p2) = lf2;
     l p1 p2;
     r p2 p3
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeries(l: PointFun2, r: PointFun2) -> PointFun2 = {
-  fun p1: Point -> fun p3: Point ->
-    def p2: Point;
+def inSeries(l: PointTFun2, r: PointTFun2) -> PointTFun2 = {
+  fun p1: PointT -> fun p3: PointT ->
+    def p2: PointT;
     l p1 p2;
     r p2 p3
 }
 def (--) = inSeries
 
-def serializei(f: (Int -> PointFun2), n: Int) -> PointFun2 = {
-  def work(a: PointFun2, i: Int) -> PointFun2 = {
+def serializei(f: (Int -> PointTFun2), n: Int) -> PointTFun2 = {
+  def work(a: PointTFun2, i: Int) -> PointTFun2 = {
     if n - i < 0 then error "n is not a positive number"
     else if n - i == 0 then a
     else work (a -- f (i + 1)) (i + 1)
@@ -84,18 +84,15 @@ def serializei(f: (Int -> PointFun2), n: Int) -> PointFun2 = {
   work (f 1) 1
 }
 
-def serialize(f: PointFun2, n: Int) -> PointFun2 = {
+def serialize(f: PointTFun2, n: Int) -> PointTFun2 = {
   serializei (fun i: Int -> f) n
 }
 
 type Force = <Real>
 type Position = <Real>
 type Velocity = <Real>
-type Torque = <Real>
-type Angle = <Real>
 
-def translationEdge: Point -> Point -> Position -> Force -> Model
-def rotationEdge: Point -> Point -> Angle -> Torque -> Model
+def translationEdge: PointT -> PointT -> Position -> Force -> Model
 
 def getTranslationEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   def work(e: Model, a: ([ScalarPairEdge], Model))
@@ -112,99 +109,84 @@ def getTranslationEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   work e ([], NoElement)
 }
 
-def getRotationEdges(e: Model) -> ([ScalarPairEdge], Model) = {
-  def work(e: Model, a: ([ScalarPairEdge], Model))
-    -> ([ScalarPairEdge], Model) = {
-
-    match e with
-    | Comp e_1 e_2 -> work e_2 (work e_1 a)
-    | rotationEdge n_1 n_2 x y ->
-        (((n_1, n_2), (x, y))::(fst a), snd a)
-    | _ -> (fst a, (snd a); e)
-
-  };
-
-  work e ([], NoElement)
-}
-
-def ForceActuator1d(f: Force, x: Position) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def ForceActuator1d(f: Force, x: Position) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     translationEdge p1 p2 x f;
 }
 
-def ForceActuator1d(f: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def ForceActuator1d(f: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_A: Position;
     p1 -- ForceActuator1d f x_A -- p2
 }
 
-def TranslationActuator1d(f: Position, F: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def TranslationActuator1d(f: Position, F: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     translationEdge p1 p2 f F;
 }
 
-def TranslationActuator1d(f: Position) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def TranslationActuator1d(f: Position) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def F_A: Force;
     p1 -- TranslationActuator1d f F_A -- p2
 }
 
-def ForceActuator1d(f: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def ForceActuator1d(f: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_A: Position;
     p1 -- ForceActuator1d f x_A -- p2
 }
 
-def ForceSensor1d(s: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def ForceSensor1d(s: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     p1 -- TranslationActuator1d 0. s -- p2
 }
 
-def PositionSensor1d(s: Position) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def PositionSensor1d(s: Position) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_S: Position;
     p1 -- ForceActuator1d 0. x_S -- p2;
     x_S = s
 }
 
-def Spring1d(k: <Real>, x: Position, F: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Spring1d(k: <Real>, x: Position, F: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     translationEdge p1 p2 x F;
     F = -k * x
 }
 
-def Spring1d(k: <Real>) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Spring1d(k: <Real>) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_K: Position;
     def F_K: Force;
     p1 -- Spring1d k x_K F_K -- p2
 }
 
-def Damper1d(d: <Real>, x: Position, F: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Damper1d(d: <Real>, x: Position, F: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def v_D: Velocity;
     translationEdge p1 p2 x F;
     x' = v_D;
     F = -d * v_D
 }
 
-def Damper1d(d: <Real>) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Damper1d(d: <Real>) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_D: Position;
     def F_D: Force;
     p1 -- Damper1d d x_D F_D -- p2
 }
 
-def Mass1d(m: <Real>, x: Position, F: Force) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Mass1d(m: <Real>, x: Position, F: Force) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def v_M: Velocity;
     translationEdge p1 p2 x F;
     x' = v_M;
     F = m * v_M'
 }
 
-def Mass1d(m: <Real>) -> PointFun2 = {
-  fun p1: Point -> fun p2: Point ->
+def Mass1d(m: <Real>) -> PointTFun2 = {
+  fun p1: PointT -> fun p2: PointT ->
     def x_M: Position;
     def F_M: Force;
     p1 -- Mass1d m x_M F_M -- p2

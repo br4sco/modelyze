@@ -20,13 +20,16 @@ written by Oscar Eriksson oerikss@kth.se
 
 include GRAPHSIMCORE
 include GRAPHSIMELECTRICAL
-include GRAPHSIMMECHANICALONED
+include GRAPHSIMTRANSLATIONAL
+include GRAPHSIMROTATIONAL
 include GRAPHSIMMECHANICAL
 include GRAPHSIMELECTROMECHANICAL
+include GRAPHSIMELECTROTATIONAL
 
 def elaborate(e: Model) -> Model = {
   def (ees, e) = getElectricalEdges e;
   def (tes, e) = getTranslationEdges e;
+  def (res, e) = getRotationEdges e;
   def (tes3, e) = getTranslation3Edges e;
   def (res3, e) = getRotation3Edges1 e;
   // def (ries, e) = getRotationInitEdges e;
@@ -36,6 +39,9 @@ def elaborate(e: Model) -> Model = {
 
   def e = mkTopolEquations mkScalarTopolEquations
             mkScalarTopolEquations tes e;
+
+  def e = mkTopolEquations mkScalarTopolEquations
+            mkScalarTopolEquations res e;
 
   def e = mkTopolEquations mkVector3TopolEquations
             mkVector3TopolEquations tes3 e;
