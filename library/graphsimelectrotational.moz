@@ -1,0 +1,137 @@
+/*
+Modeling Kernel Language (Modelyze) library
+Copyright (C) 2010-2012 David Broman
+
+Modelyze library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Modelyze library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with Modelyze library.  If not, see <http://www.gnu.org/licenses/>.
+
+written by Oscar Eriksson oerikss@kth.se
+*/
+
+include GRAPHSIMROTATIONAL
+include GRAPHSIMELECTRICAL
+
+type PointRFun2NodeFun2 = PointR -> PointR -> Node -> Node -> Model
+type PointRFun1NodeFun2 = PointR -> Node -> Node -> Model
+
+def inParallel(l: PointRFun2NodeFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    l p1 p2 n1 n2;
+    r p1 p2 n1 n2
+}
+def (||) = inParallel
+
+def inSeries(l: PointR, r: PointRFun1NodeFun2) -> NodeFun2 = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun1NodeFun2, r: PointR) -> NodeFun2 = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: PointR, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun1NodeFun2, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
+  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    def p1: PointR;
+    l p1 n1 n2;
+    r p1 p2 n1 n2
+}
+def (--) = inSeries
+
+def inParallel(l: PointRFun2NodeFun2, r: PointRFun2) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    l p1 p2 n1 n2;
+    r p1 p2
+}
+def (||) = inParallel
+
+def inParallel(l: PointRFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = inParallel r l
+def (||) = inParallel
+
+def inSeries(l: PointRFun1, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
+  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    def p1: PointR;
+    l p1;
+    r p1 p2 n1 n2
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun1NodeFun2, r: PointRFun2) -> PointRFun1NodeFun2 = {
+  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    def p1: PointR;
+    l p1 n1 n2;
+    r p1 p2
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun2NodeFun2, r: PointRFun2) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
+    def p2: PointR;
+    l p1 p2 n1 n2;
+    r p2 p3
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
+    def p2: PointR;
+    l p1 p2;
+    r p2 p3 n1 n2
+}
+def (--) = inSeries
+
+def inSeries(l: PointRFun2NodeFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
+    def p2: PointR;
+    l p1 p2 n1 n2;
+    r p2 p3 n1 n2
+}
+def (--) = inSeries
+
+def EMFE(k: Real, u: Voltage, i: Current, w: AngularVelocity) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    electricalEdge n1 n2 u i;
+    u = k * w
+}
+
+def EMFE(k: Real, i: Current, w: AngularVelocity) -> NodeFun2 = {
+  fun n1: Node -> fun n2: Node ->
+    def u_EMF: Voltage;
+    n1 -- EMFE k u_EMF i w -- n2
+}
+
+def EMFM(k: Real, w: AngularVelocity, T: Torque, i: Current) -> PointRFun2 = {
+  fun p1: PointR -> fun p2: PointR ->
+    rotationEdge p1 p2 w T;
+    T = k * i
+}
+
+def EMFM(k: Real, w: AngularVelocity, i: Current) -> PointRFun2 = {
+  fun p1: PointR -> fun p2: PointR ->
+    def T_EMF: Torque;
+    p1 -- EMFM k w T_EMF i -- p2
+}
+
+def EMF(k: Real) -> PointRFun2NodeFun2 = {
+  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
+    def w_EMF: AngularVelocity;
+    def i_EMF: Current;
+    p1 -- EMFM k w_EMF i_EMF -- p2;
+    n1 -- EMFE k i_EMF w_EMF -- n2;
+}
