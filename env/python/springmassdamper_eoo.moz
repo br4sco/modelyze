@@ -1,11 +1,11 @@
 include GRAPHSIMCLI
 
-def p1, p2: Point
+def p1, p2: PointT
 def d, k, m, t: Real
 def u: Force
 def y: Position
 
-def system = Spring1d(-k) || Damper1d(-d) || Mass1d(m)
+def system = SpringT1d(-k) || DamperT1d(-d) || Mass1d(m)
 
 def model = {
   param d 2.0;

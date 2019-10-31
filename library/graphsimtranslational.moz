@@ -149,20 +149,20 @@ def PositionSensor1d(s: Position) -> PointTFun2 = {
     x_S = s
 }
 
-def Spring1d(k: <Real>, x: Position, F: Force) -> PointTFun2 = {
+def SpringT1d(k: <Real>, x: Position, F: Force) -> PointTFun2 = {
   fun p1: PointT -> fun p2: PointT ->
     translationEdge p1 p2 x F;
     F = -k * x
 }
 
-def Spring1d(k: <Real>) -> PointTFun2 = {
+def SpringT1d(k: <Real>) -> PointTFun2 = {
   fun p1: PointT -> fun p2: PointT ->
     def x_K: Position;
     def F_K: Force;
-    p1 -- Spring1d k x_K F_K -- p2
+    p1 -- SpringT1d k x_K F_K -- p2
 }
 
-def Damper1d(d: <Real>, x: Position, F: Force) -> PointTFun2 = {
+def DamperT1d(d: <Real>, x: Position, F: Force) -> PointTFun2 = {
   fun p1: PointT -> fun p2: PointT ->
     def v_D: Velocity;
     translationEdge p1 p2 x F;
@@ -170,11 +170,11 @@ def Damper1d(d: <Real>, x: Position, F: Force) -> PointTFun2 = {
     F = -d * v_D
 }
 
-def Damper1d(d: <Real>) -> PointTFun2 = {
+def DamperT1d(d: <Real>) -> PointTFun2 = {
   fun p1: PointT -> fun p2: PointT ->
     def x_D: Position;
     def F_D: Force;
-    p1 -- Damper1d d x_D F_D -- p2
+    p1 -- DamperT1d d x_D F_D -- p2
 }
 
 def Mass1d(m: <Real>, x: Position, F: Force) -> PointTFun2 = {
