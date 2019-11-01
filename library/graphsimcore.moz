@@ -22,14 +22,40 @@ include GRAPH
 
 def EPSILON = 1.e-15
 
+type Model
 type Signal = <Real>
+
+def Comp: Model -> Model -> Model
+def (;) = Comp
+
+type SignalFun1 = Signal -> Model
+type SignalFun2 = Signal -> Signal -> Model
+
+def inSeries(l: Signal, r: SignalFun1) -> Model = {
+  r l
+}
+def (--) = inSeries
+
+def inSeries(l: SignalFun1, r: Signal) -> Model = {
+  l r
+}
+def (--) = inSeries
+
+def inSeries(f: Signal, r: SignalFun2) -> SignalFun1 = {
+  r f
+}
+def (--) = inSeries
+
+def inSeries(l: SignalFun1, r: SignalFun2) -> SignalFun1 = {
+  fun f2: Signal ->
+    def f1: Signal;
+    l f1;
+    r f1 f2
+}
+def (--) = inSeries
 
 def der: Real -> Real
 def (') = der
-
-type Model
-def Comp: Model -> Model -> Model
-def (;) = Comp
 
 def Eq: Real -> Real -> Model
 def (=) = Eq
