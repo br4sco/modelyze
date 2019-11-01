@@ -21,86 +21,86 @@ written by Oscar Eriksson oerikss@kth.se
 include GRAPHSIMROTATIONAL
 include GRAPHSIMELECTRICAL
 
-type PointRFun2NodeFun2 = PointR -> PointR -> Node -> Node -> Model
-type PointRFun1NodeFun2 = PointR -> Node -> Node -> Model
+type FlangeFun2NodeFun2 = Flange -> Flange -> Node -> Node -> Model
+type FlangeFun1NodeFun2 = Flange -> Node -> Node -> Model
 
-def inParallel(l: PointRFun2NodeFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    l p1 p2 n1 n2;
-    r p1 p2 n1 n2
+def inParallel(l: FlangeFun2NodeFun2, r: FlangeFun2NodeFun2) -> FlangeFun2NodeFun2 = {
+  fun f1: Flange -> fun f2: Flange -> fun n1: Node -> fun n2: Node ->
+    l f1 f2 n1 n2;
+    r f1 f2 n1 n2
 }
 def (||) = inParallel
 
-def inSeries(l: PointR, r: PointRFun1NodeFun2) -> NodeFun2 = {
+def inSeries(l: Flange, r: FlangeFun1NodeFun2) -> NodeFun2 = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun1NodeFun2, r: PointR) -> NodeFun2 = {
+def inSeries(l: FlangeFun1NodeFun2, r: Flange) -> NodeFun2 = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: PointR, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
+def inSeries(f: Flange, r: FlangeFun2NodeFun2) -> FlangeFun1NodeFun2 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun1NodeFun2, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
-  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    def p1: PointR;
-    l p1 n1 n2;
-    r p1 p2 n1 n2
+def inSeries(l: FlangeFun1NodeFun2, r: FlangeFun2NodeFun2) -> FlangeFun1NodeFun2 = {
+  fun f2: Flange -> fun n1: Node -> fun n2: Node ->
+    def f1: Flange;
+    l f1 n1 n2;
+    r f1 f2 n1 n2
 }
 def (--) = inSeries
 
-def inParallel(l: PointRFun2NodeFun2, r: PointRFun2) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    l p1 p2 n1 n2;
-    r p1 p2
+def inParallel(l: FlangeFun2NodeFun2, r: FlangeFun2) -> FlangeFun2NodeFun2 = {
+  fun f1: Flange -> fun f2: Flange -> fun n1: Node -> fun n2: Node ->
+    l f1 f2 n1 n2;
+    r f1 f2
 }
 def (||) = inParallel
 
-def inParallel(l: PointRFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = inParallel r l
+def inParallel(l: FlangeFun2, r: FlangeFun2NodeFun2) -> FlangeFun2NodeFun2 = inParallel r l
 def (||) = inParallel
 
-def inSeries(l: PointRFun1, r: PointRFun2NodeFun2) -> PointRFun1NodeFun2 = {
-  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    def p1: PointR;
-    l p1;
-    r p1 p2 n1 n2
+def inSeries(l: FlangeFun1, r: FlangeFun2NodeFun2) -> FlangeFun1NodeFun2 = {
+  fun f2: Flange -> fun n1: Node -> fun n2: Node ->
+    def f1: Flange;
+    l f1;
+    r f1 f2 n1 n2
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun1NodeFun2, r: PointRFun2) -> PointRFun1NodeFun2 = {
-  fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    def p1: PointR;
-    l p1 n1 n2;
-    r p1 p2
+def inSeries(l: FlangeFun1NodeFun2, r: FlangeFun2) -> FlangeFun1NodeFun2 = {
+  fun f2: Flange -> fun n1: Node -> fun n2: Node ->
+    def f1: Flange;
+    l f1 n1 n2;
+    r f1 f2
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun2NodeFun2, r: PointRFun2) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
-    def p2: PointR;
-    l p1 p2 n1 n2;
-    r p2 p3
+def inSeries(l: FlangeFun2NodeFun2, r: FlangeFun2) -> FlangeFun2NodeFun2 = {
+  fun f1: Flange -> fun f3: Flange -> fun n1: Node -> fun n2: Node ->
+    def f2: Flange;
+    l f1 f2 n1 n2;
+    r f2 f3
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
-    def p2: PointR;
-    l p1 p2;
-    r p2 p3 n1 n2
+def inSeries(l: FlangeFun2, r: FlangeFun2NodeFun2) -> FlangeFun2NodeFun2 = {
+  fun f1: Flange -> fun f3: Flange -> fun n1: Node -> fun n2: Node ->
+    def f2: Flange;
+    l f1 f2;
+    r f2 f3 n1 n2
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun2NodeFun2, r: PointRFun2NodeFun2) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p3: PointR -> fun n1: Node -> fun n2: Node ->
-    def p2: PointR;
-    l p1 p2 n1 n2;
-    r p2 p3 n1 n2
+def inSeries(l: FlangeFun2NodeFun2, r: FlangeFun2NodeFun2) -> FlangeFun2NodeFun2 = {
+  fun f1: Flange -> fun f3: Flange -> fun n1: Node -> fun n2: Node ->
+    def f2: Flange;
+    l f1 f2 n1 n2;
+    r f2 f3 n1 n2
 }
 def (--) = inSeries
 
@@ -116,16 +116,16 @@ def EMFE(k: Real, i: Current, w: AngularVelocity) -> NodeFun2 = {
     n1 -- EMFE k u_EMF i w -- n2
 }
 
-def EMFM(k: Real, w: AngularVelocity, T: Torque, i: Current) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def EMFM(k: Real, w: AngularVelocity, T: Torque, i: Current) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_EMF: Angle;
-    rotationEdge p1 p2 th_EMF  T;
+    rotationEdge f1 f2 th_EMF  T;
     th_EMF' = w;
     T = k * i
 }
 
-def EMFM(k: Real, w: AngularVelocity, i: Current) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def EMFM(k: Real, w: AngularVelocity, i: Current) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def T_EMF: Torque;
-    p1 -- EMFM k w T_EMF i -- p2
+    f1 -- EMFM k w T_EMF i -- f2
 }

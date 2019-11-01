@@ -20,63 +20,63 @@ written by Oscar Eriksson oerikss@kth.se
 
 include GRAPHSIMCORE
 
-type PointR
-type PointRFun1 = PointR -> Model
-type PointRFun2 = PointR -> PointR -> Model
+type Flange
+type FlangeFun1 = Flange -> Model
+type FlangeFun2 = Flange -> Flange -> Model
 
-def inParallel(l: PointRFun2, r: PointRFun2) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
-    l p1 p2;
-    r p1 p2
+def inParallel(l: FlangeFun2, r: FlangeFun2) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
+    l f1 f2;
+    r f1 f2
 }
 def (||) = inParallel
 
-def inSeries(l: PointR, r: PointRFun1) -> Model = {
+def inSeries(l: Flange, r: FlangeFun1) -> Model = {
   r l
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun1, r: PointR) -> Model = {
+def inSeries(l: FlangeFun1, r: Flange) -> Model = {
   l r
 }
 def (--) = inSeries
 
-def inSeries(f: PointR, r: PointRFun2) -> PointRFun1 = {
+def inSeries(f: Flange, r: FlangeFun2) -> FlangeFun1 = {
   r f
 }
 def (--) = inSeries
 
-def inSeries(l: PointRFun1, r: PointRFun2) -> PointRFun1 = {
-  fun p2: PointR ->
-    def p1: PointR;
-    l p1;
-    r p1 p2
+def inSeries(l: FlangeFun1, r: FlangeFun2) -> FlangeFun1 = {
+  fun f2: Flange ->
+    def f1: Flange;
+    l f1;
+    r f1 f2
 }
 def (--) = inSeries
 
-def inSeriesExposeNode(l: PointRFun2, p2: PointR) -> (PointRFun2, PointR) = {
-  (l, p2)
+def inSeriesExposeNode(l: FlangeFun2, f2: Flange) -> (FlangeFun2, Flange) = {
+  (l, f2)
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeriesExposeNode(lf2: (PointRFun2, PointR), r: PointRFun2) -> PointRFun2 = {
-  fun p1: PointR -> fun p3: PointR ->
-    def (l, p2) = lf2;
-    l p1 p2;
-    r p2 p3
+def inSeriesExposeNode(lf2: (FlangeFun2, Flange), r: FlangeFun2) -> FlangeFun2 = {
+  fun f1: Flange -> fun p3: Flange ->
+    def (l, f2) = lf2;
+    l f1 f2;
+    r f2 p3
 }
 def (-.-) = inSeriesExposeNode
 
-def inSeries(l: PointRFun2, r: PointRFun2) -> PointRFun2 = {
-  fun p1: PointR -> fun p3: PointR ->
-    def p2: PointR;
-    l p1 p2;
-    r p2 p3
+def inSeries(l: FlangeFun2, r: FlangeFun2) -> FlangeFun2 = {
+  fun f1: Flange -> fun f3: Flange ->
+    def f2: Flange;
+    l f1 f2;
+    r f2 f3
 }
 def (--) = inSeries
 
-def serializei(f: (Int -> PointRFun2), n: Int) -> PointRFun2 = {
-  def work(a: PointRFun2, i: Int) -> PointRFun2 = {
+def serializei(f: (Int -> FlangeFun2), n: Int) -> FlangeFun2 = {
+  def work(a: FlangeFun2, i: Int) -> FlangeFun2 = {
     if n - i < 0 then error "n is not a positive number"
     else if n - i == 0 then a
     else work (a -- f (i + 1)) (i + 1)
@@ -84,7 +84,7 @@ def serializei(f: (Int -> PointRFun2), n: Int) -> PointRFun2 = {
   work (f 1) 1
 }
 
-def serialize(f: PointRFun2, n: Int) -> PointRFun2 = {
+def serialize(f: FlangeFun2, n: Int) -> FlangeFun2 = {
   serializei (fun i: Int -> f) n
 }
 
@@ -92,7 +92,7 @@ type Torque = <Real>
 type Angle = <Real>
 type AngularVelocity = <Real>
 
-def rotationEdge: PointR -> PointR -> Angle -> Torque -> Model
+def rotationEdge: Flange -> Flange -> Angle -> Torque -> Model
 
 def getRotationEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   def work(e: Model, a: ([ScalarPairEdge], Model))
@@ -109,92 +109,92 @@ def getRotationEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   work e ([], NoElement)
 }
 
-def TorqueActuator1d(f: Torque, th: Angle) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
-    rotationEdge p1 p2 th f;
+def TorqueActuator(f: Torque, th: Angle) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
+    rotationEdge f1 f2 th f;
 }
 
-def TorqueActuator1d(f: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def TorqueActuator(f: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_A: Angle;
-    p1 -- TorqueActuator1d f th_A -- p2
+    f1 -- TorqueActuator f th_A -- f2
 }
 
-def RotationActuator1d(f: Angle, T: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
-    rotationEdge p1 p2 f T;
+def RotationActuator(f: Angle, T: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
+    rotationEdge f1 f2 f T;
 }
 
-def RotationActuator1d(f: Angle) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def RotationActuator(f: Angle) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def F_A: Torque;
-    p1 -- RotationActuator1d f F_A -- p2
+    f1 -- RotationActuator f F_A -- f2
 }
 
-def TorqueActuator1d(f: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def TorqueActuator(f: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_A: Angle;
-    p1 -- TorqueActuator1d f th_A -- p2
+    f1 -- TorqueActuator f th_A -- f2
 }
 
-def TorqueSensor1d(s: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
-    p1 -- RotationActuator1d 0. s -- p2
+def TorqueSensor1d(s: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
+    f1 -- RotationActuator 0. s -- f2
 }
 
-def AngleSensor1d(s: Angle) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def AngleSensor(s: Angle) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_S: Angle;
-    p1 -- TorqueActuator1d 0. th_S -- p2;
+    f1 -- TorqueActuator 0. th_S -- f2;
     th_S = s
 }
 
-def AngularVelocitySensor1d(w: AngularVelocity) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def AngularVelocitySensor(w: AngularVelocity) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_S: Angle;
-    p1 -- AngleSensor1d th_S -- p2;
+    f1 -- AngleSensor th_S -- f2;
     th_S' = w
 }
 
-def Spring1d(k: <Real>, th: Angle, T: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
-    rotationEdge p1 p2 th T;
-    T = k * th
+def SpringR(k: <Real>, th: Angle, T: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
+    rotationEdge f1 f2 th T;
+    T = -k * th
 }
 
-def Spring1d(k: <Real>) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def SpringR(k: <Real>) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_K: Angle;
     def T_K: Torque;
-    p1 -- Spring1d k th_K T_K -- p2
+    f1 -- SpringR k th_K T_K -- f2
 }
 
-def Damper1d(d: <Real>, th: Angle, T: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def DamperR(d: <Real>, th: Angle, T: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def w_D: AngularVelocity;
-    rotationEdge p1 p2 th T;
+    rotationEdge f1 f2 th T;
     th' = w_D;
-    T = d * w_D
+    T = -d * w_D
 }
 
-def Damper1d(d: <Real>) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def DamperR(d: <Real>) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_D: Angle;
     def T_D: Torque;
-    p1 -- Damper1d d th_D T_D -- p2
+    f1 -- DamperR d th_D T_D -- f2
 }
 
-def Inertia1d(J: <Real>, th: Angle, T: Torque) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def Inertia(J: <Real>, th: Angle, T: Torque) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def w_J: AngularVelocity;
-    rotationEdge p1 p2 th T;
+    rotationEdge f1 f2 th T;
     th' = w_J;
-    T = J * w_J'
+    T = -J * w_J'
 }
 
-def Inertia1d(J: <Real>) -> PointRFun2 = {
-  fun p1: PointR -> fun p2: PointR ->
+def Inertia(J: <Real>) -> FlangeFun2 = {
+  fun f1: Flange -> fun f2: Flange ->
     def th_J: Angle;
     def T_J: Torque;
-    p1 -- Inertia1d J th_J T_J -- p2
+    f1 -- Inertia J th_J T_J -- f2
 }

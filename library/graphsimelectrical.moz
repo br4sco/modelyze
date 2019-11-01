@@ -108,32 +108,32 @@ def getElectricalEdges(e: Model) -> ([ScalarPairEdge], Model) = {
   work e ([], NoElement)
 }
 
-def VoltageActuator(f: Voltage, i: Current) -> NodeFun2 = {
+def VoltageSource(f: Voltage, i: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node -> electricalEdge n1 n2 f i
 }
 
-def VoltageActuator(f: Voltage) -> NodeFun2 = {
+def VoltageSource(f: Voltage) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     def i: Current;
-    n1 -- VoltageActuator f i -- n2
+    n1 -- VoltageSource f i -- n2
 }
 
-def CurrentActuator(f: Current, u: Voltage) -> NodeFun2 = {
+def CurrentSource(f: Current, u: Voltage) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node -> electricalEdge n1 n2 u f
 }
 
-def CurrentActuator(f: Current) -> NodeFun2 = {
+def CurrentSource(f: Current) -> NodeFun2 = {
   fun n1: Node -> fun n2: Node ->
     def u: Voltage;
-    n1 -- CurrentActuator f u -- n2
+    n1 -- CurrentSource f u -- n2
 }
 
 def VoltageSensor(u: Voltage) -> NodeFun2 = {
-  CurrentActuator 0. u
+  CurrentSource 0. u
 }
 
 def CurrentSensor(i: Current) -> NodeFun2 = {
-  VoltageActuator 0. i
+  VoltageSource 0. i
 }
 
 def Resistor(R: Real, u: Voltage, i: Current) -> NodeFun2 = {
