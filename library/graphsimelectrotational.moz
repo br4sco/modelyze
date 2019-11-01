@@ -118,7 +118,9 @@ def EMFE(k: Real, i: Current, w: AngularVelocity) -> NodeFun2 = {
 
 def EMFM(k: Real, w: AngularVelocity, T: Torque, i: Current) -> PointRFun2 = {
   fun p1: PointR -> fun p2: PointR ->
-    rotationEdge p1 p2 w T;
+    def th_EMF: Angle;
+    rotationEdge p1 p2 th_EMF  T;
+    th_EMF' = w;
     T = k * i
 }
 
@@ -126,12 +128,4 @@ def EMFM(k: Real, w: AngularVelocity, i: Current) -> PointRFun2 = {
   fun p1: PointR -> fun p2: PointR ->
     def T_EMF: Torque;
     p1 -- EMFM k w T_EMF i -- p2
-}
-
-def EMF(k: Real) -> PointRFun2NodeFun2 = {
-  fun p1: PointR -> fun p2: PointR -> fun n1: Node -> fun n2: Node ->
-    def w_EMF: AngularVelocity;
-    def i_EMF: Current;
-    p1 -- EMFM k w_EMF i_EMF -- p2;
-    n1 -- EMFE k i_EMF w_EMF -- n2;
 }

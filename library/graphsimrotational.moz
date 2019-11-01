@@ -149,10 +149,17 @@ def AngleSensor1d(s: Angle) -> PointRFun2 = {
     th_S = s
 }
 
+def AngularVelocitySensor1d(w: AngularVelocity) -> PointRFun2 = {
+  fun p1: PointR -> fun p2: PointR ->
+    def th_S: Angle;
+    p1 -- AngleSensor1d th_S -- p2;
+    th_S' = w
+}
+
 def Spring1d(k: <Real>, th: Angle, T: Torque) -> PointRFun2 = {
   fun p1: PointR -> fun p2: PointR ->
     rotationEdge p1 p2 th T;
-    T = -k * th
+    T = k * th
 }
 
 def Spring1d(k: <Real>) -> PointRFun2 = {
@@ -167,7 +174,7 @@ def Damper1d(d: <Real>, th: Angle, T: Torque) -> PointRFun2 = {
     def w_D: AngularVelocity;
     rotationEdge p1 p2 th T;
     th' = w_D;
-    T = -d * w_D
+    T = d * w_D
 }
 
 def Damper1d(d: <Real>) -> PointRFun2 = {

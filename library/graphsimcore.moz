@@ -22,6 +22,8 @@ include GRAPH
 
 def EPSILON = 1.e-15
 
+type Signal = <Real>
+
 def der: Real -> Real
 def (') = der
 
