@@ -31,6 +31,13 @@ def inParallel(l: FlangeFun2, r: FlangeFun2) -> FlangeFun2 = {
 }
 def (||) = inParallel
 
+def inSeries(l: FlangeFun1, r: FlangeFun1) -> FlangeFun1 = {
+  fun f2: Flange ->
+    l f2;
+    r f2
+}
+def (--) = inSeries
+
 def inSeries(l: Flange, r: FlangeFun1) -> Model = {
   r l
 }
