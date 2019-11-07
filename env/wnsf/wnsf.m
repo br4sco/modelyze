@@ -1,3 +1,11 @@
+%% read data
+y_data = importdata("y");
+u_data = importdata("u");
+theta_d_k_m_true = importdata("theta_d_k_m");
+
+%% arange data
+
+
 %% symbols
 syms ek t z s q d k m xd(t) vd(t) fd(t) xm(t) vm(t) fm(t) xk(t) fk(t) y(t) u(t) xs(t) xa(t) e(t)
 
@@ -20,9 +28,9 @@ dynamics_residual = [terminal_res; topol_res]
 output_res = y(t) - xs(t) - e(t)
 
 xx = [xd(t); xm(t); vm(t); vd(t); fd(t); fm(t); xk(t); fk(t); xs(t); xa(t)];
-uu = [u(t)];
-yy = [y(t)];
-ee = [e(t)];
+uu = u(t);
+yy = y(t);
+ee = e(t);
 
 %% ODE residual
 
@@ -52,3 +60,18 @@ Hz = subs(H, s, 2 * (z - 1)/ (z + 1))
 [Fc, Ft, Lc, Lt] = collect_coeffs(z, Gz)
 
 [Dc, Dt, Cc, Ct] = collect_coeffs(z, Hz)
+
+%% format data
+n = 4;
+N = 10;
+% N = length(y_data);
+
+syms y [1, N]
+syms u [1, N]
+
+phi = sym(zeros(fix(N/n),2*n))
+for t=n+1:N
+    if t+n <= N
+        phi(t-n,:) = [-y(t:t+n-1) u(t-1:t+n-2)]
+    end
+end
