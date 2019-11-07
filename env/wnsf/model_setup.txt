@@ -1,0 +1,33 @@
+include GRAPHSIMCLI
+
+def x1, x2, y, F, t: <Real>
+def k, d, m: <Real>
+
+def model = {
+  param k 10.;
+  param d 2.;
+  param m 3.;
+
+  F = -m * GRAVITATIONAL_CONSTANT;
+  // F = sin(t);
+  t' = 1.;
+
+  x1' = x2;
+  x2' = (-k / m) * x1 + (-d / m) * x2 + (F / m);
+  y = x1;
+
+  x1 <- 0.;
+  y <- 0.;
+  x2 <~ 0.;
+	
+  probe t;
+  probe F;
+  probe y
+}
+
+def main = (export2ModelicaCLI model)
+
+
+startTime=0, stopTime=20, stepSize=0.01, tol=1e-6, solver=ida
+d in [0,100), k in [0,100), m in [0,100)
+X_n = [F_n, y_n]', T_n = [d_n, k_n, m_n]'
