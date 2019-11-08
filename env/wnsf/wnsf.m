@@ -66,12 +66,6 @@ n = 4;
 N = 10;
 % N = length(y_data);
 
-syms y [1, N]
-syms u [1, N]
-
-phi = sym(zeros(fix(N/n),2*n))
-for t=n+1:N
-    if t+n <= N
-        phi(t-n,:) = [-y(t:t+n-1) u(t-1:t+n-2)]
-    end
-end
+syms y [1,N];
+syms u [1,N];
+mk_phi(n,y,u)
