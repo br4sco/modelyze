@@ -68,21 +68,14 @@ y_data_scaled = scalef*y_data;
 u_data_scaled = scalef*u_data;
 
 %% step 1
-na = 3;
+na = 40;
 nb = 1;
-
-y_data_zeroed = [zeros(10*max(na,nb),1); y_data];
-u_data_zeroed = [zeros(10*max(na,nb),1); u_data];
-
 N = length(y_data_scaled);
 phi = mk_phi(y_data_scaled,u_data_scaled);
 R_N = mk_R(phi,N,na,nb)
 r_N = mk_r(phi,y_data_scaled,na,nb)
 eta_N = R_N\r_N
-
-
-data = iddata(y_data_zeroed,u_data_zeroed,Ts);
+data = iddata(y_data,u_data,Ts);
 sys = arx(data,[na,nb,0])
-X = cell2mat(arrayfun(@(t) phi(3,3,t)',t','UniformOutput',false));
-[~, coldep] = rref(X);
+
 
